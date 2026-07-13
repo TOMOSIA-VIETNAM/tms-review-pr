@@ -69,11 +69,13 @@ comment — KHÔNG được tự ý close/merge/reopen PR, xoá/tạo/đổi bra
 Enforce ở 2 lớp: chữ viết (rule tường minh) + `allowed-tools` thu hẹp đúng subcommand cần dùng
 (không có `gh pr close/merge`, không có `git push`/`branch -D`/`reset --hard`).
 
-**Bước 1 (đồng bộ local) là bước AN TOÀN kiểu fail-closed.** `git fetch origin <base> <head>` luôn
-chạy được (chỉ cập nhật ref, không đụng working tree). Sau đó `git status --porcelain` tại pwd —
-CÓ output (working tree bẩn) → dừng TOÀN BỘ review ngay, yêu cầu user commit/`git stash` trước.
-Đọc file ngoài phạm vi diff dùng `git show <ref>:<path>` (không `checkout`/tạo worktree — không
-đụng branch hiện tại của user).
+**Bước 1 (đồng bộ local) đưa code PR lên đĩa để tận dụng index/search sẵn có của Claude Code/IDE —
+không phải để mandate đọc full codebase.** Ghi nhớ branch hiện tại → `git status --porcelain`
+bẩn thì dừng TOÀN BỘ review (yêu cầu commit/`git stash` trước) → `gh pr checkout <pull_number>`
+(xử lý đúng cả PR từ fork) đưa code PR vào working tree, `git fetch origin <base>` để `git show
+<base>:<path>` dùng được khi cần so sánh. Việc đọc thêm ngoài diff (mức độ, phạm vi) là PHÁN ĐOÁN
+của agent lúc review (Bước 7), không phải bước này ép buộc. Sau khi post review xong (Bước 9),
+checkout lại đúng branch đã ghi nhớ — không để user kết thúc phiên trên nhánh khác.
 
 **Tên thư mục memory (`repo name`) = CHÍNH segment `<repo>` cắt từ PR URL — định nghĩa DUY NHẤT.**
 Không suy tên repo từ basename pwd/thư mục con/git remote (nếu không, 2 PR cùng repo sẽ tạo 2 thư
@@ -128,11 +130,6 @@ phải trong plugin), có git nested riêng (không push). Bootstrap + doctor (`
 `.doctored`) chỉ chạy 1 lần; local template copy (`meta.json.templates_copied`) chạy lại mỗi khi
 gặp stack chưa từng thấy ở repo đó, kể cả sau khi đã bootstrap/doctor xong lâu rồi — đây là 2 điều
 kiện khác nhau, đừng gộp chung 1 gate. Đừng nhầm thư mục này là dữ liệu của plugin repo này.
-
-**Danh tính commit vào `notebooks/review/.git`: project-local trước, global sau, synthetic cuối
-cùng.** `git config user.name`/`user.email` (không kèm `--local`/`--global`) tại root repo CHÍNH
-đang review tự resolve local-project-trước-global — dùng kết quả đó cho commit vào git nested nếu
-có; chỉ dùng danh tính giả `review-plugin`/`review-plugin@local` khi CẢ 2 tầng đều không có gì.
 
 **`src/ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Đây là rule cứng global (vd ngôn ngữ output,
 default English). Bản plugin `${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` (biến môi trường chuẩn Claude

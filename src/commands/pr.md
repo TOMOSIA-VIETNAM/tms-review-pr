@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh api:*), Bash(git init:*), Bash(git -C notebooks/review:*), Bash(git fetch:*), Bash(git status:*), Bash(git show:*), Bash(cp:*), Bash(mkdir:*), Agent, Read, Write, Edit
+allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr checkout:*), Bash(gh api:*), Bash(git init:*), Bash(git -C notebooks/review:*), Bash(git fetch:*), Bash(git status:*), Bash(git branch:*), Bash(git checkout:*), Bash(git show:*), Bash(cp:*), Bash(mkdir:*), Agent, Read, Grep, Write, Edit
 argument-hint: <GitHub PR URL>
 description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua memory, post kết quả qua gh api.
 ---
@@ -72,26 +72,29 @@ URL, để dễ phát hiện sai sót.
 
 ## Bước 1 — Đồng bộ code local cho source & target branch
 
-Mục tiêu: review dựa trên code mới nhất, và có thể đọc trực tiếp file thật (không chỉ đoạn diff
-patch) khi cần hiểu ngữ cảnh rộng hơn — mà KHÔNG đụng tới branch/working tree hiện tại của user.
+Mục tiêu: đưa code của PR vào đúng trạng thái trên đĩa để Claude Code (và IDE đang chạy trong đó
+nếu có, vd Cursor) tận dụng được index/search sẵn có trên codebase thật — cho ngữ cảnh review tốt
+hơn ngoài phạm vi đoạn diff patch. Việc có cần đọc thêm file nào ngoài diff, đọc sâu tới đâu, là
+PHÁN ĐOÁN của agent lúc review (Bước 7) tuỳ vào việc đã thấy đủ ngữ cảnh chưa — bước này chỉ chuẩn
+bị điều kiện, không bắt buộc phải đọc toàn bộ codebase mỗi lần.
 
-1. Cập nhật ref mới nhất cho cả 2 branch: `git fetch origin "$baseRefName" "$headRefName"` (dùng
-   giá trị đã lấy ở block Ngữ cảnh). Lệnh này CHỈ cập nhật ref, KHÔNG đụng working tree/branch hiện
-   tại — luôn an toàn, chạy được bất kể working tree đang sạch hay bẩn.
+1. Ghi nhớ branch hiện tại của repo (để khôi phục lại ở cuối): `git branch --show-current`.
 2. Kiểm working tree tại pwd có sạch không: `git status --porcelain`.
    - **Có output** (đang có file thay đổi/chưa commit) → **DỪNG TOÀN BỘ REVIEW NGAY TẠI ĐÂY**,
-     KHÔNG thực hiện bất kỳ bước nào tiếp theo (không setup, không đọc rule, không post gì cả).
-     Xuất đúng thông báo:
+     KHÔNG thực hiện bất kỳ bước nào tiếp theo (không setup, không đọc rule, không post gì cả) —
+     vì lúc này code trên đĩa không phản ánh đúng target/source thật, review dựa trên đó không
+     đáng tin. Xuất đúng thông báo:
      ```
      ❌ Working tree tại <pwd> đang có thay đổi chưa commit.
      Hãy commit hoặc dọn sạch (git stash) rồi chạy lại /review:pr.
      ```
-   - **Không có output** (sạch) → tiếp tục sang Bước 2.
-3. Khi cần đọc nội dung file thật ngoài phạm vi diff (vd xem toàn bộ file thay vì chỉ đoạn patch,
-   kiểm tra 1 file liên quan không nằm trong diff) → dùng `git show <ref>:<path>` với
-   `<ref>` là `baseRefName` (target, code trước khi merge) hoặc `headRefName` (source, code của PR).
-   KHÔNG `checkout`/`switch` sang branch khác, KHÔNG tạo worktree — `git show` đọc thẳng nội dung từ
-   git object đã fetch, không đụng gì tới branch/working tree hiện tại của user.
+   - **Không có output** (sạch) → tiếp tục.
+3. Đưa code của PR vào working tree: `gh pr checkout <pull_number>` (xử lý đúng cả trường hợp PR
+   từ fork — tự biết remote/branch thật sự cần fetch, không cần tự suy đoán). Đồng thời
+   `git fetch origin "$baseRefName"` để có sẵn ref target khi cần so sánh (`git show
+   "$baseRefName":<path>` đọc nội dung file ở target mà không cần checkout riêng).
+4. Sau khi post review xong (Bước 9), khôi phục lại đúng branch đã ghi nhớ ở mục 1:
+   `git checkout "<branch đã ghi nhớ>"` — trả lại đúng trạng thái ban đầu cho user.
 
 ## Bước 2 — Detect stack cho từng file trong diff
 
@@ -213,6 +216,10 @@ là phán đoán theo ngữ cảnh của agent lúc review, KHÔNG dùng enum/da
   Nếu phát hiện vấn đề KHÔNG liên quan trực tiếp tới thay đổi của PR (code cũ có sẵn, ngoài phạm vi)
   — vẫn có thể nêu nhưng phải TÁCH RIÊNG rõ ràng, gắn nhãn "ngoài phạm vi PR này" (out-of-scope):
   KHÔNG tính vào các mức bắt buộc/nên sửa, KHÔNG ép fix trong PR này.
+- **Đọc thêm codebase ngoài diff là phán đoán của agent, không phải bắt buộc.** Code của PR đã có
+  sẵn trên đĩa từ Bước 1 — nếu đoạn diff không đủ để đánh giá đúng (vd cần xem hàm được gọi từ file
+  khác, cần biết convention hiện có của 1 module liên quan), tự đọc thêm bằng `Read`/`Grep` trên
+  local. Nếu diff đã đủ rõ ràng để đánh giá, KHÔNG cần chủ động mở rộng đọc toàn bộ codebase.
 - **KHÔNG dùng source thư viện/framework như thói quen.** Dựa vào kiến thức chung sẵn có về
   framework/ngôn ngữ trước. CHỈ tra cứu source code của thư viện/framework bên ngoài (vendor,
   `node_modules`, gem source, package cài sẵn...) khi THỰC SỰ không chắc chắn về 1 hành vi cụ thể
@@ -301,6 +308,10 @@ vừa tạo. Nếu `state` là `"PENDING"` (nghĩa là lần POST ở trên vì 
 submit ngay bằng `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events
 -f event="COMMENT"` (thay `{review_id}` bằng `id` vừa lấy được). KHÔNG coi lệnh post ở Bước 9 là
 hoàn tất cho tới khi xác nhận `state` KHÁC `"PENDING"` (vd `"COMMENTED"`).
+
+Sau khi verify xong, khôi phục branch như đã nêu ở Bước 1 mục 4: `git checkout` về đúng branch đã
+ghi nhớ trước khi `gh pr checkout` — không để user kết thúc phiên trên nhánh khác branch họ đang
+làm việc trước đó.
 
 ## Bước 10 — Hành vi chung khi plugin "review" active (ngoài luồng `/review:pr`)
 

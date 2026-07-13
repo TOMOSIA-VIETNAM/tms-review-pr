@@ -16,64 +16,42 @@ Cũng nhận diện được khi gõ tự nhiên trong chat ("review giúp tôi 
 
 ## Cài đặt
 
+Trong 1 phiên Claude Code bất kỳ:
+
 ```
-./scripts/reinstall.sh
+/plugin marketplace add /đường/dẫn/tới/github-reviewer
+/plugin install review@github-reviewer
 ```
 
-Cài lại từ đầu (uninstall → gỡ marketplace cũ → add lại → install lại) — chạy an toàn nhiều lần.
-Sau khi chạy, mở phiên Claude Code mới để nạp `/review:pr`.
+Mở phiên Claude Code mới sau khi cài, và nhập lệnh `/review:pr`.
 
 ## Cách hoạt động
 
 ```
-┌─ plugin (dùng chung cả team, 1 nơi) ───────────────────────────────┐
-│                                                                     │
-│  src/ALWAYS_RULE.md    baseline: quy tắc áp dụng MỌI PR, mọi stack │
-│  src/templates/*.md    tiêu chí riêng từng ngôn ngữ/framework       │
-│  src/commands/pr.md    /review:pr — quy trình review                │
-│  src/setup-flow.md     bootstrap + doctor (chỉ đọc khi cần)          │
-│                                                                     │
-└──────────────────────────────┬──────────────────────────────────────┘
-                                │  /review:pr <PR_URL>
-                                ▼
-┌─ repo đang được review (mỗi repo state riêng) ─────────────────────┐
-│                                                                     │
-│  Lần đầu review 1 repo:                                             │
-│    notebooks/review/<repo>/                                        │
-│      ALWAYS_RULE.md         ← copy từ plugin, team tự sửa được      │
-│      templates/<stack>.md   ← copy từ plugin, hoặc tự soạn nếu chưa │
-│                                 có (rồi lưu local)                  │
-│      memory.md + memories/  ← rỗng lúc đầu                          │
-│      doctor: quét TOÀN repo tìm README/CLAUDE.md/AGENTS.md/docs/... │
-│              → ghi THAM CHIẾU vào memory.md (không copy nội dung,   │
-│                tránh bị lỗi thời khi dự án tự cập nhật docs)         │
-│                                                                     │
-│  Mọi lần review:                                                    │
-│    1. Đồng bộ local cho source/target — dừng nếu working tree bẩn   │
-│    2. Detect stack cho từng file trong diff                         │
-│    3. Đảm bảo có local template cho (các) stack đó                  │
-│    4. Nạp ALWAYS_RULE + memory + template (bản LOCAL của repo)      │
-│    5. Review theo 6 mục (baseline + đặc thù stack + lesson đã học)  │
-│    6. Post ĐÚNG 1 review (summary + inline comment), verify đã submit│
-│                                                                     │
-│  Theo thời gian: phát hiện đồng thuận convention mới qua re-review  │
-│  → hỏi user xác nhận → ghi thêm vào memory.md → lần review sau      │
-│  ngày càng sát với quy ước thật của dự án, không phải học lại từ 0  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+   /review:pr <PR_URL>
+          │
+          ▼
+   Đọc title + description của PR — có nêu rõ mục đích/business không?
+          │
+          ▼
+   Đồng bộ code của PR về máy (không đụng branch bạn đang làm việc dở)
+          │
+          ▼
+   Review đúng phần thay đổi của PR, đối chiếu với:
+     • quy tắc kỹ thuật chung (mọi ngôn ngữ/framework)
+     • quy ước riêng của dự án này (tự học — xem bên dưới)
+          │
+          ▼
+   Đăng 1 review duy nhất lên PR:
+     tổng quan + comment tại từng dòng liên quan, nhãn mức độ bằng chữ
+     (không emoji, không bới lỗi vụn vặt — PR sạch thì chỉ "LGTM")
 ```
 
-## Nguyên tắc
+**Tự học quy ước của dự án.** Lần đầu review 1 project, nó tự tìm các tài liệu quy ước sẵn có
+(README, CLAUDE.md, AGENTS.md, docs nội bộ...) để áp đúng convention của team thay vì áp luật chung
+chung — chỉ làm kỹ 1 lần, không lặp lại mỗi lần review. Khi phát hiện 1 quy ước mới qua review thực
+tế (dev và reviewer thống nhất với nhau trên thread), nó hỏi xác nhận trước khi ghi nhớ, không tự
+quyết định thay team. Những lần review sau ngày càng sát với dự án cụ thể, không học lại từ đầu.
 
-- **Baseline + delta, không lặp.** Quy tắc chung nằm ở `ALWAYS_RULE.md`, nạp cho mọi PR. Mỗi
-  template chỉ chứa phần đặc thù của stack đó — không lặp lại quy tắc chung.
-- **Học theo dự án, không học chung chung.** Convention riêng (từ doctor hoặc từ đồng thuận
-  review thật) sống trong `notebooks/review/<repo>/` của chính repo đó — không trộn giữa các dự án.
-- **Gợi ý, không phải checklist đóng.** Tiêu chí trong baseline/template là ví dụ định hướng —
-  luôn khuyến khích tự phát hiện thêm vấn đề ngoài danh sách.
-- **Chỉ review + comment.** Không tự ý close/merge PR, không xoá/đổi branch, không sửa code —
-  mọi hành động ngoài phạm vi review đều cần user tự quyết định.
-
-## Cho người phát triển plugin này
-
-Xem `CLAUDE.md` (kiến trúc chi tiết) và `backlogs/` (lịch sử task lúc build, tạm thời).
+**Chỉ review + comment.** Không tự ý close/merge/reopen PR, không xoá/đổi branch, không sửa code
+trong repo — mọi hành động ngoài phạm vi review đều cần bạn tự quyết định.
