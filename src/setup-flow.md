@@ -28,15 +28,24 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    thư mục `memories/` (git không track thư mục rỗng).
 3. Dùng `Write` tạo `notebooks/review/<repo>/templates/.gitkeep` (rỗng) — thư mục này sẽ chứa
    bản LOCAL copy của (các) template stack đang dùng trong repo (xem Phần B), tạo sẵn thư mục trước.
-4. Copy `ALWAYS_RULE.md` từ plugin vào bản LOCAL của repo bằng `cp` (KHÔNG Read+Write qua context):
+4. Kiểm `notebooks/review/.gitignore` đã tồn tại chưa (`Read` thử) — file RIÊNG của git nested
+   `notebooks/review/.git` (khác `.gitignore` của repo chính ở bước 8 dưới), cần có để worktree
+   ephemeral chứa code PR checkout (Bước 1 của `pr.md`, dưới
+   `notebooks/review/<repo>/worktrees/...`) KHÔNG bao giờ lọt vào git nested này — nested repo chỉ
+   nên chứa memory/template/rule, không phải code PR đang review:
+   - Chưa tồn tại → `Write` tạo mới `notebooks/review/.gitignore` chỉ chứa đúng 1 dòng `worktrees/`.
+   - Tồn tại nhưng CHƯA có dòng `worktrees/` (repo nested có thể đã tạo từ trước Task P11) → `Edit`
+     append thêm dòng đó.
+   - Đã có đủ → bỏ qua.
+5. Copy `ALWAYS_RULE.md` từ plugin vào bản LOCAL của repo bằng `cp` (KHÔNG Read+Write qua context):
    `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
-5. Hỏi user 3 câu trong 1 lượt, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
+6. Hỏi user 3 câu trong 1 lượt, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
    thể): (1) ngôn ngữ output cho review — vi/en/ja; (2) `auto_submit_review` true/false (mặc định
    **false** nếu user không có ý kiến); (3) `auto_resolve_fixed_findings` true/false (mặc định
    **false**). Xử lý câu trả lời:
-   - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 4, thay đúng dòng
+   - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 5, thay đúng dòng
      `<!-- Chưa set — đang dùng mặc định English. Ví dụ ghi đè: "Luôn output tiếng Việt". -->`
      bằng câu lệnh ngôn ngữ tương ứng, theo đúng định dạng ví dụ có sẵn — vd chọn tiếng Việt:
      `Luôn output tiếng Việt.`; tiếng Anh: `Luôn output tiếng Anh.`; tiếng Nhật: `Luôn output tiếng
@@ -44,17 +53,17 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
      từ việc dòng comment này còn nguyên văn mặc định hay đã bị ghi đè, không lưu trạng thái ở nơi
      khác.
    - **`auto_submit_review` / `auto_resolve_fixed_findings`** → ghi nhớ 2 giá trị boolean, đưa vào
-     `meta.json` cùng lúc với `bootstrapped: true` ở bước 8 dưới đây (schema đầy đủ ở Phần D).
-6. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
+     `meta.json` cùng lúc với `bootstrapped: true` ở bước 9 dưới đây (schema đầy đủ ở Phần D).
+7. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
    - **CHƯA tồn tại** → `git init notebooks/review` — 1 git repo DUY NHẤT, nested, độc lập hoàn
      toàn với git của repo chính đang review, bao trùm MỌI `<repo>/` sẽ có sau này. TUYỆT ĐỐI
      KHÔNG set remote, KHÔNG push — chỉ auto-commit local. Sau đó
-     `git -C notebooks/review add <repo>` rồi
-     `git -C notebooks/review commit -m "chore: init review memory for <repo>"`
+     `git -C notebooks/review add <repo>` (kèm `notebooks/review/.gitignore` mới tạo ở bước 4 nếu
+     có) rồi `git -C notebooks/review commit -m "chore: init review memory for <repo>"`
      — xem cách xác định `user.name`/`user.email` cho commit này ngay dưới đây.
    - **ĐÃ tồn tại** (đã từng review 1 repo khác trên cùng máy) → KHÔNG init lại. Chỉ
-     `git -C notebooks/review add <repo>` rồi
-     `git -C notebooks/review commit -m "chore: add review memory for <repo>"`.
+     `git -C notebooks/review add <repo>` (kèm `notebooks/review/.gitignore` nếu bước 4 vừa
+     tạo/sửa) rồi `git -C notebooks/review commit -m "chore: add review memory for <repo>"`.
 
    **Danh tính commit** (áp dụng cho mọi commit vào `notebooks/review/.git`, ở đây và ở Phần B/C/E):
    thử `git config user.name` / `git config user.email` tại pwd (root repo CHÍNH đang review — lệnh
@@ -66,13 +75,13 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    có `user.name`/`user.email` nào (commit báo lỗi thiếu identity) → mới dùng fallback
    `-c user.name="review-plugin" -c user.email="review-plugin@local"`. KHÔNG set global config của
    máy trong bất kỳ trường hợp nào.
-7. Kiểm `.gitignore` tại pwd hiện tại (dùng `Read` tại `./.gitignore`):
+8. Kiểm `.gitignore` tại pwd hiện tại (dùng `Read` tại `./.gitignore`):
    - Tồn tại và CHƯA có dòng `notebooks/review/` → dùng `Edit` append thêm dòng đó.
    - Chưa có `.gitignore` → dùng `Write` tạo mới chỉ chứa đúng 1 dòng `notebooks/review/`.
-8. Ghi nhận vào `notebooks/review/<repo>/meta.json` (tạo file nếu chưa có, giữ nguyên các field
+9. Ghi nhận vào `notebooks/review/<repo>/meta.json` (tạo file nếu chưa có, giữ nguyên các field
    khác nếu file đã tồn tại từ trước — xem Phần D cho schema đầy đủ): `"bootstrapped": true`,
-   `"auto_submit_review": <giá trị đã hỏi ở bước 5>`, `"auto_resolve_fixed_findings": <giá trị đã
-   hỏi ở bước 5>`.
+   `"auto_submit_review": <giá trị đã hỏi ở bước 6>`, `"auto_resolve_fixed_findings": <giá trị đã
+   hỏi ở bước 6>`.
 
 ## Phần B — Copy/tạo local template cho (các) stack hiện có trong PR đang review
 
@@ -134,9 +143,13 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
    quyết mâu thuẫn, không copy nguyên văn 1 nguồn nào), nêu rõ nguồn nào mâu thuẫn với nguồn nào và
    vì sao chọn hướng này. Đây là trường hợp DUY NHẤT ghi lesson mà không cần xác nhận user (agent tự
    soạn trong lúc doctor).
-5. Ghi nhận vào `meta.json`: `"doctored": true`, `"doctored_at": "<ngày giờ hiện tại>"`,
-   `"project_docs_found": [<danh sách path đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`.
-6. `git -C notebooks/review add <repo>` + commit (local only) phần thay đổi này.
+5. **Detect submodule** (chạy đúng 1 lần, cùng lúc doctor — KHÔNG dò lại mỗi lần review): kiểm file
+   `.gitmodules` có tồn tại tại root repo (pwd) không (`Read` thử). Có → `has_submodules: true`;
+   không → `has_submodules: false`.
+6. Ghi nhận vào `meta.json`: `"doctored": true`, `"doctored_at": "<ngày giờ hiện tại>"`,
+   `"project_docs_found": [<danh sách path đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`,
+   `"has_submodules": <kết quả bước 5>`.
+7. `git -C notebooks/review add <repo>` + commit (local only) phần thay đổi này.
 
 ## Phần D — Schema `meta.json`
 
@@ -148,7 +161,8 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
   "project_docs_found": ["README.md", "CLAUDE.md"],
   "templates_copied": ["rails", "vue"],
   "auto_submit_review": false,
-  "auto_resolve_fixed_findings": false
+  "auto_resolve_fixed_findings": false,
+  "has_submodules": false
 }
 ```
 
@@ -158,8 +172,12 @@ kiểm tra riêng, mỗi lần chạy, cho từng stack detect được trong PR
 phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể cả khi `bootstrapped`/`doctored` đã
 `true` từ lâu).
 
+`has_submodules` detect đúng 1 lần lúc doctor (Phần C bước 5, check `.gitmodules` tại root repo),
+KHÔNG dò lại mỗi lần review. `pr.md` (Bước 1 mục 5) đọc field này để quyết định có đọc
+`submodule-review.md` hay không.
+
 `auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
-bước 5/8), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
+bước 6/9), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
 dùng ở Bước 6 (`auto_resolve_fixed_findings`) và Bước 9 (`auto_submit_review`).
 
 ## Phần E — Ghi 1 lesson vào memory
