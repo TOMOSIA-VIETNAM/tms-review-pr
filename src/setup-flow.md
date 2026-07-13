@@ -32,7 +32,20 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
-5. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
+5. Hỏi user 3 câu trong 1 lượt, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
+   thể): (1) ngôn ngữ output cho review — vi/en/ja; (2) `auto_submit_review` true/false (mặc định
+   **false** nếu user không có ý kiến); (3) `auto_resolve_fixed_findings` true/false (mặc định
+   **false**). Xử lý câu trả lời:
+   - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 4, thay đúng dòng
+     `<!-- Chưa set — đang dùng mặc định English. Ví dụ ghi đè: "Luôn output tiếng Việt". -->`
+     bằng câu lệnh ngôn ngữ tương ứng, theo đúng định dạng ví dụ có sẵn — vd chọn tiếng Việt:
+     `Luôn output tiếng Việt.`; tiếng Anh: `Luôn output tiếng Anh.`; tiếng Nhật: `Luôn output tiếng
+     Nhật.`. KHÔNG thêm field riêng vào `meta.json` cho câu này — "đã hỏi ngôn ngữ chưa" tự suy ra
+     từ việc dòng comment này còn nguyên văn mặc định hay đã bị ghi đè, không lưu trạng thái ở nơi
+     khác.
+   - **`auto_submit_review` / `auto_resolve_fixed_findings`** → ghi nhớ 2 giá trị boolean, đưa vào
+     `meta.json` cùng lúc với `bootstrapped: true` ở bước 8 dưới đây (schema đầy đủ ở Phần D).
+6. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
    - **CHƯA tồn tại** → `git init notebooks/review` — 1 git repo DUY NHẤT, nested, độc lập hoàn
      toàn với git của repo chính đang review, bao trùm MỌI `<repo>/` sẽ có sau này. TUYỆT ĐỐI
      KHÔNG set remote, KHÔNG push — chỉ auto-commit local. Sau đó
@@ -53,11 +66,13 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    có `user.name`/`user.email` nào (commit báo lỗi thiếu identity) → mới dùng fallback
    `-c user.name="review-plugin" -c user.email="review-plugin@local"`. KHÔNG set global config của
    máy trong bất kỳ trường hợp nào.
-6. Kiểm `.gitignore` tại pwd hiện tại (dùng `Read` tại `./.gitignore`):
+7. Kiểm `.gitignore` tại pwd hiện tại (dùng `Read` tại `./.gitignore`):
    - Tồn tại và CHƯA có dòng `notebooks/review/` → dùng `Edit` append thêm dòng đó.
    - Chưa có `.gitignore` → dùng `Write` tạo mới chỉ chứa đúng 1 dòng `notebooks/review/`.
-7. Ghi nhận `"bootstrapped": true` vào `notebooks/review/<repo>/meta.json` (tạo file nếu
-   chưa có, giữ nguyên các field khác nếu file đã tồn tại từ trước — xem Phần D cho schema đầy đủ).
+8. Ghi nhận vào `notebooks/review/<repo>/meta.json` (tạo file nếu chưa có, giữ nguyên các field
+   khác nếu file đã tồn tại từ trước — xem Phần D cho schema đầy đủ): `"bootstrapped": true`,
+   `"auto_submit_review": <giá trị đã hỏi ở bước 5>`, `"auto_resolve_fixed_findings": <giá trị đã
+   hỏi ở bước 5>`.
 
 ## Phần B — Copy/tạo local template cho (các) stack hiện có trong PR đang review
 
@@ -131,7 +146,9 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
   "doctored": true,
   "doctored_at": "2026-07-13T10:00:00Z",
   "project_docs_found": ["README.md", "CLAUDE.md"],
-  "templates_copied": ["rails", "vue"]
+  "templates_copied": ["rails", "vue"],
+  "auto_submit_review": false,
+  "auto_resolve_fixed_findings": false
 }
 ```
 
@@ -140,6 +157,10 @@ chỉ cần đạt 1 LẦN DUY NHẤT. `templates_copied` thì KHÔNG nằm tron
 kiểm tra riêng, mỗi lần chạy, cho từng stack detect được trong PR (Phần B luôn có thể chạy lại một
 phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể cả khi `bootstrapped`/`doctored` đã
 `true` từ lâu).
+
+`auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
+bước 5/8), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
+dùng ở Bước 6 (`auto_resolve_fixed_findings`) và Bước 9 (`auto_submit_review`).
 
 ## Phần E — Ghi 1 lesson vào memory
 
