@@ -17,12 +17,12 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
 
 1. Dùng `Write` tạo `notebooks/review/<repo>/memory.md` — khung index RỖNG:
    ```
-   <!-- Index các bài học convention đã ghi nhận cho repo này. Mỗi dòng 1 lesson, format:
-        - [tag-stack] Mô tả ngắn gọn lesson -> memories/<slug>.md
-        Có thể gắn nhiều tag nếu lesson áp dụng nhiều stack, vd [rails][ruby].
-        Một dòng cũng có thể là THAM CHIẾU tới convention có sẵn của dự án (xem Phần C — doctor)
-        thay vì 1 lesson tự học, format: - [tag-stack] Xem convention dự án tại <path trong repo>
-        (tham chiếu trực tiếp, không copy nội dung). -->
+   <!-- Index. Mỗi dòng 1 entry, ngắn gọn, không lặp từ:
+        - [tag] [nhãn ngắn](path) — hook 1 dòng
+        `path` trỏ tới memories/<slug>.md (lesson tự học, xem Phần E) HOẶC thẳng path trong repo
+        (tham chiếu convention có sẵn của dự án, xem Phần C — doctor; KHÔNG copy nội dung, chỉ trỏ
+        path). Nhiều tag nếu áp dụng nhiều stack, vd [rails][ruby]. Giữ mỗi dòng dưới 1 câu, gộp ý
+        trùng lặp, không diễn giải lại "xem convention tại..." — bản thân link đã nói điều đó. -->
    ```
 2. Dùng `Write` tạo `notebooks/review/<repo>/memories/.gitkeep` (rỗng) — chỉ để vật lý hoá
    thư mục `memories/` (git không track thư mục rỗng).
@@ -30,7 +30,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    bản LOCAL copy của (các) template stack đang dùng trong repo (xem Phần B), tạo sẵn thư mục trước.
 4. Copy `ALWAYS_RULE.md` từ plugin vào bản LOCAL của repo bằng `cp` (KHÔNG Read+Write qua context):
    `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
-   đây về sau `pr.md` (Bước 4) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
+   đây về sau `pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
 5. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
    - **CHƯA tồn tại** → `git init notebooks/review` — 1 git repo DUY NHẤT, nested, độc lập hoàn
@@ -61,7 +61,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
 
 ## Phần B — Copy/tạo local template cho (các) stack hiện có trong PR đang review
 
-Với MỖI stack đã detect được ở Bước 1 của `pr.md` mà CHƯA có trong `templates_copied` (mảng trong
+Với MỖI stack đã detect được ở Bước 2 của `pr.md` mà CHƯA có trong `templates_copied` (mảng trong
 `meta.json`, xem Phần D):
 
 1. Kiểm `${CLAUDE_PLUGIN_ROOT}/src/templates/<stack>.md` có tồn tại không (plugin có sẵn template cho
@@ -105,10 +105,12 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
 2. Với mỗi nguồn tìm được, đọc phần nội dung liên quan tới coding convention/tiêu chí review (bỏ qua
    phần không liên quan như giới thiệu sản phẩm, hướng dẫn cài đặt/deploy).
 3. **KHÔNG copy nội dung đã đọc vào memory.** Với mỗi nguồn có convention rõ ràng, không mâu thuẫn
-   với gì khác, chỉ thêm 1 dòng THAM CHIẾU vào `memory.md` trỏ thẳng tới path gốc trong repo, đúng
-   format đã ghi ở khung comment Phần A: `- [tag nếu xác định được stack liên quan] Xem convention
-   dự án tại <path> (tham chiếu trực tiếp, không copy nội dung)`. Khi review, agent tự đọc lại đúng
-   file tại path đó lúc cần — không dựa vào bản copy có thể đã lỗi thời.
+   với gì khác, chỉ thêm 1 dòng THAM CHIẾU vào `memory.md`, đúng format đã ghi ở khung comment Phần
+   A: `- [tag nếu xác định được stack liên quan] [nhãn ngắn](path) — hook 1 dòng tóm tắt convention`
+   — vd `- [rails] [Controllers](app/controllers/AGENTS.md) — mỏng, không params.permit`. Hook phải
+   NGẮN, cô đọng đúng ý chính, không lặp lại cụm "xem convention dự án tại" (bản thân link đã trỏ
+   rồi). Khi review, agent tự đọc lại đúng file tại path đó lúc cần — không dựa vào bản copy có thể
+   đã lỗi thời.
 4. **Nếu phát hiện mâu thuẫn** — 2 nguồn nói khác nhau về cùng 1 vấn đề, HOẶC 1 nguồn tự mâu
    thuẫn/mơ hồ, HOẶC nguồn đó xung đột với baseline/template của plugin (`ALWAYS_RULE.md`/template):
    tự phán đoán cách reconcile hợp lý nhất (ưu tiên nguồn viết riêng cho convention/AI-agent như
@@ -141,15 +143,17 @@ phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể
 
 ## Phần E — Ghi 1 lesson vào memory
 
-Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 5 của `pr.md`, góp ý convention
-user phát biểu trong chat (Bước 9 của `pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
-do nơi gọi xử lý (Bước 5 / Bước 9 hỏi trước; Phần C không cần hỏi) — Phần E chỉ mô tả thao tác ghi.
+Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 6 của `pr.md`, góp ý convention
+user phát biểu trong chat (Bước 10 của `pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
+do nơi gọi xử lý (Bước 6 / Bước 10 hỏi trước; Phần C không cần hỏi) — Phần E chỉ mô tả thao tác ghi.
 
 1. Tạo `notebooks/review/<repo>/memories/<lesson-slug>.md` (slug kebab-case ngắn gọn, không
    dùng số thứ tự vô nghĩa). Nội dung tối thiểu: mô tả convention; ví dụ code trước/sau (nếu có);
    tag stack; ngày ghi nhận; nguồn (link PR liên quan nếu có).
-2. Thêm 1 dòng vào index `notebooks/review/<repo>/memory.md`, format:
-   `- [tag-stack] Mô tả ngắn gọn -> memories/<lesson-slug>.md` (nhiều tag nếu áp dụng nhiều stack).
+2. Thêm 1 dòng vào index `notebooks/review/<repo>/memory.md`, đúng format đã ghi ở khung comment
+   Phần A: `- [tag-stack] [nhãn ngắn](memories/<lesson-slug>.md) — hook 1 dòng` (nhiều tag nếu áp
+   dụng nhiều stack). Hook ngắn gọn, không lặp từ, không diễn giải dài dòng — chi tiết đã có trong
+   file `memories/<lesson-slug>.md`, index chỉ cần đủ để nhận ra lesson là gì.
 3. `git -C notebooks/review add <repo>` + commit (local only, không push; nếu commit lỗi thiếu
    `user.name`/`user.email`, dùng cờ `-c` như Phần A).
 
