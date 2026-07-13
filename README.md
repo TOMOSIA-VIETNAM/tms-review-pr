@@ -55,3 +55,9 @@ quyết định thay team. Những lần review sau ngày càng sát với dự 
 
 **Chỉ review + comment.** Không tự ý close/merge/reopen PR, không xoá/đổi branch, không sửa code
 trong repo — mọi hành động ngoài phạm vi review đều cần bạn tự quyết định.
+
+## Nâng plugin (repo đã bootstrap)
+
+Seed `ALWAYS_RULE.md` trong plugin có thể thêm rule mới (vd hành vi ngoài `/review:pr`). Bản
+**local** `notebooks/review/<repo>/ALWAYS_RULE.md` không tự cập nhật — copy tay section mới từ seed
+nếu muốn áp dụng trên repo đã setup.

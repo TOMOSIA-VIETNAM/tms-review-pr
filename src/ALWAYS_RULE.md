@@ -45,6 +45,16 @@ Luồng review kích hoạt cả khi yêu cầu được diễn đạt bằng ng
 đúng cú pháp slash-command. Điều kiện: nội dung chứa 1 URL GitHub PR hợp lệ; khi đó áp dụng cùng
 luồng như `/review:pr <url>`.
 
+## Hành vi ngoài `/review:pr`
+
+Áp dụng khi plugin `review` đã từng dùng trên repo (có `notebooks/review/<repo>/`), kể cả lúc chat
+thường không gọi slash command:
+
+- User nêu sửa đổi/góp ý convention → KHÔNG tự ghi lesson ngay. Hỏi xác nhận trước; chỉ sau khi user
+  đồng ý mới ghi theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
+- User yêu cầu "doctor lại" / "quét lại convention dự án" → set `doctored: false` trong `meta.json`,
+  rồi làm lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
+
 ---
 
 ## Rule bổ sung (tự điền thêm bên dưới)
