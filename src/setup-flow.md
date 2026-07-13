@@ -117,6 +117,14 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
    rồi spawn NHIỀU subagent song song (mỗi subagent 1 file hoặc 1 nhóm file) để đọc + tóm tắt +
    phát hiện convention/mâu thuẫn — thay vì main agent đọc tuần tự từng file (chậm). Không giới hạn
    loại subagent cụ thể (portable qua các môi trường team cấu hình tên subagent khác nhau).
+
+   **Cùng lượt quét này (KHÔNG thêm bước riêng), kiểm tra thêm sự tồn tại của PR template của dự
+   án** — khác `project_docs_found` ở trên (nguồn convention chung), đây là 1 field riêng dùng ở
+   `pr.md` Bước 7 để đối chiếu checklist PR template với description thật của PR. Kiểm các path phổ
+   biến: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/pull_request_template.md`,
+   `.github/PULL_REQUEST_TEMPLATE/*.md` (GitHub hỗ trợ 1 thư mục nhiều template, chọn qua query
+   param), `PULL_REQUEST_TEMPLATE.md` (root), `docs/PULL_REQUEST_TEMPLATE.md`. Giữ lại danh sách
+   path THỰC SỰ tồn tại (mảng rỗng nếu không path nào có) để ghi vào `meta.json` ở bước 5 dưới đây.
 2. Với mỗi nguồn tìm được, đọc phần nội dung liên quan tới coding convention/tiêu chí review (bỏ qua
    phần không liên quan như giới thiệu sản phẩm, hướng dẫn cài đặt/deploy).
 3. **KHÔNG copy nội dung đã đọc vào memory.** Với mỗi nguồn có convention rõ ràng, không mâu thuẫn
@@ -135,7 +143,8 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
    vì sao chọn hướng này. Đây là trường hợp DUY NHẤT ghi lesson mà không cần xác nhận user (agent tự
    soạn trong lúc doctor).
 5. Ghi nhận vào `meta.json`: `"doctored": true`, `"doctored_at": "<ngày giờ hiện tại>"`,
-   `"project_docs_found": [<danh sách path đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`.
+   `"project_docs_found": [<danh sách path đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`,
+   `"pr_template_paths": [<danh sách path PR template đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`.
 6. `git -C notebooks/review add <repo>` + commit (local only) phần thay đổi này.
 
 ## Phần D — Schema `meta.json`
@@ -148,7 +157,8 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
   "project_docs_found": ["README.md", "CLAUDE.md"],
   "templates_copied": ["rails", "vue"],
   "auto_submit_review": false,
-  "auto_resolve_fixed_findings": false
+  "auto_resolve_fixed_findings": false,
+  "pr_template_paths": [".github/PULL_REQUEST_TEMPLATE.md"]
 }
 ```
 
@@ -161,6 +171,10 @@ phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể
 `auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
 bước 5/8), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
 dùng ở Bước 6 (`auto_resolve_fixed_findings`) và Bước 9 (`auto_submit_review`).
+
+`pr_template_paths` (mảng string, mặc định mảng rỗng) được ghi 1 lần lúc doctor (Phần C bước 1/5) —
+danh sách path PR template của dự án tìm thấy (rỗng nếu dự án không có). `pr.md` đọc lại field này ở
+Bước 3, dùng ở Bước 7 để đối chiếu checklist PR template với description thật của PR.
 
 ## Phần E — Ghi 1 lesson vào memory
 
