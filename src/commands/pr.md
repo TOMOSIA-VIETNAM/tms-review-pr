@@ -178,6 +178,28 @@ lần chạy, kể cả PR mới toanh (response rỗng thì bỏ qua, KHÔNG co
 - CHỈ SAU KHI user đồng ý: ghi lesson theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` (đọc
   bằng `Read` nếu chưa nạp file này ở Bước 3/4).
 
+**Kiểm tra finding cũ (do chính lần review trước của lệnh này để lại) đã được fix chưa** — mục tiêu
+riêng, khác với việc học convention ở trên, dùng chung dữ liệu đã fetch:
+
+1. Lấy tài khoản đang chạy lệnh: `gh api user --jq .login`.
+2. Trong danh sách comment đã fetch, lọc ra các comment TOP-LEVEL (không phải reply, tức không có
+   `in_reply_to_id`) mà `user.login` TRÙNG tài khoản ở mục 1 VÀ nội dung khớp khung finding ở Bước 7
+   (chứa `**Vấn đề**`/`**Issue**`) — đây là các finding do chính lệnh này để lại ở (các) lần chạy
+   trước trên PR này.
+3. Với MỖI comment như vậy: đối chiếu mô tả vấn đề trong comment với code HIỆN TẠI tại đúng
+   path/vùng đó (đã có sẵn trên đĩa từ Bước 1, dùng `Read`) — tự phán đoán vấn đề đã được fix hay
+   chưa, không có rule cứng, dựa vào đọc hiểu thực tế.
+   - **Đã fix** → reply ngắn gọn xác nhận vào ĐÚNG thread đó:
+     `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies -f
+     body="<nhận xét cơ bản, 1 câu, theo ngôn ngữ output đã chọn, vd 'Đã fix, cảm ơn.'/'Fixed, thanks.'>"`
+     rồi resolve thread: query `reviewThreads` qua GraphQL để tìm `threadId` ứng với `comment_id` đó
+     (`gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id comments(first:1){nodes{databaseId}}}}}}}' -f o={owner} -f r={repo} -F n={pull_number}`),
+     lấy `id` của thread có `databaseId` khớp `comment_id`, rồi gọi mutation
+     `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{id isResolved}}}' -f t=<threadId>`.
+     Nếu bước resolve lỗi (thiếu quyền, v.v.) thì bỏ qua, KHÔNG coi là lỗi chặn — reply xác nhận đã
+     có là đủ giá trị chính.
+   - **Chưa fix** → KHÔNG làm gì cả, giữ nguyên comment, không nhắc lại, không tạo thêm nội dung gì.
+
 ## Bước 7 — Thực hiện review theo 6 mục
 
 **Kiểm tra title & description PR trước (cấp độ tổng quan, không phải finding cấp file/line):**

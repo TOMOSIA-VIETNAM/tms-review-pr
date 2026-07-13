@@ -83,11 +83,25 @@ mục khác nhau — chính bug đã gặp). Mọi thao tác filesystem thực h
 `pr.md`/`src/setup-flow.md` cấm `cd`, cấm tự dò "git root"/"repo thật sự", cấm tự "thông minh" điều hướng
 khỏi pwd. (Thuật ngữ cũ "short_name" đã bỏ hoàn toàn — dùng "repo name".)
 
-**Kỷ luật phạm vi review (Bước 6/7):** tập trung phần THAY ĐỔI in-scope; vấn đề code cũ ngoài phạm
+**Kỷ luật phạm vi review (Bước 7):** tập trung phần THAY ĐỔI in-scope; vấn đề code cũ ngoài phạm
 vi thì tách riêng nhãn "ngoài phạm vi", không ép fix. KHÔNG đọc source thư viện/framework như thói
-quen (dựa kiến thức chung trước, chỉ tra source khi thật sự không chắc). KHÔNG bới finding vụn vặt
-lấy số lượng — PR tốt thì "LGTM". Nhãn 3 mức nghiêm trọng là TEXT thuần (Bắt buộc sửa / Nên sửa /
-Đề xuất; EN: MUST FIX / SHOULD FIX / SUGGESTION) — KHÔNG dùng emoji màu.
+quen (dựa kiến thức chung trước, chỉ tra source khi thật sự không chắc). Diff đã fetch 1 lần ở Ngữ
+cảnh là nguồn duy nhất — không refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding
+vụn vặt lấy số lượng — PR tốt thì "LGTM". Nhãn 3 mức nghiêm trọng là TEXT thuần (Bắt buộc sửa / Nên
+sửa / Đề xuất; EN: MUST FIX / SHOULD FIX / SUGGESTION) — KHÔNG dùng emoji màu.
+
+**Finding cấp FILE nằm trong body tổng quan, KHÔNG vào `comments[]` (Bước 8/9).** GitHub reviews
+API 422 "position null" khi trộn comment không-line chung request với comment có-line (đã gặp thật)
+— nên `comments[]` chỉ chứa finding cấp LINE; finding cấp FILE thành bullet trong body theo đúng
+mức nghiêm trọng. Verify sau post (Bước 9) bó hẹp đúng 1 lần check state — không tự thêm bước kiểm
+tra/test nào khác; lỗi POST thì sửa payload theo schema rồi thử lại 1 lần, KHÔNG tạo/xoá comment
+test trên PR thật để debug (nguyên nhân 1 lần thật để lại 3 review object thay vì 1).
+
+**Bước 6 còn tự kiểm tra finding cũ của chính lệnh này đã được fix chưa** (khác việc học convention
+ở trên, dùng chung dữ liệu comment đã fetch): lọc comment top-level do chính `gh auth` hiện tại để
+lại, khớp khung finding (`**Vấn đề**`); đối chiếu với code hiện tại (đã checkout ở Bước 1) — đã fix
+→ reply ngắn + resolve thread qua GraphQL (`resolveReviewThread`, REST không hỗ trợ resolve); chưa
+fix → không làm gì, không nhắc lại.
 
 **Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `pr.md` chỉ dùng
 `Read` để nạp `src/setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +
