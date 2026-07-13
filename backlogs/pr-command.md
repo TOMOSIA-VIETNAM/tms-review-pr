@@ -201,7 +201,79 @@ Tạo branch riêng từ `main` (SAU khi P10 đã merge/commit xong) để user 
   không bao giờ đọc `submodule-review.md`.
 - Dependency: P10 (branch tạo từ `main` sau khi P10 xong).
 
-## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9 → P10 → P11
-(P1 là vertical-slice nên test thật càng sớm càng tốt khi có PR test — xem testing.md. P10 làm trên
-`main`; P11 tạo branch `feature/pr-review-worktree` riêng sau khi P10 xong, để user tự thử nghiệm
-trước khi merge.)
+## Task P12: Đối chiếu PR description với PR template checklist của dự án (nhánh `main`)
+
+Bối cảnh: khác với doctor quét convention chung (AGENTS.md/CLAUDE.md/docs/wiki — đã có ở Phần C),
+nhiều repo có riêng 1 file PR template (`.github/PULL_REQUEST_TEMPLATE.md` hoặc biến thể) quy định
+checklist tác giả PR phải điền/tick khi tạo PR. Review phải đối chiếu description thật của PR với
+checklist đó, không chỉ tin description tự do.
+
+- **Detect template — gộp vào doctor (Phần C), quét 1 lần duy nhất, KHÔNG thêm bước quét riêng.**
+  Tìm các path phổ biến: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/pull_request_template.md`,
+  `.github/PULL_REQUEST_TEMPLATE/*.md` (GitHub hỗ trợ nhiều template chọn qua query param), root
+  `PULL_REQUEST_TEMPLATE.md`, `docs/PULL_REQUEST_TEMPLATE.md`. Cache danh sách path tìm được (mảng
+  rỗng nếu không có) vào `meta.json` field mới, vd `pr_template_paths`.
+- **Bước 7 của `pr.md`** (đoạn đã có sẵn kiểm tra title/description) mở rộng thêm: nếu
+  `pr_template_paths` không rỗng → đọc nội dung (các) template đó, đối chiếu với `body` thật của PR
+  — checkbox `- [ ]` còn chưa tick, section còn nguyên placeholder/HTML-comment gốc chưa điền → coi
+  là VI PHẠM rule dự án đã tự đặt ra. Đây là phán đoán ngữ cảnh (không enum cứng danh sách item nào
+  bắt buộc), gộp thành 1 finding tổng hợp (không tách vụn từng checkbox thiếu) theo đúng khung
+  Vấn đề/Cách fix.
+- **Khác với check title/description hiện có (vẫn chỉ nằm ở tổng quan, không tính N)** — finding
+  loại này XẾP THẲNG vào mức **[Nên sửa]**, tính vào N đếm ở Bước 8 (đã vi phạm rule dự án tự đặt,
+  không chỉ là góp ý phong cách). Đây là finding cấp FILE (không gắn được 1 dòng code cụ thể) — vào
+  body Bước 8, KHÔNG vào `comments[]`.
+- Repo không có template nào (`pr_template_paths` rỗng) → bỏ qua hoàn toàn, không finding gì.
+- Acceptance: repo có `.github/PULL_REQUEST_TEMPLATE.md` với checklist, PR test để trống 1 mục →
+  xuất hiện đúng 1 finding [Nên sửa] nêu rõ mục nào thiếu; PR điền đủ → không finding; repo không có
+  template → không bao giờ chạm nhánh này.
+- Dependency: P10 (độc lập với P11 — không liên quan worktree, có thể làm song song hoặc trước/sau).
+
+## Task P13: Tách case conditional ra `src/cases/` + khởi tạo thư mục dùng chung cho case tương lai (nhánh `main`)
+
+Bối cảnh: grill lại `pr.md` lần 2 (2026-07-13) — 462 dòng, nhưng phần lớn (Bước 7 review 6-mục 103
+dòng, Bước 9 post API 78 dòng) chạy ở MỌI lần review, tách không tiết kiệm token (vẫn phải `Read`
+mỗi lần). Chỉ 2 phần thật sự conditional (nhiều PR không bao giờ chạm tới) đáng tách theo đúng pattern
+đã có (`setup-flow.md`/`stack-detection.md`/`submodule-review.md` — Read khi cần, bỏ qua khi không):
+
+- Tạo thư mục `src/cases/` — nơi chứa MỌI case conditional load theo meta config, kể cả case phát
+  sinh sau này (không giới hạn 2 case dưới đây).
+- **`src/cases/re-review.md`**: dời TOÀN BỘ nội dung Bước 6 hiện tại (cả 2 phần: đề xuất lesson từ
+  đồng thuận thread + check finding cũ do chính lệnh này để lại đã fix chưa — 2 phần dùng chung dữ
+  liệu comment đã fetch ở block Ngữ cảnh, không tách rời nhau được). `pr.md` Bước 6 chỉ còn 1 điều
+  kiện: dữ liệu comment đã fetch KHÔNG rỗng → `Read src/cases/re-review.md` rồi làm theo; rỗng → bỏ
+  qua hoàn toàn, không đọc file.
+- **`src/cases/pr-template-checklist.md`**: dời sub-phần đối chiếu PR template checklist (thêm ở
+  Task P12) ra khỏi Bước 7. `pr.md` Bước 7 chỉ còn 1 điều kiện: `meta.json.pr_template_paths` không
+  rỗng → `Read src/cases/pr-template-checklist.md` rồi làm theo; rỗng → bỏ qua.
+- Bước 7 core (6-mục, in-scope discipline, định dạng finding) và Bước 9 (post API) GIỮ NGUYÊN inline
+  — không tách, vì chạy mọi lần, tách không lợi gì (đã cân nhắc, quyết định không làm).
+- **Song song, làm nhẹ 1 lượt tighten câu chữ dư thừa** trong `pr.md`/`setup-flow.md` (câu dài dòng,
+  qualifier lặp) — KHÔNG chủ động cắt nội dung giải thích TẠI SAO (rule/lý do, vd giải thích PENDING
+  event là bug, lý do cấm `cd` trần) dù nhìn "nhẹ" — đó là phần giữ agent khỏi lặp lại lỗi cũ, không
+  phải fluff.
+- Acceptance: review PR không có comment cũ nào → transcript KHÔNG có `Read src/cases/re-review.md`;
+  review PR có comment cũ → có đọc, hành vi giống hệt trước khi tách. Repo không có PR template →
+  KHÔNG có `Read src/cases/pr-template-checklist.md`; có template → đọc, hành vi giống hệt trước khi
+  tách (không đổi logic, chỉ đổi vị trí + cách nạp).
+- Dependency: P10, P12 (dời nội dung đã có, không tạo mới). Độc lập P11 — làm trên `main` TRƯỚC,
+  merge vào `feature/pr-review-worktree` sau (xem P14).
+
+## Task P14: Dời `submodule-review.md` vào `src/cases/` (nhánh `feature/pr-review-worktree`, SAU khi merge `main`)
+
+- Trước tiên: merge `main` → `feature/pr-review-worktree` (đưa P12 + P13 vào, để branch worktree có
+  đủ mọi thứ khi user test/merge sau này — tránh rời rạc nếu sau đó merge riêng lẻ).
+- Dời `src/submodule-review.md` → `src/cases/submodule-review.md` (cùng thư mục case với P13, file
+  này vốn đã tồn tại từ P11, chỉ đổi vị trí + sửa lại path `Read` tương ứng trong `pr.md`).
+- Đây là task NỐI TIẾP đúng agent đã làm P11 (không spawn agent mới cho việc liên quan trực tiếp tới
+  file agent đó vừa tạo — theo nguyên tắc resume-agent đã ghi nhớ global).
+- Acceptance: `src/cases/` trên branch `feature/pr-review-worktree` có đủ 3 file
+  (`re-review.md`, `pr-template-checklist.md`, `submodule-review.md`); `pr.md` trên branch này trỏ
+  đúng path mới cho cả 3; không còn `src/submodule-review.md` ở vị trí cũ.
+- Dependency: P13 (merge vào trước), P11 (agent gốc tạo submodule-review.md).
+
+## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9 → P10 → P11 → P12 → P13 → P14
+(P1 là vertical-slice nên test thật càng sớm càng tốt khi có PR test — xem testing.md. P10/P12/P13 làm
+trên `main`; P11 tạo branch `feature/pr-review-worktree` sau P10; P14 merge `main` vào branch đó rồi
+dời `submodule-review.md` vào `src/cases/` cùng 2 file P13 — để user test/merge 1 lượt đầy đủ, không
+rời rạc.)
