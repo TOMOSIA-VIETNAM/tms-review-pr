@@ -1,0 +1,12 @@
+{
+  "name": "github-reviewer",
+  "description": "Local marketplace for the review plugin (multi-stack GitHub PR reviewer).",
+  "owner": { "name": "Minh Tang Q." },
+  "plugins": [
+    {
+      "name": "review",
+      "source": "./",
+      "description": "Review GitHub Pull Requests across Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, and Makefile, learning per-repo convention over time."
+    }
+  ]
+}
