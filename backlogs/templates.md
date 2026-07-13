@@ -4,6 +4,15 @@ Mục tiêu: mỗi file trong templates/ chứa tiêu chí review theo khung 6 m
 2. Bảo mật, 3. Hiệu suất, 4. Chất lượng code, 5. Đặc thù framework/language, 6. Khả năng bảo trì &
 dễ đọc). Không chứa logic điều phối (đó là việc của `commands/pr.md`) — chỉ chứa NỘI DUNG tiêu chí.
 
+**Convention baseline/delta (áp dụng từ lần refactor sau khi build xong V1):** tiêu chí CHUNG cho
+mọi stack (mục 1,2,3,4,6 — vd "có bug rõ ràng không", "code có lặp không", "tên biến rõ ràng không",
+"comment nơi logic phức tạp", "test coverage happy+error path", "thiết kế linh hoạt tương lai") sống
+Ở `ALWAYS_RULE.md`, KHÔNG lặp lại trong từng file template. Mỗi `templates/<stack>.md` CHỈ chứa tiêu
+chí THỰC SỰ đặc thù của stack đó — nếu 1 tiêu chí đang định viết trùng ý với baseline, không thêm
+vào template, để agent tự áp dụng baseline. Toàn bộ danh sách (baseline lẫn template) phải giữ tinh
+thần "gợi ý minh họa, không phải checklist đóng" — không viết dạng liệt kê đóng khung khiến agent
+hiểu nhầm chỉ cần tìm đúng những ý đã ghi.
+
 Dependency chung: cần Task S3 (thư mục `templates/` tồn tại) xong trước khi bắt đầu bất kỳ task nào.
 
 ## Task T1: `templates/rails.md`

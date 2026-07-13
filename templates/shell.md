@@ -1,8 +1,10 @@
 Shell script (bash/sh)
 
+> Tiêu chí dưới đây BỔ SUNG cho baseline chung trong `ALWAYS_RULE.md` (áp dụng mọi stack) — không
+> lặp lại các mục đã có ở đó.
+
 #### 1. Lỗi & Vấn đề logic
 
-- Có bug rõ ràng hoặc lỗi logic nào không?
 - Script có `set -euo pipefail` ở đầu không (dừng ngay khi có lệnh lỗi, biến chưa khai báo, hoặc lỗi trong pipeline)?
 - Kiểm tra exit code của lệnh con quan trọng có đầy đủ không (không bỏ qua `$?` khi cần biết lệnh trước có thành công không)?
 - Có nhánh điều kiện nào bị thiếu (file không tồn tại, biến rỗng) không?
@@ -10,7 +12,6 @@ Shell script (bash/sh)
 #### 2. Bảo mật
 
 - Có input từ bên ngoài (argument, env var, output lệnh khác) được đưa thẳng vào lệnh thực thi (`eval`, `bash -c`) mà không kiểm tra không?
-- Có hardcode secret/credential trong script không?
 - Có dùng quyền `sudo`/chạy với quyền cao hơn cần thiết không?
 
 #### 3. Hiệu suất
@@ -23,7 +24,7 @@ Shell script (bash/sh)
 - Quoting biến có đúng không (`"$var"` thay vì `$var` trần, tránh word splitting/glob không mong muốn)?
 - Dùng `[[ ]]` thay `[ ]` khi có thể (bash) để tránh lỗi parsing/so sánh không mong muốn không?
 - Có tránh parse output của `ls` (nên dùng glob hoặc `find` trực tiếp) không?
-- Có code bị lặp không (nguyên tắc DRY) — nên tách function không?
+- Có nên tách function khi logic lặp lại không?
 
 #### 5. Đặc thù Shell
 
@@ -33,6 +34,4 @@ Shell script (bash/sh)
 
 #### 6. Khả năng bảo trì & Dễ đọc
 
-- Tên biến/hàm có rõ ràng không?
-- Có comment giải thích ở những đoạn logic không rõ ràng không?
-- Thiết kế có đủ linh hoạt để đáp ứng thay đổi trong tương lai không?
+(không có tiêu chí bổ sung ngoài baseline chung — xem `ALWAYS_RULE.md`)

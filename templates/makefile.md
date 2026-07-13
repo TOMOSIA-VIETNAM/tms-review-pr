@@ -1,14 +1,15 @@
 Makefile
 
+> Tiêu chí dưới đây BỔ SUNG cho baseline chung trong `ALWAYS_RULE.md` (áp dụng mọi stack) — không
+> lặp lại các mục đã có ở đó.
+
 #### 1. Lỗi & Vấn đề logic
 
-- Có bug rõ ràng hoặc lỗi logic nào không?
 - Dependency giữa các target có đúng thứ tự không (không thiếu prerequisite khiến target chạy trước khi cần)?
 - Target mặc định (target đầu tiên trong file, chạy khi gõ `make` trơn) có tránh side-effect ẩn ngoài ý muốn không (ví dụ vô tình chạy `deploy`/`clean` thay vì `build`/`help`)?
 
 #### 2. Bảo mật
 
-- Recipe có chứa hardcode credential/secret không?
 - Có lệnh tải file/script từ nguồn ngoài rồi thực thi ngay mà không kiểm tra không?
 
 #### 3. Hiệu suất

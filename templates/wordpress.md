@@ -25,7 +25,6 @@ WordPress (overlay)
 #### 4. Chất lượng code
 
 - Hook callback có đặt tên rõ ràng, tránh anonymous function khó unhook khi cần không?
-- Có code bị lặp giữa các hook/shortcode/widget không (nguyên tắc DRY)?
 
 #### 5. Đặc thù WordPress
 
@@ -35,6 +34,6 @@ WordPress (overlay)
 
 #### 6. Khả năng bảo trì & Dễ đọc
 
-- Có comment giải thích cho hook phức tạp hoặc thứ tự phụ thuộc giữa các hook không?
+- Thứ tự phụ thuộc giữa các hook (ai chạy trước/sau, priority nào) có được ghi chú rõ không?
 - Coding standard có tuân theo WordPress Coding Standards (WPCS) không?
-- Thiết kế có đủ linh hoạt để tương thích khi WordCore/plugin khác cập nhật không?
+- Thiết kế có tương thích khi WordPress core/plugin khác cập nhật không (tránh phụ thuộc hành vi nội bộ không được document)?

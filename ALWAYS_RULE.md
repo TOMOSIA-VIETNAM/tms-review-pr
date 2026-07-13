@@ -19,6 +19,35 @@ Nếu section này chưa được user điền gì khác, ngôn ngữ output rev
 Khi user ghi đè bằng chỉ định cụ thể tại đây (ví dụ "Luôn output bằng tiếng Việt"), agent phải theo
 chỉ định đó thay vì mặc định.
 
+## Khung review chung (baseline mọi stack)
+
+> Danh sách bên dưới (và toàn bộ danh sách trong `templates/*.md`) là GỢI Ý MINH HỌA để định hướng
+> review, KHÔNG PHẢI checklist đóng/đầy đủ. Agent phải tự tư duy, chủ động phát hiện thêm vấn đề
+> khác ngoài những gì được liệt kê nếu có — không tự giới hạn bản thân chỉ tìm đúng những ý đã ghi.
+
+Áp dụng cho MỌI PR, MỌI stack, không phân biệt ngôn ngữ/framework — luôn nạp cùng với template đặc
+thù của stack đang review. `templates/<stack>.md` CHỈ chứa tiêu chí ĐẶC THÙ (bao gồm toàn bộ mục 5
+"Đặc thù framework/language" — mục này không có baseline chung), không lặp lại các mục dưới đây.
+
+#### 1. Lỗi & vấn đề logic
+- Có bug rõ ràng hoặc lỗi logic nào không?
+- Các trường hợp biên (giá trị rỗng/null/undefined, giới hạn, mảng/danh sách rỗng) có được xử lý đúng không?
+
+#### 2. Bảo mật
+- Code có chứa thông tin nhạy cảm hardcode không (API key, token, mật khẩu, connection string)?
+
+#### 3. Hiệu suất
+- Có gọi lại (API/DB/lệnh con/tính toán) lặp không cần thiết mà có thể cache/gom lại không?
+
+#### 4. Chất lượng code
+- Tên biến/hàm/class/component có rõ ràng, theo convention của dự án không?
+- Có code bị lặp không (nguyên tắc DRY)?
+
+#### 6. Khả năng bảo trì & dễ đọc
+- Có comment giải thích ở những nơi logic không rõ ràng/phức tạp không?
+- Test có được thêm hoặc cập nhật cho thay đổi không? Có bao gồm cả happy path và error path không?
+- Thiết kế có đủ linh hoạt để đáp ứng thay đổi trong tương lai không?
+
 ## Nhận diện yêu cầu review bằng ngôn ngữ tự nhiên
 
 Agent nên nhận diện yêu cầu review PR được diễn đạt bằng ngôn ngữ tự nhiên trong chat bình thường

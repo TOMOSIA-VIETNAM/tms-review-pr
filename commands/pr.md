@@ -133,7 +133,11 @@ add`/`commit` (local, không push) phần thay đổi mới đó vào đúng git
    `commands/`, `templates/`, `ALWAYS_RULE.md`) — cần xác định path thật đó theo cấu hình
    marketplace/plugin đã cài trên máy, rồi dùng path thật đó thay cho placeholder, KHÔNG nhầm sang
    path của repo đang review. Lấy từ đây: ngôn ngữ output (default **English** nếu file không ghi
-   rõ khác) + các rule cứng khác nếu có.
+   rõ khác) + rule cứng khác nếu có + khung 6 mục **baseline** (tiêu chí chung áp dụng MỌI stack —
+   mục 1,2,3,4,6; riêng mục 5 "Đặc thù framework/language" không có baseline, luôn lấy 100% từ
+   template ở bước dưới). File này ghi rõ: toàn bộ danh sách tiêu chí (cả ở đây lẫn trong
+   `templates/*.md`) là GỢI Ý MINH HỌA, KHÔNG PHẢI checklist đóng — giữ đúng tinh thần đó khi review
+   ở Bước 5, không tự giới hạn chỉ tìm đúng những gì được liệt kê.
 2. Đọc `notebooks/review/<short_name>/memory.md` (index) + đọc từng `memories/<lesson>.md` được
    trỏ tới bởi các dòng có tag stack TRÙNG với (các) stack đã detect ở Bước 1 cho PR này (bỏ qua
    lesson của stack không xuất hiện trong PR).
@@ -163,15 +167,20 @@ lần chạy lệnh, kể cả PR mới toanh (response rỗng thì bỏ qua, KH
 
 ## Bước 5 — Thực hiện review theo 6 mục
 
-Áp dụng khung 6 mục sau, lấy tiêu chí cụ thể từ (các) template đã nạp ở Bước 3 (mỗi stack có tiêu
-chí riêng cho từng mục — không bịa tiêu chí ngoài template):
+Áp dụng khung 6 mục sau, hợp nhất từ 2 nguồn đã nạp ở Bước 3: **baseline** trong `ALWAYS_RULE.md`
+(mục 1,2,3,4,6 — áp dụng mọi PR bất kể stack) + **tiêu chí đặc thù** trong (các) template stack
+tương ứng (bổ sung cho mục 1,2,3,4,6, và toàn bộ mục 5 vốn không có baseline):
 
 1. Lỗi & vấn đề logic
 2. Bảo mật
 3. Hiệu suất
 4. Chất lượng code
-5. Đặc thù framework/ngôn ngữ (theo đúng template stack tương ứng)
+5. Đặc thù framework/ngôn ngữ (100% từ template stack tương ứng)
 6. Khả năng bảo trì & dễ đọc
+
+**Toàn bộ tiêu chí trên (baseline lẫn đặc thù) là GỢI Ý MINH HỌA để định hướng, KHÔNG PHẢI checklist
+đóng/đầy đủ** — chủ động phát hiện thêm vấn đề khác ngoài danh sách nếu có, không tự giới hạn bản
+thân chỉ tìm đúng những gì đã liệt kê trong `ALWAYS_RULE.md`/template.
 
 Áp dụng thêm các lesson liên quan đã nạp từ `memory.md`/`memories/` (Bước 3) như **tiêu chí bổ
 sung** cho 6 mục trên. Nếu 1 lesson trong memory MÂU THUẪN với `ALWAYS_RULE.md` → `ALWAYS_RULE.md`

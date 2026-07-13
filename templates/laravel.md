@@ -33,5 +33,4 @@ Laravel (overlay)
 #### 6. Khả năng bảo trì & Dễ đọc
 
 - Naming convention của Laravel (Model số ít, Controller số nhiều, method theo REST resource) có được tuân theo không?
-- Có comment ở những nơi logic nghiệp vụ phức tạp không?
-- Test (Feature/Unit test của Laravel) có được thêm hoặc cập nhật cho thay đổi không?
+- Test có phân biệt đúng Feature test (qua HTTP) và Unit test (logic thuần) không?
