@@ -1,11 +1,10 @@
 # Setup flow — thiết lập lần đầu cho 1 repo
 
-File này KHÔNG phải slash command (không đặt trong `commands/`) — chỉ được `commands/pr.md` đọc
-bằng tool `Read` khi cần, và CHỈ khi cần (repo chưa từng thiết lập xong). Nếu repo đã thiết lập
-xong, `pr.md` không đọc file này nữa, nội dung dưới đây không tốn context của lần review đó.
+Không phải slash command (nằm ngoài `commands/`); `commands/pr.md` nạp bằng `Read` khi repo chưa
+thiết lập xong.
 
-Toàn bộ thao tác dưới đây thao tác tại **root của repo đang được review** (pwd), KHÔNG PHẢI root
-của plugin. Chỉ dùng `Read`/`Write`/`Edit`/`git` (qua Bash) — không dùng `mkdir`/`test`/`ls`/`echo`.
+Toàn bộ thao tác dưới đây chạy tại **root của repo đang được review** (pwd), KHÔNG PHẢI root của
+plugin. Chỉ dùng `Read`/`Write`/`Edit`/`git` (qua Bash) — không dùng `mkdir`/`test`/`ls`/`echo`.
 
 ## Phần A — Bootstrap `notebooks/review/<short_name>/`
 
@@ -52,20 +51,14 @@ Với MỖI stack đã detect được ở Bước 1 của `pr.md` mà CHƯA có
      riêng sau này mà không ảnh hưởng plugin dùng chung cho repo khác).
    - **CHƯA có sẵn** (plugin chưa cover stack này) → tự soạn 1 template MỚI theo đúng khung 6 mục
      (1.Lỗi&logic 2.Bảo mật 3.Hiệu suất 4.Chất lượng code 5.Đặc thù framework/ngôn ngữ 6.Bảo trì&dễ
-     đọc — tham khảo cách các file trong `${CLAUDE_PLUGIN_ROOT}/templates/` đang viết để giữ văn
-     phong/độ chi tiết nhất quán, và nhớ KHÔNG lặp lại tiêu chí đã có trong baseline của
-     `ALWAYS_RULE.md`, chỉ viết phần đặc thù), lưu trực tiếp vào
-     `notebooks/review/<short_name>/templates/<stack>.md`. Báo cho user biết trong chat là đã tự
-     tạo template mới cho stack này (để user biết mà review lại nếu muốn), và gợi ý: nếu thấy hợp
-     lý, user có thể tự copy file này vào `${CLAUDE_PLUGIN_ROOT}/templates/` để dùng chung cho mọi
-     repo khác sau này — plugin KHÔNG tự động làm việc đó (tránh mutate file dùng chung từ 1 phiên
-     review của 1 repo cụ thể).
+     đọc — tham khảo các file trong `${CLAUDE_PLUGIN_ROOT}/templates/` để giữ văn phong/độ chi tiết
+     nhất quán, KHÔNG lặp tiêu chí đã có trong baseline `ALWAYS_RULE.md`, chỉ viết phần đặc thù),
+     lưu vào `notebooks/review/<short_name>/templates/<stack>.md`. Báo cho user biết trong chat là
+     đã tự tạo template mới cho stack này, kèm gợi ý: user có thể tự copy file này vào
+     `${CLAUDE_PLUGIN_ROOT}/templates/` để dùng chung cho repo khác — plugin KHÔNG tự động làm (tránh
+     mutate file dùng chung từ 1 phiên review của 1 repo cụ thể).
 2. Thêm `<stack>` vào mảng `templates_copied` trong `meta.json`.
 3. `git -C notebooks/review add <short_name>` + commit (local only) phần thay đổi này.
-
-Từ lúc này trở đi, `pr.md` đọc rule đặc thù stack từ bản LOCAL
-(`notebooks/review/<short_name>/templates/<stack>.md`), KHÔNG đọc trực tiếp từ
-`${CLAUDE_PLUGIN_ROOT}/templates/` nữa — bản local mới là bản có hiệu lực cho repo này.
 
 ## Phần C — Doctor: khám phá convention có sẵn của dự án
 
@@ -85,13 +78,13 @@ CLAUDE.md, AGENTS.md, docs/, wiki, cursor/copilot rules...), review phải THAM 
    dự án tại <path> (tham chiếu trực tiếp, không copy nội dung)`. Khi review, agent tự đọc lại đúng
    file tại path đó lúc cần — không dựa vào bản copy có thể đã lỗi thời.
 4. **Nếu phát hiện mâu thuẫn** — 2 nguồn nói khác nhau về cùng 1 vấn đề, HOẶC 1 nguồn tự mâu
-   thuẫn/mơ hồ không rõ áp dụng thế nào, HOẶC nguồn đó xung đột với baseline/template của chính
-   plugin (`ALWAYS_RULE.md`/template): tự phán đoán cách reconcile hợp lý nhất (ưu tiên nguồn viết
-   riêng cho convention/AI-agent như `CLAUDE.md`/`AGENTS.md` hơn `README.md` giới thiệu chung; ưu
-   tiên nguồn cụ thể/chi tiết hơn nguồn chung chung). Viết bản đã reconcile này thành 1 lesson bình
-   thường vào `notebooks/review/<short_name>/memories/<lesson-slug>.md` (nội dung DO AGENT TỰ SOẠN
-   để giải quyết mâu thuẫn, không phải copy nguyên văn 1 nguồn nào), ghi rõ nguồn nào mâu thuẫn với
-   nguồn nào và vì sao chọn hướng này + thêm 1 dòng vào index `memory.md`.
+   thuẫn/mơ hồ, HOẶC nguồn đó xung đột với baseline/template của plugin (`ALWAYS_RULE.md`/template):
+   tự phán đoán cách reconcile hợp lý nhất (ưu tiên nguồn viết riêng cho convention/AI-agent như
+   `CLAUDE.md`/`AGENTS.md` hơn `README.md` giới thiệu chung; ưu tiên nguồn cụ thể/chi tiết hơn nguồn
+   chung chung). Ghi bản đã reconcile thành 1 lesson theo Phần E (nội dung do agent tự soạn để giải
+   quyết mâu thuẫn, không copy nguyên văn 1 nguồn nào), nêu rõ nguồn nào mâu thuẫn với nguồn nào và
+   vì sao chọn hướng này. Đây là trường hợp DUY NHẤT ghi lesson mà không cần xác nhận user (agent tự
+   soạn trong lúc doctor).
 5. Ghi nhận vào `meta.json`: `"doctored": true`, `"doctored_at": "<ngày giờ hiện tại>"`,
    `"project_docs_found": [<danh sách path đã tìm thấy ở bước 1, mảng rỗng nếu không có>]`.
 6. `git -C notebooks/review add <short_name>` + commit (local only) phần thay đổi này.
@@ -113,6 +106,20 @@ chỉ cần đạt 1 LẦN DUY NHẤT. `templates_copied` thì KHÔNG nằm tron
 kiểm tra riêng, mỗi lần chạy, cho từng stack detect được trong PR (Phần B luôn có thể chạy lại một
 phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể cả khi `bootstrapped`/`doctored` đã
 `true` từ lâu).
+
+## Phần E — Ghi 1 lesson vào memory
+
+Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 5 của `pr.md`, góp ý convention
+user phát biểu trong chat (Bước 9 của `pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
+do nơi gọi xử lý (Bước 5 / Bước 9 hỏi trước; Phần C không cần hỏi) — Phần E chỉ mô tả thao tác ghi.
+
+1. Tạo `notebooks/review/<short_name>/memories/<lesson-slug>.md` (slug kebab-case ngắn gọn, không
+   dùng số thứ tự vô nghĩa). Nội dung tối thiểu: mô tả convention; ví dụ code trước/sau (nếu có);
+   tag stack; ngày ghi nhận; nguồn (link PR liên quan nếu có).
+2. Thêm 1 dòng vào index `notebooks/review/<short_name>/memory.md`, format:
+   `- [tag-stack] Mô tả ngắn gọn -> memories/<lesson-slug>.md` (nhiều tag nếu áp dụng nhiều stack).
+3. `git -C notebooks/review add <short_name>` + commit (local only, không push; nếu commit lỗi thiếu
+   `user.name`/`user.email`, dùng cờ `-c` như Phần A).
 
 ## Khi user yêu cầu "doctor lại" / "quét lại convention dự án"
 

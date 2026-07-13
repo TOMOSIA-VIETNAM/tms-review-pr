@@ -1,7 +1,6 @@
-WordPress (overlay)
+# WordPress (overlay)
 
-> File này CHỒNG THÊM lên `php.md` — không thay thế. File này chỉ chứa tiêu chí ĐẶC THÙ WordPress,
-> không lặp tiêu chí PHP nền đã có ở `php.md`.
+_Overlay chồng lên `php.md`, áp dụng đồng thời. Chỉ liệt kê tiêu chí đặc thù WordPress._
 
 #### 1. Lỗi & Vấn đề logic
 

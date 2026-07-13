@@ -1,7 +1,6 @@
-Laravel (overlay)
+# Laravel (overlay)
 
-> File này CHỒNG THÊM lên `php.md` — không thay thế. File này chỉ chứa tiêu chí ĐẶC THÙ Laravel,
-> không lặp tiêu chí PHP nền đã có ở `php.md`.
+_Overlay chồng lên `php.md`, áp dụng đồng thời. Chỉ liệt kê tiêu chí đặc thù Laravel._
 
 #### 1. Lỗi & Vấn đề logic
 

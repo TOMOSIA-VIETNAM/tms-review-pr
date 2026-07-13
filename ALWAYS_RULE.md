@@ -1,26 +1,23 @@
 # Always Rule — quy tắc chung của plugin `review`
 
-Quy tắc trong file này áp dụng cho MỌI repo được review qua plugin `review`, không phải cấu hình
-riêng của 1 dự án cụ thể (convention riêng từng dự án sống ở nơi khác — xem `commands/pr.md`).
-Team có thể sửa trực tiếp file này để thay đổi hành vi chung của plugin trên mọi máy.
+Phạm vi: áp dụng cho mọi repo review qua plugin `review`. Convention riêng từng repo sống ở
+`notebooks/review/<short_name>/`, ngoài phạm vi file này.
 
-## Ngôn ngữ
+## Ngôn ngữ output
 
-(chưa set — mặc định English)
+Mặc định **English**. Điền ngôn ngữ cụ thể vào khối bên dưới để ghi đè.
 
-Nếu section này chưa được user điền gì khác, ngôn ngữ output review mặc định là **English**.
-Khi user ghi đè bằng chỉ định cụ thể tại đây (ví dụ "Luôn output bằng tiếng Việt"), agent phải theo
-chỉ định đó thay vì mặc định.
+<!-- Chưa set — đang dùng mặc định English. Ví dụ ghi đè: "Luôn output tiếng Việt". -->
 
 ## Khung review chung (baseline mọi stack)
 
-> Danh sách bên dưới (và toàn bộ danh sách trong `templates/*.md`) là GỢI Ý MINH HỌA để định hướng
-> review, KHÔNG PHẢI checklist đóng/đầy đủ. Agent phải tự tư duy, chủ động phát hiện thêm vấn đề
-> khác ngoài những gì được liệt kê nếu có — không tự giới hạn bản thân chỉ tìm đúng những ý đã ghi.
+Áp dụng cho mọi PR, mọi stack, không phân biệt ngôn ngữ/framework; luôn nạp cùng template đặc thù
+của stack đang review. `templates/<stack>.md` chỉ chứa tiêu chí ĐẶC THÙ (gồm toàn bộ mục 5 "Đặc thù
+framework/language" — mục này không có baseline chung), không lặp lại các mục dưới đây.
 
-Áp dụng cho MỌI PR, MỌI stack, không phân biệt ngôn ngữ/framework — luôn nạp cùng với template đặc
-thù của stack đang review. `templates/<stack>.md` CHỈ chứa tiêu chí ĐẶC THÙ (bao gồm toàn bộ mục 5
-"Đặc thù framework/language" — mục này không có baseline chung), không lặp lại các mục dưới đây.
+Các tiêu chí trong file này và trong `templates/*.md` là gợi ý minh họa định hướng, không phải
+checklist đóng. Phạm vi review không giới hạn ở các mục được liệt kê; vấn đề khác phát hiện được
+vẫn nằm trong phạm vi.
 
 #### 1. Lỗi & vấn đề logic
 - Có bug rõ ràng hoặc lỗi logic nào không?
@@ -41,12 +38,12 @@ thù của stack đang review. `templates/<stack>.md` CHỈ chứa tiêu chí Đ
 - Test có được thêm hoặc cập nhật cho thay đổi không? Có bao gồm cả happy path và error path không?
 - Thiết kế có đủ linh hoạt để đáp ứng thay đổi trong tương lai không?
 
-## Nhận diện yêu cầu review bằng ngôn ngữ tự nhiên
+## Kích hoạt bằng ngôn ngữ tự nhiên
 
-Agent nên nhận diện yêu cầu review PR được diễn đạt bằng ngôn ngữ tự nhiên trong chat bình thường
-(ví dụ user gõ "review giúp tôi PR này: <url>", "coi giùm cái PR <url> xem sao", "check PR <url>"),
-KHÔNG bắt buộc user phải gõ đúng cú pháp slash-command. Khi nhận diện được ý định + có URL GitHub PR
-hợp lệ, agent tự map sang luồng review tương ứng của lệnh `/review:pr <url>`.
+Luồng review kích hoạt cả khi yêu cầu được diễn đạt bằng ngôn ngữ tự nhiên trong chat (ví dụ:
+"review giúp tôi PR này: <url>", "coi giùm cái PR <url> xem sao", "check PR <url>"), không bắt buộc
+đúng cú pháp slash-command. Điều kiện: nội dung chứa 1 URL GitHub PR hợp lệ; khi đó áp dụng cùng
+luồng như `/review:pr <url>`.
 
 ---
 

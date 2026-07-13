@@ -1,7 +1,6 @@
-Vue 2/3, Nuxt
+# Vue 2/3, Nuxt
 
-> Tiêu chí dưới đây BỔ SUNG cho baseline chung trong `ALWAYS_RULE.md` (áp dụng mọi stack) — không
-> lặp lại các mục đã có ở đó.
+_Bổ sung cho baseline `ALWAYS_RULE.md`; chỉ liệt kê tiêu chí đặc thù stack, không lặp baseline._
 
 #### 1. Lỗi & Vấn đề logic
 

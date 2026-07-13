@@ -1,9 +1,7 @@
-AWS Lambda (serverless — overlay)
+# AWS Lambda (serverless — overlay)
 
-> File này CHỒNG THÊM (overlay) lên template ngôn ngữ nền — `python.md` khi handler là Python,
-> `nodejs.md` khi handler là Node.js — áp dụng CẢ HAI khi review 1 file lambda handler, KHÔNG thay
-> thế template ngôn ngữ nền. File này chỉ chứa tiêu chí ĐẶC THÙ serverless, không lặp lại tiêu chí
-> ngôn ngữ nền đã có ở `python.md`/`nodejs.md`.
+_Overlay chồng lên template ngôn ngữ nền (`python.md` cho handler Python, `nodejs.md` cho handler
+Node.js), áp dụng đồng thời khi review lambda handler. Chỉ liệt kê tiêu chí đặc thù serverless._
 
 #### 1. Lỗi & Vấn đề logic
 

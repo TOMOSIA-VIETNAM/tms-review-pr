@@ -28,127 +28,84 @@ Chỉ tiến hành các bước 1-9 bên dưới nếu `ARGUMENTS` là URL GitHu
 - Danh sách file thay đổi: !`gh pr diff $ARGUMENTS --name-only 2>/dev/null`
 - Diff đầy đủ: !`gh pr diff $ARGUMENTS 2>/dev/null`
 - Commits: !`gh pr view $ARGUMENTS --json commits --jq '.commits[].messageHeadline' 2>/dev/null`
-- Review comments cũ của chính PR này (dùng ở Bước 6 — response rỗng là bình thường, không phải lỗi): !`gh api repos/$(echo $ARGUMENTS | sed -E 's#https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+).*#\1/\2#')/pulls/$(echo $ARGUMENTS | sed -E 's#.*/pull/([0-9]+).*#\1#')/comments 2>/dev/null`
+- Review comments cũ của chính PR này (dùng ở Bước 5 — response rỗng là bình thường, không phải lỗi): !`gh api repos/$(echo $ARGUMENTS | sed -E 's#https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+).*#\1/\2#')/pulls/$(echo $ARGUMENTS | sed -E 's#.*/pull/([0-9]+).*#\1#')/comments 2>/dev/null`
 
-**Cách suy ra `{owner}/{repo}/{pull_number}` từ ARGUMENTS** (dùng lại nhiều lần ở các bước sau, ghi
-nhớ cách parse này thay vì suy diễn lại mỗi lần):
-`ARGUMENTS` có dạng `https://github.com/<owner>/<repo>/pull/<number>`. Cắt segment ngay sau
-`github.com/` là `owner`, segment kế tiếp là `repo`, số ngay sau `/pull/` là `pull_number`. Ví dụ
-`https://github.com/acme/api/pull/42` → `owner=acme`, `repo=api`, `pull_number=42`. Lệnh
-`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments` ở trên đã tự parse bằng `sed` cho lần
-gọi đầu; ở các bước dưới đây (đặc biệt Bước 8) khi cần gọi `gh api` lại, dùng lại đúng cách parse
-này với `owner`, `repo`, `pull_number` cụ thể của PR đang review.
+**Parse `{owner}/{repo}/{pull_number}` từ ARGUMENTS:** URL dạng
+`https://github.com/<owner>/<repo>/pull/<number>` → `owner` = segment sau `github.com/`, `repo` =
+segment kế tiếp, `pull_number` = số sau `/pull/`. Ví dụ `.../acme/api/pull/42` → `owner=acme`,
+`repo=api`, `pull_number=42`. Dùng lại cách parse này ở Bước 8 khi gọi `gh api`.
 
-`short_name` (dùng từ Bước 2 trở đi) = đúng segment `<repo>` ở trên (KHÔNG kèm owner). Ví dụ URL
-trên → `short_name = api`. Lưu ý biết trước: nếu trên cùng máy từng review 2 PR của 2 repo khác
-owner nhưng trùng tên repo, `short_name` sẽ trùng nhau và dùng chung 1 thư mục memory — đây là giới
-hạn đã biết của thiết kế hiện tại (không tự ý đổi sang `owner-repo` để né, vì đó là quyết định đổi
-schema cần user duyệt riêng), cứ theo đúng `short_name = <repo>` như trên.
+`short_name` (dùng từ Bước 2 trở đi) = segment `<repo>` (KHÔNG kèm owner), vd `api`. Hai repo khác
+owner nhưng trùng tên repo sẽ dùng chung 1 thư mục memory — giới hạn đã biết, giữ nguyên
+`short_name = <repo>`, không tự đổi schema sang `owner-repo`.
 
 ## Bước 1 — Detect stack cho từng file trong diff
 
-Với MỖI file trong "Danh sách file thay đổi" ở trên, map theo bảng sau để biết stack nào áp dụng.
-Một PR có thể trộn nhiều stack — giữ một danh sách cặp `(file, [stack áp dụng])`, KHÔNG dùng chung
-1 stack cho cả PR nếu các file thuộc stack khác nhau.
-
-| Điều kiện file | Stack |
-|---|---|
-| `.rb`, `.erb`, `.haml` | `rails` |
-| `.vue` | `vue` |
-| `.jsx`, `.tsx` (không phải `.vue`; heuristic hỗ trợ: path chứa `src/components`, `pages/`, hoặc file có import `react`) | `react` |
-| `.py` | `python` |
-| `.js`, `.ts` còn lại (không thuộc `.vue` / `.jsx` / `.tsx` / thư mục FE nêu trên) | `nodejs` |
-| `.sh`, `.bash` | `shell` |
-| `Makefile`, `makefile`, `*.mk` | `makefile` |
-| `.php` (không rơi vào overlay Laravel/WordPress bên dưới) | `php` |
-
-**Overlay (CỘNG THÊM lên stack nền, KHÔNG thay thế):**
-
-- **Lambda** — nếu path chứa `lambda`/`lambdas`/`functions/`, HOẶC repo có `serverless.yml` /
-  `template.yaml` / `sam.yaml`, HOẶC filename là `handler.py`/`handler.js`/`index.py`/`index.js`
-  nằm cạnh một trong các file config trên → cộng thêm stack `lambda-common` lên `python` (nếu file
-  `.py`) hoặc `nodejs` (nếu file `.js`/`.ts`) tương ứng.
-- **Laravel** — nếu repo có `artisan`, `composer.json` chứa `laravel/framework`, hoặc path
-  `app/Http/Controllers`, `resources/views/*.blade.php` → cộng thêm stack `laravel` lên `php`.
-- **WordPress** — nếu repo có `wp-config.php`, path `wp-content/plugins/` hoặc
-  `wp-content/themes/`, hoặc `style.css` có theme header → cộng thêm stack `wordpress` lên `php`.
-
-Ghi lại kết quả detect này (file → (các) stack) — dùng ở Bước 3 (đảm bảo có local template) và
-Bước 5 (áp đúng tiêu chí cho đúng file).
+Với MỖI file trong "Danh sách file thay đổi", xác định (các) stack áp dụng theo bảng mapping +
+overlay rule trong `stack-detection.md` (đọc bằng `Read` tại
+`"${CLAUDE_PLUGIN_ROOT}"/stack-detection.md`). Giữ danh sách cặp `(file, [stack áp dụng])` — dùng
+lại ở Bước 3 (đảm bảo local template), Bước 4 (nạp template), Bước 5 và Bước 6 (áp đúng tiêu chí
+cho đúng file).
 
 ## Bước 2 — Thiết lập lần đầu cho repo (nếu cần)
 
-Dùng `Read` thử đọc `notebooks/review/<short_name>/meta.json` tại pwd (root repo đang review,
-KHÔNG PHẢI root plugin).
+`Read` thử `notebooks/review/<short_name>/meta.json` tại pwd (root repo đang review, KHÔNG PHẢI
+root plugin).
 
-- **Nếu file không tồn tại, HOẶC tồn tại nhưng `bootstrapped`/`doctored` không phải cả hai đều
-  `true`**: dùng `Read` đọc `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` (biến môi trường chuẩn của
-  Claude Code, tự trỏ đúng root plugin bất kể cài ở máy nào — KHÔNG hardcode path tuyệt đối của 1
-  máy cụ thể) và làm theo TOÀN BỘ Phần A + Phần C của file đó (Phần B — copy template theo stack —
-  xử lý riêng ở Bước 3, không làm ở đây).
-- **Nếu `bootstrapped: true` VÀ `doctored: true` rồi**: BỎ QUA HOÀN TOÀN bước này, KHÔNG đọc
-  `setup-flow.md` (để không tốn context của lần review này cho nội dung thiết lập không còn cần
-  thiết) — đi thẳng sang Bước 3.
+- **File không tồn tại, HOẶC `bootstrapped`/`doctored` chưa cùng `true`**: đọc
+  `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` và làm theo Phần A + Phần C (Phần B — copy template theo
+  stack — xử lý ở Bước 3).
+- **`bootstrapped: true` VÀ `doctored: true`**: bỏ qua bước này, KHÔNG đọc `setup-flow.md`, sang
+  thẳng Bước 3.
 
-**Đây PHẢI là behavior idempotent nghiêm ngặt**: từ lần chạy thứ 2 trở đi (khi đã bootstrapped +
-doctored), lệnh này KHÔNG được đụng tới bất kỳ file nào trong `notebooks/review/` ngoại trừ nội
-dung được thêm ở Bước 3 (template mới cho stack chưa từng gặp) hoặc Bước 6 (đề xuất lesson, có xác
-nhận của user).
+Idempotent nghiêm ngặt: từ lần chạy thứ 2 trở đi (đã bootstrap + doctor), lệnh KHÔNG đụng bất kỳ
+file nào trong `notebooks/review/` ngoài phần thêm ở Bước 3 (template stack chưa từng gặp) hoặc
+Bước 5 (lesson, có xác nhận của user).
 
 ## Bước 3 — Đảm bảo có local template cho (các) stack của PR này
 
-Với MỖI stack đã detect ở Bước 1: kiểm `notebooks/review/<short_name>/meta.json` xem tên stack đó
-đã có trong mảng `templates_copied` chưa.
+Với MỖI stack đã detect ở Bước 1: kiểm mảng `templates_copied` trong
+`notebooks/review/<short_name>/meta.json`.
 
-- **Chưa có** → dùng `Read` đọc `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` Phần B (nếu chưa đọc file
-  này ở Bước 2) và làm theo — copy (hoặc tự soạn mới nếu plugin chưa có) template cho stack đó vào
-  `notebooks/review/<short_name>/templates/<stack>.md`, rồi thêm tên stack vào `templates_copied`.
-- **Đã có rồi** → BỎ QUA, dùng thẳng bản local đã có tại
-  `notebooks/review/<short_name>/templates/<stack>.md`.
+- **Chưa có** → đọc `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` Phần B (nếu chưa đọc ở Bước 2) và làm
+  theo.
+- **Đã có** → dùng thẳng bản local `notebooks/review/<short_name>/templates/<stack>.md`.
 
-Bước này CHẠY MỖI LẦN (không gộp vào điều kiện "đã setup xong" của Bước 2), vì 1 repo có thể lần
-đầu chỉ có PR Rails, rồi PR sau mới xuất hiện file Vue — lúc đó vẫn cần tạo local template cho Vue
-dù bootstrap/doctor đã xong từ trước.
+Bước này CHẠY MỖI LẦN (tách khỏi gate "đã setup xong" của Bước 2): stack mới có thể xuất hiện ở PR
+sau dù bootstrap/doctor đã xong từ trước.
 
 ## Bước 4 — Nạp rule + memory + template
 
 1. Đọc `"${CLAUDE_PLUGIN_ROOT}"/ALWAYS_RULE.md` — rule chung của PLUGIN (áp dụng mọi repo), khác
    với convention riêng của repo đang review (nằm ở `notebooks/review/<short_name>/`). Lấy từ đây:
    ngôn ngữ output (default **English** nếu file không ghi rõ khác) + rule cứng khác nếu có + khung
-   6 mục **baseline** (tiêu chí chung áp dụng MỌI stack — mục 1,2,3,4,6; riêng mục 5 "Đặc thù
-   framework/language" không có baseline, luôn lấy 100% từ template ở mục 3 dưới). File này ghi rõ:
-   toàn bộ danh sách tiêu chí (cả ở đây lẫn trong template) là GỢI Ý MINH HỌA, KHÔNG PHẢI checklist
-   đóng — giữ đúng tinh thần đó khi review ở Bước 5, không tự giới hạn chỉ tìm đúng những gì được
-   liệt kê.
+   6 mục **baseline** (tiêu chí chung mọi stack — mục 1,2,3,4,6; mục 5 "Đặc thù framework/language"
+   không có baseline, lấy 100% từ template ở mục 3 dưới). Danh sách tiêu chí là GỢI Ý MINH HỌA,
+   không phải checklist đóng — giữ tinh thần đó khi review ở Bước 6.
 2. Đọc `notebooks/review/<short_name>/memory.md` (index) + đọc từng `memories/<lesson>.md` được
-   trỏ tới bởi các dòng có tag stack TRÙNG với (các) stack đã detect ở Bước 1 cho PR này (bỏ qua
-   lesson của stack không xuất hiện trong PR). Với dòng dạng THAM CHIẾU (từ doctor, không phải
-   lesson tự học) → đọc luôn nội dung tại path được trỏ tới trong repo đang review, coi đó là tiêu
-   chí bổ sung có giá trị ngang lesson thường.
-3. Đọc (các) file **LOCAL** trong `notebooks/review/<short_name>/templates/` tương ứng với kết quả
-   detect ở Bước 1 (bao gồm cả overlay nếu có, vd đọc cả `python.md` lẫn `lambda-common.md` nếu PR
-   có lambda) — KHÔNG đọc trực tiếp từ `${CLAUDE_PLUGIN_ROOT}/templates/` nữa, vì Bước 3 đã đảm bảo
-   bản local tồn tại và đó mới là bản có hiệu lực cho repo này (có thể đã được team tự chỉnh sửa).
+   trỏ tới bởi các dòng có tag stack TRÙNG với (các) stack đã detect ở Bước 1 (bỏ qua lesson của
+   stack không xuất hiện trong PR). Dòng dạng THAM CHIẾU (từ doctor, không phải lesson tự học) →
+   đọc luôn nội dung tại path được trỏ tới trong repo đang review, coi là tiêu chí bổ sung có giá
+   trị ngang lesson thường.
+3. Đọc (các) file **LOCAL** trong `notebooks/review/<short_name>/templates/` tương ứng kết quả
+   detect ở Bước 1 (gồm cả overlay nếu có, vd đọc cả `python.md` lẫn `lambda-common.md` khi PR có
+   lambda). KHÔNG đọc trực tiếp từ `${CLAUDE_PLUGIN_ROOT}/templates/` — bản local mới là bản có
+   hiệu lực cho repo này (có thể đã được team chỉnh sửa).
 
 ## Bước 5 — Đọc lại review comments cũ của chính PR này (re-review detection)
 
-Dữ liệu đã lấy sẵn ở block "Ngữ cảnh" (`gh api .../pulls/{pull_number}/comments`) — luôn gọi mỗi
-lần chạy lệnh, kể cả PR mới toanh (response rỗng thì bỏ qua, KHÔNG coi là lỗi).
+Dữ liệu đã lấy sẵn ở block "Ngữ cảnh" (`gh api .../pulls/{pull_number}/comments`) — luôn có mặt mỗi
+lần chạy, kể cả PR mới toanh (response rỗng thì bỏ qua, KHÔNG coi là lỗi).
 
 - Chỉ xét reply chain (`in_reply_to_id`) của CHÍNH PR đang review này — không quét PR khác.
-- Tự đọc hiểu ngôn ngữ tự nhiên trong nội dung comment + các reply, tự phán đoán xem dev và
-  reviewer đã đi đến ĐỒNG THUẬN về 1 convention nào chưa. **KHÔNG dựa vào trạng thái `resolved`**
-  của comment để quyết định (chủ đích thiết kế, không phải giới hạn kỹ thuật — resolved chỉ là
-  UI state, không phản ánh có đồng thuận thật hay không).
-- Nếu phát hiện đồng thuận → **KHÔNG tự ý ghi ngay**. Hiển thị đề xuất trong chat gồm: nội dung
-  lesson dự kiến (mô tả convention, ví dụ nếu rút ra được từ thread) + tag stack dự kiến. CHỜ user
-  xác nhận (yes / no / sửa lại nội dung).
-- CHỈ SAU KHI user đồng ý mới:
-  - Tạo `notebooks/review/<short_name>/memories/<lesson-slug>.md` (slug kebab-case ngắn gọn, không
-    dùng số thứ tự vô nghĩa) với nội dung tối thiểu: mô tả convention, ví dụ code trước/sau (nếu
-    có), tag stack, ngày ghi nhận, nguồn (link PR đang review này).
-  - Thêm 1 dòng vào index `memory.md` theo đúng format ở Bước 2/`setup-flow.md` (`- [tag] mô tả -> memories/<lesson-slug>.md`).
-  - `git -C notebooks/review add <short_name>` + commit (local only, không push).
+- Đọc hiểu nội dung comment + các reply để phán đoán dev và reviewer đã ĐỒNG THUẬN về 1 convention
+  nào chưa. **KHÔNG dựa vào trạng thái `resolved`** để quyết định — resolved chỉ là UI state, không
+  phản ánh có đồng thuận thật hay không.
+- Phát hiện đồng thuận → **KHÔNG tự ghi ngay**. Hiển thị đề xuất trong chat: nội dung lesson dự
+  kiến (mô tả convention, ví dụ rút ra từ thread nếu có) + tag stack dự kiến. CHỜ user xác nhận
+  (yes / no / sửa lại nội dung).
+- CHỈ SAU KHI user đồng ý: ghi lesson theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` (đọc
+  bằng `Read` nếu chưa nạp file này ở Bước 2/3).
 
 ## Bước 6 — Thực hiện review theo 6 mục
 
@@ -223,21 +180,17 @@ EOF
 - Thay `{owner}`, `{repo}`, `{pull_number}` bằng giá trị thật đã parse. Đây là lần gọi `gh api`
   POST DUY NHẤT của cả lệnh — không gọi thêm lần POST review nào khác.
 
-## Bước 9 — Ghi chú hành vi chung (áp dụng mọi lúc plugin "review" active, không riêng lúc chạy `/review:pr`)
+## Bước 9 — Hành vi chung khi plugin "review" active (ngoài luồng `/review:pr`)
 
-Đây không phải bước runtime của riêng lệnh này, mà là hành vi chung cần tuân thủ bất cứ khi nào
-plugin này đang active trong session:
+Áp dụng bất cứ khi nào plugin này active trong session, không riêng lúc chạy `/review:pr`:
 
-- Khi user đang trò chuyện bình thường với Claude Code (KHÔNG phải đang chạy `/review:pr`) và TỰ
-  PHÁT BIỂU một sửa đổi/góp ý về convention của dự án đang được review (repo hiện có
-  `notebooks/review/<short_name>/` từ lần chạy `/review:pr` trước đó) → KHÔNG được tự ý ghi ngay
-  vào memory. Phải hỏi xác nhận user trước (giống hệt cơ chế đề xuất ở Bước 5), CHỈ SAU KHI user
-  xác nhận đồng ý mới ghi file mới vào `notebooks/review/<short_name>/memories/<lesson-slug>.md`
-  (format như Bước 5) + thêm 1 dòng entry vào `notebooks/review/<short_name>/memory.md`, rồi
-  commit (local only) vào git nested tại `notebooks/review/.git`.
-- Khi user yêu cầu "doctor lại"/"quét lại convention dự án" → sửa `doctored` trong `meta.json`
-  thành `false` rồi thực hiện lại Phần C của `setup-flow.md`, không cần đợi tới lần `/review:pr`
-  kế tiếp nếu user muốn làm ngay trong chat.
+- User trò chuyện bình thường (KHÔNG chạy `/review:pr`) và tự phát biểu một sửa đổi/góp ý convention
+  cho repo đang có `notebooks/review/<short_name>/` (từ lần `/review:pr` trước) → KHÔNG tự ghi ngay.
+  Hỏi xác nhận trước (như Bước 5); CHỈ SAU KHI user đồng ý mới ghi lesson theo Phần E của
+  `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md`.
+- User yêu cầu "doctor lại"/"quét lại convention dự án" → set `doctored: false` trong `meta.json`
+  rồi thực hiện lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md`, không cần đợi lần
+  `/review:pr` kế tiếp.
 
 ---
 
