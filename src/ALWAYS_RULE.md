@@ -38,17 +38,7 @@ vẫn nằm trong phạm vi.
 - Test có được thêm hoặc cập nhật cho thay đổi không? Có bao gồm cả happy path và error path không?
 - Thiết kế có đủ linh hoạt để đáp ứng thay đổi trong tương lai không?
 
-## Kích hoạt bằng ngôn ngữ tự nhiên
-
-Luồng review kích hoạt cả khi yêu cầu được diễn đạt bằng ngôn ngữ tự nhiên trong chat (ví dụ:
-"review giúp tôi PR này: <url>", "coi giùm cái PR <url> xem sao", "check PR <url>"), không bắt buộc
-đúng cú pháp slash-command. Điều kiện: nội dung chứa 1 URL GitHub PR hợp lệ; khi đó áp dụng cùng
-luồng như `/review:pr <url>`.
-
-## Hành vi ngoài `/review:pr`
-
-Áp dụng khi plugin `review` đã từng dùng trên repo (có `notebooks/review/<repo>/`), kể cả lúc chat
-thường không gọi slash command:
+## Hành vi ngoài `/tms:review_pr`
 
 - User nêu sửa đổi/góp ý convention → KHÔNG tự ghi lesson ngay. Hỏi xác nhận trước; chỉ sau khi user
   đồng ý mới ghi theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
@@ -57,8 +47,7 @@ thường không gọi slash command:
 
 ---
 
-## Rule bổ sung (tự điền thêm bên dưới)
-
+## Rule bổ sung
 <!-- User tự thêm rule riêng của mình / tổ chức tại đây. Chưa có nội dung nào khác ngoài 2 rule ở trên. -->
 
 ### Convention riêng

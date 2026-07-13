@@ -1,12 +1,12 @@
 # Setup flow — thiết lập lần đầu cho 1 repo
 
-Không phải slash command (nằm ngoài `commands/`); `commands/pr.md` nạp bằng `Read` khi repo chưa
+Không phải slash command (nằm ngoài `commands/`); `commands/review_pr.md` nạp bằng `Read` khi repo chưa
 thiết lập xong.
 
-Toàn bộ thao tác dưới đây chạy tại **ĐÚNG pwd hiện tại của phiên** — thư mục mà lệnh `/review:pr`
+Toàn bộ thao tác dưới đây chạy tại **ĐÚNG pwd hiện tại của phiên** — thư mục mà lệnh `/tms:review_pr`
 được gọi. TUYỆT ĐỐI KHÔNG `cd` sang thư mục khác, KHÔNG tự dò tìm "git root"/"thư mục repo thật
 sự", KHÔNG dùng basename của bất kỳ thư mục nào để suy ra đường dẫn hay tên repo. Tên thư mục memory
-`<repo>` LUÔN là segment `<repo>` đã parse từ PR URL (xem block "Ngữ cảnh" của `pr.md`), KHÔNG suy
+`<repo>` LUÔN là segment `<repo>` đã parse từ PR URL (xem block "Ngữ cảnh" của `review_pr.md`), KHÔNG suy
 từ pwd/thư mục con/git remote. Đứng ở đâu tạo ở đó — không ngoại lệ.
 
 Công cụ được phép: `Read`/`Write`/`Edit`, `git`/`cp`/`mkdir` (qua Bash), và `Agent` (chỉ ở Phần C —
@@ -30,7 +30,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    bản LOCAL copy của (các) template stack đang dùng trong repo (xem Phần B), tạo sẵn thư mục trước.
 4. Kiểm `notebooks/review/.gitignore` đã tồn tại chưa (`Read` thử) — file RIÊNG của git nested
    `notebooks/review/.git` (khác `.gitignore` của repo chính ở bước 8 dưới), cần có để worktree
-   ephemeral chứa code PR checkout (Bước 1 của `pr.md`, dưới
+   ephemeral chứa code PR checkout (Bước 1 của `review_pr.md`, dưới
    `notebooks/review/<repo>/worktrees/...`) KHÔNG bao giờ lọt vào git nested này — nested repo chỉ
    nên chứa memory/template/rule, không phải code PR đang review:
    - Chưa tồn tại → `Write` tạo mới `notebooks/review/.gitignore` chỉ chứa đúng 1 dòng `worktrees/`.
@@ -39,7 +39,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    - Đã có đủ → bỏ qua.
 5. Copy `ALWAYS_RULE.md` từ plugin vào bản LOCAL của repo bằng `cp` (KHÔNG Read+Write qua context):
    `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
-   đây về sau `pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
+   đây về sau `review_pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
 6. Hỏi user 3 câu trong 1 lượt, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
    thể): (1) ngôn ngữ output cho review — vi/en/ja; (2) `auto_submit_review` true/false (mặc định
@@ -85,7 +85,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
 
 ## Phần B — Copy/tạo local template cho (các) stack hiện có trong PR đang review
 
-Với MỖI stack đã detect được ở Bước 2 của `pr.md` mà CHƯA có trong `templates_copied` (mảng trong
+Với MỖI stack đã detect được ở Bước 2 của `review_pr.md` mà CHƯA có trong `templates_copied` (mảng trong
 `meta.json`, xem Phần D):
 
 1. Kiểm `${CLAUDE_PLUGIN_ROOT}/src/templates/<stack>.md` có tồn tại không (plugin có sẵn template cho
@@ -122,14 +122,14 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
    `.cursorrules` / `.cursor/rules/`, `.github/copilot-instructions.md` — bất kể nằm ở subfolder
    nào. Bỏ qua nguồn không tồn tại, không coi là lỗi.
    **Dùng `Agent` để chạy SONG SONG cho nhanh trên repo lớn** (đã có trong `allowed-tools` của
-   `pr.md`): 1 subagent quét toàn cây thư mục (glob/grep) trả về DANH SÁCH path các file convention;
+   `review_pr.md`): 1 subagent quét toàn cây thư mục (glob/grep) trả về DANH SÁCH path các file convention;
    rồi spawn NHIỀU subagent song song (mỗi subagent 1 file hoặc 1 nhóm file) để đọc + tóm tắt +
    phát hiện convention/mâu thuẫn — thay vì main agent đọc tuần tự từng file (chậm). Không giới hạn
    loại subagent cụ thể (portable qua các môi trường team cấu hình tên subagent khác nhau).
 
    **Cùng lượt quét này (KHÔNG thêm bước riêng), kiểm tra thêm sự tồn tại của PR template của dự
    án** — khác `project_docs_found` ở trên (nguồn convention chung), đây là 1 field riêng dùng ở
-   `pr.md` Bước 7 để đối chiếu checklist PR template với description thật của PR. Kiểm các path phổ
+   `review_pr.md` Bước 7 để đối chiếu checklist PR template với description thật của PR. Kiểm các path phổ
    biến: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/pull_request_template.md`,
    `.github/PULL_REQUEST_TEMPLATE/*.md` (GitHub hỗ trợ 1 thư mục nhiều template, chọn qua query
    param), `PULL_REQUEST_TEMPLATE.md` (root), `docs/PULL_REQUEST_TEMPLATE.md`. Giữ lại danh sách
@@ -176,28 +176,28 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
 }
 ```
 
-`pr.md` coi repo là "đã thiết lập xong" khi `bootstrapped: true` VÀ `doctored: true` — 2 field này
+`review_pr.md` coi repo là "đã thiết lập xong" khi `bootstrapped: true` VÀ `doctored: true` — 2 field này
 chỉ cần đạt 1 LẦN DUY NHẤT. `templates_copied` thì KHÔNG nằm trong điều kiện "đã xong" đó — nó được
 kiểm tra riêng, mỗi lần chạy, cho từng stack detect được trong PR (Phần B luôn có thể chạy lại một
 phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể cả khi `bootstrapped`/`doctored` đã
 `true` từ lâu).
 
 `has_submodules` detect đúng 1 lần lúc doctor (Phần C bước 5, check `.gitmodules` tại root repo),
-KHÔNG dò lại mỗi lần review. `pr.md` (Bước 1 mục 5) đọc field này để quyết định có đọc
+KHÔNG dò lại mỗi lần review. `review_pr.md` (Bước 1 mục 5) đọc field này để quyết định có đọc
 `src/cases/submodule-review.md` hay không.
 
 `auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
-bước 6/9), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
+bước 6/9), mặc định `false` nếu user không có ý kiến khác. `review_pr.md` đọc lại 2 field này ở Bước 3 và
 dùng ở Bước 6 (`auto_resolve_fixed_findings`) và Bước 9 (`auto_submit_review`).
 
 `pr_template_paths` (mảng string, mặc định mảng rỗng) được ghi 1 lần lúc doctor (Phần C bước 1/6) —
-danh sách path PR template của dự án tìm thấy (rỗng nếu dự án không có). `pr.md` đọc lại field này ở
+danh sách path PR template của dự án tìm thấy (rỗng nếu dự án không có). `review_pr.md` đọc lại field này ở
 Bước 3, dùng ở Bước 7 để đối chiếu checklist PR template với description thật của PR.
 
 ## Phần E — Ghi 1 lesson vào memory
 
-Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 6 của `pr.md`, góp ý convention
-user phát biểu trong chat (Bước 10 của `pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
+Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 6 của `review_pr.md`, góp ý convention
+user phát biểu trong chat (Bước 10 của `review_pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
 do nơi gọi xử lý (Bước 6 / Bước 10 hỏi trước; Phần C không cần hỏi) — Phần E chỉ mô tả thao tác ghi.
 
 1. Tạo `notebooks/review/<repo>/memories/<lesson-slug>.md` (slug kebab-case ngắn gọn, không
@@ -213,4 +213,4 @@ do nơi gọi xử lý (Bước 6 / Bước 10 hỏi trước; Phần C không c
 ## Khi user yêu cầu "doctor lại" / "quét lại convention dự án"
 
 Sửa `doctored` trong `meta.json` thành `false` (hoặc xoá hẳn field đó) rồi thực hiện lại Phần C.
-Có thể làm ngay trong chat, không cần đợi lần `/review:pr` kế tiếp.
+Có thể làm ngay trong chat, không cần đợi lần `/tms:review_pr` kế tiếp.

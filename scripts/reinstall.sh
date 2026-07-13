@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reinstall the "review" Claude Code plugin from this local directory, forcing a
+# Reinstall the "tms" Claude Code plugin from this local directory, forcing a
 # clean pull of the current plugin.json/commands/ (no stale marketplace/plugin
 # registration left over from a previous install).
 set -euo pipefail
@@ -54,5 +54,5 @@ echo "→ Installing $PLUGIN_ID..."
 claude plugin install "$PLUGIN_ID" --scope "$SCOPE"
 
 echo
-echo "✅ Installed. Restart Claude Code (or start a new session) to load /review:pr."
+echo "✅ Installed. Restart Claude Code (or start a new session) to load /tms:review_pr."
 claude plugin list

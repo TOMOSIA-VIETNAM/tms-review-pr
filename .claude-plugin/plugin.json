@@ -1,5 +1,5 @@
 {
-  "name": "review",
+  "name": "tms",
   "displayName": "GitHub PR Reviewer",
   "version": "0.1.0",
   "description": "Review GitHub Pull Request đa stack (Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile) với memory học convention riêng theo từng repo.",

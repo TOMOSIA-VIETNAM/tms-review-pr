@@ -1,6 +1,6 @@
-# PR template checklist — đối chiếu description với checklist tự đặt của dự án (Bước 7 `pr.md`)
+# PR template checklist — đối chiếu description với checklist tự đặt của dự án (Bước 7 `review_pr.md`)
 
-Không phải slash command (nằm ngoài `commands/`). `pr.md` Bước 7 `Read` file này khi
+Không phải slash command (nằm ngoài `commands/`). `review_pr.md` Bước 7 `Read` file này khi
 `meta.json.pr_template_paths` (đọc ở Bước 3) không rỗng — rỗng (dự án không có PR template nào) thì
 bỏ qua hoàn toàn, không đọc file này, không tạo finding nào cho mục này.
 
@@ -9,7 +9,7 @@ severity) — mục này CÓ tính vào N ở Bước 8, vì đây là vi phạm
 template, không chỉ là góp ý phong cách.
 
 Đọc nội dung (các) file tại (các) path trong `pr_template_paths` bằng `Read` **tại `<worktree>/<path>`**
-(worktree tạo ở Bước 1 của `pr.md` — KHÔNG phải path trực tiếp ở pwd; `pr_template_paths` do doctor
+(worktree tạo ở Bước 1 của `review_pr.md` — KHÔNG phải path trực tiếp ở pwd; `pr_template_paths` do doctor
 detect trên cây thư mục pwd lúc setup, nhưng nội dung file THẬT của PR này phải đọc từ code đã
 checkout trong worktree, phòng trường hợp chính PR đang review sửa luôn cả file template), đối chiếu
 với `body` thật của PR (đã lấy ở block "Ngữ cảnh"). Tìm dấu hiệu còn sót lại chưa điền — vd checkbox `- [ ]`

@@ -18,8 +18,8 @@ Trống hoặc không có pattern → in lỗi dưới, DỪNG (bỏ qua output 
 
 ```
 ❌ Lỗi: Chưa cung cấp URL PR.
-Cách dùng: /review:pr <GitHub PR URL>
-Ví dụ: /review:pr https://github.com/org/repo/pull/123
+Cách dùng: /tms:review_pr <GitHub PR URL>
+Ví dụ: /tms:review_pr https://github.com/org/repo/pull/123
 ```
 
 Phần `ARGUMENTS` ngoài URL = chỉ dẫn bổ sung lần này (ưu tiên hơn default `ALWAYS_RULE.md` nếu hợp
