@@ -33,7 +33,8 @@ Các lệnh dưới đây trước tiên trích PR URL "sạch" (canonical `http
 CẮT BỎ mọi phần đuôi như `/changes`/`/files`/query/fragment) từ `$ARGUMENTS` bằng
 `grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+'`, để `gh` không bị lỗi khi URL có đuôi:
 
-- Thông tin PR: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --json number,title,author,baseRefName,headRefName 2>/dev/null`
+- Thông tin PR (bao gồm `body` = description — dùng ở Bước 6 để đánh giá title/description có thể
+  hiện rõ business không): !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --json number,title,body,author,baseRefName,headRefName 2>/dev/null`
 - Head commit sha (bắt buộc dùng ở Bước 8 khi post review): !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --json headRefOid --jq .headRefOid 2>/dev/null`
 - Danh sách file thay đổi: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --name-only 2>/dev/null`
 - Diff đầy đủ: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" 2>/dev/null`
@@ -134,6 +135,22 @@ lần chạy, kể cả PR mới toanh (response rỗng thì bỏ qua, KHÔNG co
 
 ## Bước 6 — Thực hiện review theo 6 mục
 
+**Kiểm tra title & description PR trước (cấp độ tổng quan, không phải finding cấp file/line):**
+
+- Đọc `title` + `body` (description) của PR đã lấy ở block Ngữ cảnh. Đánh giá: title + description
+  có thể hiện rõ được BUSINESS/mục đích của thay đổi không (người đọc hiểu PR làm gì, giải quyết vấn
+  đề gì, KHÔNG cần đọc code mới hiểu)? Nếu mập mờ/thiếu (title chung chung kiểu "fix bug", "update",
+  description rỗng hoặc không giải thích được lý do thay đổi) → ghi rõ trong phần tổng quan ở Bước 7
+  (ưu tiên cao, nêu ngay đầu đoạn) rằng title/description chưa thể hiện đủ business, ĐỀ NGHỊ dev tự
+  bổ sung — KHÔNG tự viết sẵn nội dung title/description thay cho dev, chỉ nêu vấn đề cần cải thiện.
+- Kiểm tra prefix theo branch: nếu `headRefName` (tên branch) chứa dạng mã backlog/ticket (vd
+  `PROJ-123`, `JIRA-456`, hoặc số ticket rõ ràng trong tên branch) NHƯNG title PR KHÔNG mang prefix
+  tương ứng → cũng ghi trong phần tổng quan, đề nghị thêm prefix cho nhất quán. Nếu tên branch KHÔNG
+  chứa dạng mã ticket nào → BỎ QUA HOÀN TOÀN kiểm tra này, không ép buộc phải có prefix.
+- 2 mục trên là nhận xét ở phần TỔNG QUAN — KHÔNG tính vào 3 mức nghiêm trọng của Bước 7 (những mức
+  đó dành cho finding cấp file/line), KHÔNG đưa vào `comments[]` ở Bước 8 vì không gắn được với 1
+  file/dòng cụ thể trong diff.
+
 Áp dụng khung 6 mục sau, hợp nhất từ 2 nguồn đã nạp ở Bước 4: **baseline** trong `ALWAYS_RULE.md`
 (mục 1,2,3,4,6 — áp dụng mọi PR bất kể stack) + **tiêu chí đặc thù** trong (các) template LOCAL của
 stack tương ứng (bổ sung cho mục 1,2,3,4,6, và toàn bộ mục 5 vốn không có baseline):
@@ -193,6 +210,8 @@ nếu file đó không ghi rõ khác):
 ```
 ### Nhận xét tổng quan
 (2-3 câu đánh giá chung; nếu PR tốt, không có vấn đề đáng kể → chỉ cần "LGTM")
+(nếu có, thêm ngay ở đây nhận xét về title/description theo Bước 6 — không tính vào 3 mức bên dưới,
+không đưa vào comments[] ở Bước 8, vì không gắn với 1 file/dòng cụ thể)
 
 #### [Bắt buộc sửa] (N vấn đề)
 #### [Nên sửa] (N vấn đề)
