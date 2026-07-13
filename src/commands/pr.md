@@ -64,7 +64,7 @@ URL, để dễ phát hiện sai sót.
 
 Với MỖI file trong "Danh sách file thay đổi", xác định (các) stack áp dụng theo bảng mapping +
 overlay rule trong `stack-detection.md` (đọc bằng `Read` tại
-`"${CLAUDE_PLUGIN_ROOT}"/stack-detection.md`). Giữ danh sách cặp `(file, [stack áp dụng])` — dùng
+`"${CLAUDE_PLUGIN_ROOT}"/src/stack-detection.md`). Giữ danh sách cặp `(file, [stack áp dụng])` — dùng
 lại ở Bước 3 (đảm bảo local template), Bước 4 (nạp template), Bước 5 và Bước 6 (áp đúng tiêu chí
 cho đúng file).
 
@@ -74,7 +74,7 @@ cho đúng file).
 root plugin).
 
 - **File không tồn tại, HOẶC `bootstrapped`/`doctored` chưa cùng `true`**: đọc
-  `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` và làm theo Phần A + Phần C (Phần B — copy template theo
+  `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` và làm theo Phần A + Phần C (Phần B — copy template theo
   stack — xử lý ở Bước 3).
 - **`bootstrapped: true` VÀ `doctored: true`**: bỏ qua bước này, KHÔNG đọc `setup-flow.md`, sang
   thẳng Bước 3.
@@ -88,7 +88,7 @@ Bước 5 (lesson, có xác nhận của user).
 Với MỖI stack đã detect ở Bước 1: kiểm mảng `templates_copied` trong
 `notebooks/review/<repo>/meta.json`.
 
-- **Chưa có** → đọc `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` Phần B (nếu chưa đọc ở Bước 2) và làm
+- **Chưa có** → đọc `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` Phần B (nếu chưa đọc ở Bước 2) và làm
   theo.
 - **Đã có** → dùng thẳng bản local `notebooks/review/<repo>/templates/<stack>.md`.
 
@@ -99,7 +99,7 @@ sau dù bootstrap/doctor đã xong từ trước.
 
 1. Đọc bản **LOCAL** `notebooks/review/<repo>/ALWAYS_RULE.md` (được copy từ plugin lúc bootstrap —
    xem Phần A của `setup-flow.md`; team có thể đã tự chỉnh sửa bản local này cho dự án). KHÔNG đọc
-   trực tiếp `${CLAUDE_PLUGIN_ROOT}/ALWAYS_RULE.md` — bản trong plugin chỉ là "seed" mặc định lúc
+   trực tiếp `${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` — bản trong plugin chỉ là "seed" mặc định lúc
    bootstrap, bản local mới là bản có hiệu lực cho repo này (giống cách mục 3 dưới đọc template
    LOCAL thay vì template global). Đây là rule chung áp dụng mọi repo, khác với convention riêng của
    repo đang review (lesson trong `notebooks/review/<repo>/memory.md`). Lấy từ đây:
@@ -114,7 +114,7 @@ sau dù bootstrap/doctor đã xong từ trước.
    trị ngang lesson thường.
 3. Đọc (các) file **LOCAL** trong `notebooks/review/<repo>/templates/` tương ứng kết quả
    detect ở Bước 1 (gồm cả overlay nếu có, vd đọc cả `python.md` lẫn `lambda-common.md` khi PR có
-   lambda). KHÔNG đọc trực tiếp từ `${CLAUDE_PLUGIN_ROOT}/templates/` — bản local mới là bản có
+   lambda). KHÔNG đọc trực tiếp từ `${CLAUDE_PLUGIN_ROOT}/src/templates/` — bản local mới là bản có
    hiệu lực cho repo này (có thể đã được team chỉnh sửa).
 
 ## Bước 5 — Đọc lại review comments cũ của chính PR này (re-review detection)
@@ -129,7 +129,7 @@ lần chạy, kể cả PR mới toanh (response rỗng thì bỏ qua, KHÔNG co
 - Phát hiện đồng thuận → **KHÔNG tự ghi ngay**. Hiển thị đề xuất trong chat: nội dung lesson dự
   kiến (mô tả convention, ví dụ rút ra từ thread nếu có) + tag stack dự kiến. CHỜ user xác nhận
   (yes / no / sửa lại nội dung).
-- CHỈ SAU KHI user đồng ý: ghi lesson theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` (đọc
+- CHỈ SAU KHI user đồng ý: ghi lesson theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` (đọc
   bằng `Read` nếu chưa nạp file này ở Bước 2/3).
 
 ## Bước 6 — Thực hiện review theo 6 mục
@@ -230,9 +230,9 @@ EOF
 - User trò chuyện bình thường (KHÔNG chạy `/review:pr`) và tự phát biểu một sửa đổi/góp ý convention
   cho repo đang có `notebooks/review/<repo>/` (từ lần `/review:pr` trước) → KHÔNG tự ghi ngay.
   Hỏi xác nhận trước (như Bước 5); CHỈ SAU KHI user đồng ý mới ghi lesson theo Phần E của
-  `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md`.
+  `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
 - User yêu cầu "doctor lại"/"quét lại convention dự án" → set `doctored: false` trong `meta.json`
-  rồi thực hiện lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md`, không cần đợi lần
+  rồi thực hiện lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`, không cần đợi lần
   `/review:pr` kế tiếp.
 
 ---
