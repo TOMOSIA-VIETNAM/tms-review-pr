@@ -5,9 +5,13 @@ Phạm vi: áp dụng cho mọi repo review qua plugin `review`. Convention riê
 
 ## Ngôn ngữ output
 
-Mặc định **English**. Điền ngôn ngữ cụ thể vào khối bên dưới để ghi đè.
+```
+{{OUTPUT_LANGUAGE}}
+```
 
-<!-- Chưa set — đang dùng mặc định English. Ví dụ ghi đè: "Luôn output tiếng Việt". -->
+Bootstrap điền 1 giá trị cụ thể thay `{{OUTPUT_LANGUAGE}}` (vd `English`, `Vietnamese`,
+`Japanese`). Để trống / còn placeholder → hỏi user trước khi review. Chỉ dẫn ngôn ngữ trong
+`ARGUMENTS` hoặc chat phiên hiện tại **thắng** giá trị trên (chỉ lần chạy đó, không sửa file).
 
 ## Khung review chung (baseline mọi stack)
 
@@ -44,6 +48,8 @@ vẫn nằm trong phạm vi.
   đồng ý mới ghi theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
 - User yêu cầu "doctor lại" / "quét lại convention dự án" → set `doctored: false` trong `meta.json`,
   rồi làm lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
+- Doctor định kỳ theo `meta.json.doctor_schedule` + `doctored_at` do `/tms:review_pr` Bước 3 kích
+  hoạt — không cần user nhắc mỗi lần.
 
 ---
 

@@ -41,19 +41,17 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `review_pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
-6. Hỏi user 3 câu trong 1 lượt, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
-   thể): (1) ngôn ngữ output cho review — vi/en/ja; (2) `auto_submit_review` true/false (mặc định
-   **false** nếu user không có ý kiến); (3) `auto_resolve_fixed_findings` true/false (mặc định
-   **false**). Xử lý câu trả lời:
-   - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 5, thay đúng dòng
-     `<!-- Chưa set — đang dùng mặc định English. Ví dụ ghi đè: "Luôn output tiếng Việt". -->`
-     bằng câu lệnh ngôn ngữ tương ứng, theo đúng định dạng ví dụ có sẵn — vd chọn tiếng Việt:
-     `Luôn output tiếng Việt.`; tiếng Anh: `Luôn output tiếng Anh.`; tiếng Nhật: `Luôn output tiếng
-     Nhật.`. KHÔNG thêm field riêng vào `meta.json` cho câu này — "đã hỏi ngôn ngữ chưa" tự suy ra
-     từ việc dòng comment này còn nguyên văn mặc định hay đã bị ghi đè, không lưu trạng thái ở nơi
-     khác.
-   - **`auto_submit_review` / `auto_resolve_fixed_findings`** → ghi nhớ 2 giá trị boolean, đưa vào
-     `meta.json` cùng lúc với `bootstrapped: true` ở bước 9 dưới đây (schema đầy đủ ở Phần D).
+6. Hỏi user **4 câu trong 1 lượt**, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
+   thể): (1) ngôn ngữ output — vi/en/ja; (2) `auto_submit_review` true/false (mặc định **false**);
+   (3) `auto_resolve_fixed_findings` true/false (mặc định **false**); (4) `doctor_schedule` — chu kỳ
+   doctor lại convention (`{N} days` | `{N} weeks` | `{N} months` | `never`; mặc định **`1 months`**
+   nếu user không chọn). Xử lý câu trả lời:
+   - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 5: thay đúng token `{{OUTPUT_LANGUAGE}}` trong
+     khối code fence bằng giá trị cụ thể (`English` / `Vietnamese` / `Japanese`, …). KHÔNG thêm
+     field ngôn ngữ vào `meta.json`. "Đã hỏi chưa" = placeholder còn nguyên hay đã được thay.
+   - **`auto_submit_review` / `auto_resolve_fixed_findings` / `doctor_schedule`** → ghi nhớ, đưa vào
+     `meta.json` cùng `bootstrapped: true` ở bước 9 (schema Phần D). `doctor_schedule` thiếu hoặc
+     không parse được → ghi `"1 months"`.
 7. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
    - **CHƯA tồn tại** → `git init notebooks/review` — 1 git repo DUY NHẤT, nested, độc lập hoàn
      toàn với git của repo chính đang review, bao trùm MỌI `<repo>/` sẽ có sau này. TUYỆT ĐỐI
@@ -79,9 +77,11 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    - Tồn tại và CHƯA có dòng `notebooks/review/` → dùng `Edit` append thêm dòng đó.
    - Chưa có `.gitignore` → dùng `Write` tạo mới chỉ chứa đúng 1 dòng `notebooks/review/`.
 9. Ghi nhận vào `notebooks/review/<repo>/meta.json` (tạo file nếu chưa có, giữ nguyên các field
-   khác nếu file đã tồn tại từ trước — xem Phần D cho schema đầy đủ): `"bootstrapped": true`,
-   `"auto_submit_review": <giá trị đã hỏi ở bước 6>`, `"auto_resolve_fixed_findings": <giá trị đã
-   hỏi ở bước 6>`.
+   khác nếu file đã tồn tại từ trước — xem Phần D): `"bootstrapped": true`,
+   `"auto_submit_review": <bước 6>`, `"auto_resolve_fixed_findings": <bước 6>`,
+   `"doctor_schedule": "<bước 6, default 1 months>"`, và object `_comments` (ít nhất key
+   `doctor_schedule` — text gợi ý giá trị hợp lệ để user sửa tay; xem Phần D). Runtime/`review_pr.md`
+   **bỏ qua** mọi key trong `_comments` (chỉ là chú thích cho người đọc file).
 
 ## Phần B — Copy/tạo local template cho (các) stack hiện có trong PR đang review
 
@@ -111,9 +111,9 @@ Mục tiêu: nếu dự án đang review đã tự định nghĩa convention/cod
 CLAUDE.md, AGENTS.md, docs/, wiki, cursor/copilot rules...), review phải THAM CHIẾU tới đúng nguồn
 đó thay vì đoán mò hoặc áp đặt rule ngoài không phù hợp.
 
-Doctor CHỈ CHẠY 1 LẦN DUY NHẤT cho mỗi repo (gate `doctored` trong `meta.json`) và KHÔNG tự chạy
-lại — vì vậy phải làm THẬT KỸ, quét TOÀN BỘ repo, không giới hạn theo stack/tính năng của PR hiện
-tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — xem cuối file.)
+Doctor chạy khi `doctored` chưa `true`, **hoặc** lịch `doctor_schedule` đã hết hạn so với
+`doctored_at` (xem `review_pr.md` Bước 3), **hoặc** user chủ động "doctor lại". Mỗi lần chạy phải
+làm THẬT KỸ: quét TOÀN BỘ repo, không giới hạn theo stack/tính năng PR hiện tại.
 
 1. **Quét ĐỆ QUY toàn bộ cây thư mục repo tại pwd** (KHÔNG chỉ root) để tìm HẾT mọi nguồn convention
    — dự án thật thường rải nhiều file ở subfolder, vd `app/operation/AGENTS.md`,
@@ -167,38 +167,48 @@ tại. (Chỉ chạy lại khi user CHỦ ĐỘNG yêu cầu "doctor lại" — 
   "bootstrapped": true,
   "doctored": true,
   "doctored_at": "2026-07-13T10:00:00Z",
+  "doctor_schedule": "1 months",
   "project_docs_found": ["README.md", "CLAUDE.md"],
   "templates_copied": ["rails", "vue"],
   "auto_submit_review": false,
   "auto_resolve_fixed_findings": false,
   "has_submodules": false,
-  "pr_template_paths": [".github/PULL_REQUEST_TEMPLATE.md"]
+  "pr_template_paths": [".github/PULL_REQUEST_TEMPLATE.md"],
+  "_comments": {
+    "doctor_schedule": "Allowed: \"{N} days\" | \"{N} weeks\" | \"{N} months\" | \"never\". Examples: \"7 days\", \"2 weeks\", \"1 months\". Default: \"1 months\"."
+  }
 }
 ```
 
-`review_pr.md` coi repo là "đã thiết lập xong" khi `bootstrapped: true` VÀ `doctored: true` — 2 field này
-chỉ cần đạt 1 LẦN DUY NHẤT. `templates_copied` thì KHÔNG nằm trong điều kiện "đã xong" đó — nó được
-kiểm tra riêng, mỗi lần chạy, cho từng stack detect được trong PR (Phần B luôn có thể chạy lại một
-phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể cả khi `bootstrapped`/`doctored` đã
-`true` từ lâu).
+`_comments` (object string): chú thích cho người sửa `meta.json` tay — **không** phải config runtime.
+`review_pr.md` / doctor / bootstrap bỏ qua toàn bộ keys trong đây. Bootstrap (Phần A bước 9) LUÔN
+ghi (hoặc bổ sung nếu thiếu) `_comments.doctor_schedule` đúng text mẫu trên. Khi Phần C/`Edit`
+`meta.json`, giữ nguyên `_comments` nếu đã có.
 
-`has_submodules` detect đúng 1 lần lúc doctor (Phần C bước 5, check `.gitmodules` tại root repo),
-KHÔNG dò lại mỗi lần review. `review_pr.md` (Bước 1 mục 5) đọc field này để quyết định có đọc
-`src/cases/submodule-review.md` hay không.
+`review_pr.md` coi bootstrap xong khi `bootstrapped: true`. Doctor: `doctored: true` **và** lịch
+chưa hết hạn (`doctor_schedule` + `doctored_at`). `templates_copied` kiểm riêng mỗi lần (Phần B) —
+stack mới vẫn copy được sau khi bootstrap/doctor xong.
 
-`auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
-bước 6/9), mặc định `false` nếu user không có ý kiến khác. `review_pr.md` đọc lại 2 field này ở Bước 3 và
-dùng ở Bước 6 (`auto_resolve_fixed_findings`) và Bước 9 (`auto_submit_review`).
+`doctor_schedule` (string): `{N} days` | `{N} weeks` | `{N} months` | `never`. Hỏi lúc bootstrap
+(Phần A bước 6), mặc định `"1 months"`. Thiếu field (repo cũ) → coi `"1 months"`. `never` → không
+tự doctor lại theo lịch (vẫn chạy khi user "doctor lại" hoặc `doctored: false`). Hết hạn khi
+`now > doctored_at + schedule` (parse N + đơn vị; thiếu/`invalid` `doctored_at` mà `doctored: true`
+→ coi hết hạn, chạy lại Phần C). Sau mỗi Phần C thành công: cập nhật `doctored_at` (và
+`doctored: true`).
 
-`pr_template_paths` (mảng string, mặc định mảng rỗng) được ghi 1 lần lúc doctor (Phần C bước 1/6) —
-danh sách path PR template của dự án tìm thấy (rỗng nếu dự án không có). `review_pr.md` đọc lại field này ở
-Bước 3, dùng ở Bước 7 để đối chiếu checklist PR template với description thật của PR.
+`has_submodules` detect 1 lần lúc doctor (Phần C bước 5). `review_pr.md` Bước 1 mục 5 đọc field này.
+
+`auto_submit_review`/`auto_resolve_fixed_findings`/`doctor_schedule` hỏi + ghi lúc bootstrap (Phần A
+bước 6/9). `review_pr.md` Bước 3 đọc lại; dùng ở Bước 6/9 và gate doctor lịch.
+
+`pr_template_paths` ghi lúc doctor (Phần C bước 1/6). `review_pr.md` Bước 3 đọc, Bước 7 dùng.
 
 ## Phần E — Ghi 1 lesson vào memory
 
 Quy trình mechanical dùng chung cho: đồng thuận phát hiện ở Bước 6 của `review_pr.md`, góp ý convention
-user phát biểu trong chat (Bước 10 của `review_pr.md`), và mâu thuẫn reconcile ở Phần C. Gate xác nhận user
-do nơi gọi xử lý (Bước 6 / Bước 10 hỏi trước; Phần C không cần hỏi) — Phần E chỉ mô tả thao tác ghi.
+user phát biểu trong chat (rule "Hành vi ngoài" trong `ALWAYS_RULE.md`), và mâu thuẫn reconcile ở
+Phần C. Gate xác nhận user do nơi gọi xử lý (Bước 6 / chat hỏi trước; Phần C không cần hỏi) — Phần E
+chỉ mô tả thao tác ghi.
 
 1. Tạo `notebooks/review/<repo>/memories/<lesson-slug>.md` (slug kebab-case ngắn gọn, không
    dùng số thứ tự vô nghĩa). Nội dung tối thiểu: mô tả convention; ví dụ code trước/sau (nếu có);

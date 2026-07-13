@@ -140,9 +140,9 @@ context, thuộc nửa MỚI/after) → `side: "RIGHT"`, số dòng lấy theo f
 **Finding cấp FILE nằm trong body tổng quan, KHÔNG vào `comments[]` (Bước 8/9).** GitHub reviews
 API 422 "position null" khi trộn comment không-line chung request với comment có-line (đã gặp thật)
 — nên `comments[]` chỉ chứa finding cấp LINE; finding cấp FILE thành bullet trong body theo đúng
-mức nghiêm trọng. Verify sau post (Bước 9) bó hẹp đúng 1 lần check state — không tự thêm bước kiểm
-tra/test nào khác; lỗi POST thì sửa payload theo schema rồi thử lại 1 lần, KHÔNG tạo/xoá comment
-test trên PR thật để debug (nguyên nhân 1 lần thật để lại 3 review object thay vì 1).
+mức nghiêm trọng. **Body tổng quan CẤM paste lại Vấn đề/Cách fix của LINE** (đã có inline) — LINE
+chỉ đếm vào N; tránh duplicate tốn token. Verify sau post (Bước 9) bó hẹp đúng 1 lần check state;
+lỗi POST → `post-review.md`, retry 1 lần, KHÔNG tạo/xoá comment test trên PR thật.
 
 **`src/cases/` — logic review-time có điều kiện theo TỪNG PR, không phải theo trạng thái repo.**
 Khác `setup-flow.md` (gate theo trạng thái CỦA REPO — đã bootstrap/doctor chưa, chạy 1 lần) và
@@ -189,21 +189,20 @@ LEFT/RIGHT gắn comment nhầm dòng. Thiếu `event` khi `auto_submit_review: 
 muốn (dev không thấy). Repo name suy từ pwd từng tạo 2 thư mục memory cho cùng 1 repo GitHub.
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
-`setup-flow.md` hỏi user 3 câu trong 1 lượt, ngay lúc bootstrap lần đầu: ngôn ngữ output (vi/en/ja),
-`auto_submit_review` (mặc định `false`), `auto_resolve_fixed_findings` (mặc định `false`).
+`setup-flow.md` hỏi user **4 câu** trong 1 lượt: ngôn ngữ output (vi/en/ja), `auto_submit_review`
+(mặc định `false`), `auto_resolve_fixed_findings` (mặc định `false`), `doctor_schedule` (mặc định
+`"1 months"`; giá trị `{N} days|weeks|months` hoặc `never`).
 
-- Ngôn ngữ output KHÔNG lưu trong `meta.json` — ghi thẳng đè lên comment ngôn ngữ có sẵn trong bản
-  LOCAL `ALWAYS_RULE.md` (tránh 2 nguồn sự thật cho cùng 1 fact); "đã hỏi chưa" tự suy ra từ việc
-  dòng comment đó còn giữ nguyên văn mặc định hay đã bị ghi đè, không lưu trạng thái riêng ở đâu khác.
-- `auto_submit_review`/`auto_resolve_fixed_findings` lưu dạng boolean trong `meta.json`, đọc lại ở
-  Bước 3, dùng lần lượt ở Bước 9 và Bước 6.
-- `auto_submit_review` chi phối payload Bước 9: `true` → payload luôn có `"event": "COMMENT"` (post
-  ngay, tác giả PR thấy comment ngay lập tức); `false` → bỏ hẳn field `event` khỏi payload, review
-  dừng ở trạng thái PENDING (chỉ tài khoản đang chạy lệnh tự thấy, phải submit thủ công trên GitHub)
-  — verify ngay sau khi post coi PENDING lúc này là kết quả CHỦ Ý, không tự ý submit hộ.
-- `auto_resolve_fixed_findings` chi phối nhánh "finding cũ đã fix" trong `src/cases/re-review.md`:
-  `true` → reply xác nhận VÀ resolve thread GitHub qua GraphQL; `false` → chỉ reply, để user tự
-  resolve thủ công trên GitHub.
+- Ngôn ngữ: thay placeholder `{{OUTPUT_LANGUAGE}}` trong LOCAL `ALWAYS_RULE.md` — không lưu
+  `meta.json`. Chỉ dẫn ngôn ngữ trong ARGUMENTS/chat phiên thắng giá trị file (chỉ lần đó).
+- `auto_submit_review`/`auto_resolve_fixed_findings`/`doctor_schedule` → `meta.json`; đọc Bước 3.
+  Bootstrap cũng ghi `_comments.doctor_schedule` (chú thích giá trị hợp lệ cho sửa tay; runtime bỏ qua).
+- `doctor_schedule` + `doctored_at`: Bước 3 tính `doctor_due` → hết hạn thì chỉ chạy lại Phần C
+  (không hỏi bootstrap lại). `never` = không tự due theo lịch. Repo cũ thiếu field → coi
+  `"1 months"`.
+- `auto_submit_review` chi phối payload Bước 9: `true` → `"event": "COMMENT"`; `false` → bỏ `event`
+  (PENDING chủ ý).
+- `auto_resolve_fixed_findings` chi phối nhánh finding đã fix trong `re-review.md`.
 
 **Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `review_pr.md` chỉ dùng
 `Read` để nạp `src/setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +
@@ -251,22 +250,15 @@ chứa các worktree ephemeral của Bước 1 (code PR thật, KHÔNG phải me
 chính) để code PR checkout vào đó không bao giờ lọt vào git nested này, vốn chỉ nên chứa
 memory/template/rule. Đừng nhầm thư mục `notebooks/review/` này là dữ liệu của plugin repo này.
 
-**`src/ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Đây là rule cứng global (vd ngôn ngữ output,
-default English). Bản plugin `${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` (biến môi trường chuẩn Claude
-Code, portable mọi máy — KHÔNG hardcode path tuyệt đối của 1 máy cụ thể) là "seed", được `cp` sang
-bản LOCAL `notebooks/review/<repo>/ALWAYS_RULE.md` lúc bootstrap; review (Bước 5) đọc bản LOCAL —
-khác với convention riêng từng repo nằm trong `memory.md`. Seed cũng chứa hành vi ngoài
-`/tms:review_pr` (xác nhận trước khi ghi lesson; "doctor lại"). **Không auto-migrate** local đã
-bootstrap: nâng plugin chỉ cập nhật seed — repo cũ copy tay section mới vào
-`notebooks/review/<repo>/ALWAYS_RULE.md` nếu cần (xem README).
+**`src/ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Rule cứng global. Seed
+`${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` được `cp` sang LOCAL lúc bootstrap; Bước 5 đọc LOCAL.
+Ngôn ngữ = placeholder `{{OUTPUT_LANGUAGE}}` điền lúc bootstrap (không còn "default rồi ghi đè").
+Seed cũng chứa hành vi ngoài slash command + gợi ý doctor lịch. **Không auto-migrate** local đã
+bootstrap — copy tay section mới nếu cần (xem README).
 
-**Doctor (setup-flow Phần C) quét TOÀN REPO, 1 lần duy nhất, dùng subagent song song.** Không giới
-hạn theo stack/tính năng của PR hiện tại: quét ĐỆ QUY toàn cây thư mục tìm HẾT nguồn convention
-(`README.md`/`CLAUDE.md`/`AGENTS.md`/`GEMINI.md`/`docs/`/`wiki/`/cursor/copilot rules) kể cả nằm sâu
-ở subfolder (dự án thật có nhiều `AGENTS.md` rải rác). Dùng `Agent` spawn subagent: 1 quét cây thư
-mục ra danh sách file, nhiều subagent song song đọc+tóm tắt từng file. Gate `doctored` chặn chạy lại
-tự động — chỉ chạy lại khi user chủ động yêu cầu "doctor lại". Vẫn ghi THAM CHIẾU (path, không copy
-nội dung) vào `memory.md`; mâu thuẫn thì reconcile thành 1 lesson (Phần E) không cần hỏi user.
+**Doctor (setup-flow Phần C)** quét TOÀN REPO khi lần đầu, khi `doctor_schedule` hết hạn
+(`doctored_at`), hoặc user "doctor lại". Không giới hạn theo stack PR. Subagent song song. Ghi
+THAM CHIẾU path vào `memory.md`; mâu thuẫn → lesson Phần E không hỏi user.
 
 **Phân loại file-level vs line-level finding là phán đoán ngữ cảnh của agent lúc review**, cố tình
 không có danh sách cứng/enum trong `review_pr.md` — đừng thêm danh sách cứng vào đó khi sửa.

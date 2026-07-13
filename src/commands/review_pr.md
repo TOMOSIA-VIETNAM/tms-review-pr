@@ -22,8 +22,9 @@ Cách dùng: /tms:review_pr <GitHub PR URL>
 Ví dụ: /tms:review_pr https://github.com/org/repo/pull/123
 ```
 
-Phần `ARGUMENTS` ngoài URL = chỉ dẫn bổ sung lần này (ưu tiên hơn default `ALWAYS_RULE.md` nếu hợp
-lý). Mọi lệnh `gh` phải dùng canonical URL đã tách (`grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1`), không truyền `$ARGUMENTS` thô.
+Phần `ARGUMENTS` ngoài URL = chỉ dẫn bổ sung lần này. Chỉ dẫn ngôn ngữ trong ARGUMENTS/chat phiên
+**thắng** `ALWAYS_RULE` local (chỉ lần chạy này). Mọi lệnh `gh` dùng canonical URL đã tách
+(`grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1`), không truyền `$ARGUMENTS` thô.
 
 ## Ngữ cảnh
 
@@ -64,17 +65,26 @@ Main tree không đổi branch — không khôi phục gì cuối lệnh.
 Mỗi file trong diff → stack theo `"${CLAUDE_PLUGIN_ROOT}"/src/stack-detection.md` (`Read`). Giữ
 `(file, [stacks])` cho Bước 4–7.
 
-## Bước 3 — Setup lần đầu (nếu cần)
+## Bước 3 — Setup / doctor (nếu cần)
 
 `Read` `notebooks/review/<repo>/meta.json`.
 
-- Thiếu file, hoặc `bootstrapped`/`doctored` chưa cùng `true` → `Read`
-  `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`, làm Phần A + C (Phần B ở Bước 4).
-- Cả hai `true` → bỏ qua, không đọc `setup-flow.md`.
+Tính `doctor_due`:
+- `doctored` chưa `true` → due (kể cả `doctor_schedule: never`).
+- `doctor_schedule` thiếu → coi `"1 months"`.
+- `never` → không due thêm theo lịch.
+- Còn lại: due khi `now > doctored_at + schedule` (thiếu/invalid `doctored_at` → due).
+
+Rẽ nhánh:
+- Thiếu file / `bootstrapped` chưa `true` → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`,
+  Phần A + C (Phần B ở Bước 4).
+- `bootstrapped: true` nhưng `doctor_due` → `Read` setup-flow (nếu chưa), **chỉ Phần C**; không hỏi
+  lại bootstrap.
+- `bootstrapped: true` và không `doctor_due` → bỏ qua, không đọc `setup-flow.md`.
 
 Giữ từ meta: `auto_submit_review` / `auto_resolve_fixed_findings` (default `false`),
-`pr_template_paths` (default `[]`). Sau setup xong: không đụng `notebooks/review/` ngoài Bước 4
-(template mới) hoặc Bước 6 (lesson sau xác nhận user).
+`doctor_schedule` (default `"1 months"`), `pr_template_paths` (default `[]`). Sau setup ổn định:
+không đụng `notebooks/review/` ngoài Bước 4 (template mới), Bước 6 (lesson), hoặc Phần C khi due.
 
 ## Bước 4 — Local template theo stack
 
@@ -84,8 +94,9 @@ xuất hiện sau bootstrap).
 
 ## Bước 5 — Nạp rule + memory + template
 
-1. **LOCAL** `notebooks/review/<repo>/ALWAYS_RULE.md` (không đọc seed plugin). Ngôn ngữ output
-   (default English), baseline mục 1/2/3/4/6. Tiêu chí = gợi ý, không checklist đóng.
+1. **LOCAL** `notebooks/review/<repo>/ALWAYS_RULE.md` (không đọc seed plugin). Ngôn ngữ =
+   `{{OUTPUT_LANGUAGE}}` đã điền (còn placeholder → hỏi user); ARGUMENTS/chat phiên thắng nếu có.
+   Baseline mục 1/2/3/4/6. Tiêu chí = gợi ý, không checklist đóng.
 2. `memory.md` + `memories/<lesson>.md` tag trùng stack PR; dòng THAM CHIẾU → đọc path trong repo.
 3. Template **LOCAL** theo stack (+ overlay nếu có). Không đọc `${CLAUDE_PLUGIN_ROOT}/src/templates/`.
 
@@ -135,14 +146,18 @@ ngữ thường. Fix không phải code → 1 câu lời, không ép code block.
 
 ## Bước 8 — Định dạng
 
-Ngôn ngữ theo `ALWAYS_RULE` (default English):
+Ngôn ngữ theo Bước 5 (session override nếu có).
+
+**CẤM trùng nội dung LINE:** body tổng quan KHÔNG lặp `**Vấn đề**` / `**Cách fix**` (hay bản EN)
+của finding đã vào `comments[]`. LINE chỉ đếm vào N (+ có thể 1 dòng `path:line` nếu cần định vị,
+không paste fix). Chi tiết chỉ nằm inline.
 
 ```
 ### Nhận xét tổng quan
-(2-3 câu hoặc LGTM; + overview title/prefix nếu có)
+(2-3 câu đánh giá chung hoặc LGTM; + overview title/prefix nếu có — không liệt kê lại LINE findings)
 
 #### Bắt buộc sửa: N vấn đề
-(FILE findings mức này + path; LINE chỉ đếm vào N)
+(CHỈ FILE findings đầy đủ + path; LINE → chỉ tính N, không paste body)
 #### Nên sửa: N vấn đề
 #### Đề xuất: N vấn đề
 ```
