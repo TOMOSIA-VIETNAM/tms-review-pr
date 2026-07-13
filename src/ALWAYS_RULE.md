@@ -42,19 +42,10 @@ vẫn nằm trong phạm vi.
 - Test có được thêm hoặc cập nhật cho thay đổi không? Có bao gồm cả happy path và error path không?
 - Thiết kế có đủ linh hoạt để đáp ứng thay đổi trong tương lai không?
 
-## Hành vi ngoài `/tms:review_pr`
-
-- User nêu sửa đổi/góp ý convention → KHÔNG tự ghi lesson ngay. Hỏi xác nhận trước; chỉ sau khi user
-  đồng ý mới ghi theo Phần E của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
-- User yêu cầu "doctor lại" / "quét lại convention dự án" → set `doctored: false` trong `meta.json`,
-  rồi làm lại Phần C của `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`.
-- Doctor định kỳ theo `meta.json.doctor_schedule` + `doctored_at` do `/tms:review_pr` Bước 3 kích
-  hoạt — không cần user nhắc mỗi lần.
-
 ---
 
 ## Rule bổ sung
-<!-- User tự thêm rule riêng của mình / tổ chức tại đây. Chưa có nội dung nào khác ngoài 2 rule ở trên. -->
+<!-- User tự thêm rule riêng của mình / tổ chức tại đây. -->
 
 ### Convention riêng
 

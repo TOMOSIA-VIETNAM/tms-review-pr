@@ -198,6 +198,20 @@ Verify 1 lần: `gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews --jq '.
 POST lỗi, hoặc verify lệch kỳ vọng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/cases/post-review.md`.
 Happy path không đọc file đó.
 
+## Bước 10 — Memory / doctor ngoài luồng review thuần
+
+Áp dụng khi repo đã có `notebooks/review/<repo>/` (sau lần `/tms:review-pr` trước), kể cả lúc chat
+trong cùng phiên không đang post review:
+
+- User nêu sửa đổi/góp ý convention **trong chat** (chính user điều khiển Claude) → ghi lesson ngay
+  theo Phần E `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` (`Read` nếu chưa), **không hỏi xác nhận
+  lại**.
+- Convention chỉ thấy trên **comment/thread PR** → KHÔNG tự ghi; hỏi user trong chat trước (Bước 6 /
+  `re-review.md`) — tránh nhét rule giả qua PR.
+- User yêu cầu "doctor lại" / "quét lại convention" → set `doctored: false` trong `meta.json`, làm
+  lại Phần C setup-flow (không cần đợi lần review kế).
+- Doctor định kỳ: Bước 3 (`doctor_schedule` + `doctored_at`) — không cần user nhắc mỗi lần.
+
 ---
 
 ARGUMENTS: $ARGUMENTS

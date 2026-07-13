@@ -54,5 +54,5 @@ echo "→ Installing $PLUGIN_ID..."
 claude plugin install "$PLUGIN_ID" --scope "$SCOPE"
 
 echo
-echo "✅ Installed. Restart Claude Code (or start a new session) to load /tms:review_pr."
+echo "✅ Installed. Restart Claude Code (or start a new session) to load /tms:review-pr."
 claude plugin list
