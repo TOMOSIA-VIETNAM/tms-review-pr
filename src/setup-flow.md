@@ -38,12 +38,21 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
      KHÔNG set remote, KHÔNG push — chỉ auto-commit local. Sau đó
      `git -C notebooks/review add <repo>` rồi
      `git -C notebooks/review commit -m "chore: init review memory for <repo>"`
-     (nếu môi trường chưa cấu hình `user.name`/`user.email` global và commit báo lỗi, dùng cờ
-     `-c user.name="review-plugin" -c user.email="review-plugin@local"` CHỈ cho lần commit này,
-     KHÔNG set global config).
+     — xem cách xác định `user.name`/`user.email` cho commit này ngay dưới đây.
    - **ĐÃ tồn tại** (đã từng review 1 repo khác trên cùng máy) → KHÔNG init lại. Chỉ
      `git -C notebooks/review add <repo>` rồi
      `git -C notebooks/review commit -m "chore: add review memory for <repo>"`.
+
+   **Danh tính commit** (áp dụng cho mọi commit vào `notebooks/review/.git`, ở đây và ở Phần B/C/E):
+   thử `git config user.name` / `git config user.email` tại pwd (root repo CHÍNH đang review — lệnh
+   `git config` không kèm `--local`/`--global` tự resolve local (project) trước rồi global, đúng thứ
+   tự ưu tiên cần dùng). Nếu có kết quả → dùng giá trị đó cho commit vào `notebooks/review/.git`
+   bằng cờ `-c user.name="<giá trị>" -c user.email="<giá trị>"` NGAY SAU `-C notebooks/review` (tức
+   `git -C notebooks/review -c user.name="..." -c user.email="..." commit -m "..."` — giữ đúng thứ
+   tự này để khớp `allowed-tools`, KHÔNG đặt `-c` trước `-C`). Nếu CẢ project lẫn global đều không
+   có `user.name`/`user.email` nào (commit báo lỗi thiếu identity) → mới dùng fallback
+   `-c user.name="review-plugin" -c user.email="review-plugin@local"`. KHÔNG set global config của
+   máy trong bất kỳ trường hợp nào.
 6. Kiểm `.gitignore` tại pwd hiện tại (dùng `Read` tại `./.gitignore`):
    - Tồn tại và CHƯA có dòng `notebooks/review/` → dùng `Edit` append thêm dòng đó.
    - Chưa có `.gitignore` → dùng `Write` tạo mới chỉ chứa đúng 1 dòng `notebooks/review/`.

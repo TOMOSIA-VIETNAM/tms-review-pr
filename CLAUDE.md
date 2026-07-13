@@ -31,10 +31,15 @@ backlogs/*.md                 Task breakdown lịch sử khi build plugin lần 
 
 src/commands/pr.md            Slash command DUY NHẤT /review:pr — CHỈ chứa logic review, không
                                chứa chi tiết detect-stack (xem src/stack-detection.md) hay thiết
-                               lập lần đầu (xem src/setup-flow.md). allowed-tools: Bash(gh/git/cp/mkdir:*),
-                               Agent (doctor song song), Read, Write, Edit
+                               lập lần đầu (xem src/setup-flow.md). Mở đầu bằng 1 quy tắc an toàn
+                               CRITICAL (chỉ review + comment, không close/merge/push/xoá branch).
+                               allowed-tools thu hẹp đúng subcommand cần dùng: `gh pr view`,
+                               `gh pr diff`, `gh api`, `git init`, `git -C notebooks/review:*`,
+                               `git fetch`, `git status`, `git show`, `cp`, `mkdir`, `Agent`
+                               (doctor song song), `Read`, `Write`, `Edit` — KHÔNG có
+                               `gh pr close/merge`, KHÔNG có `git push/branch -D/reset --hard`
 src/stack-detection.md        KHÔNG phải slash command. Bảng mapping đuôi file/path → stack +
-                               overlay rule; `pr.md` Bước 1 đọc bằng Read
+                               overlay rule; `pr.md` Bước 2 đọc bằng Read
 src/setup-flow.md             KHÔNG phải slash command (có ý — xem bên dưới). `pr.md` chỉ đọc
                                file này bằng tool Read khi repo CHƯA thiết lập xong, để không tốn
                                context cho nội dung setup ở các lần review sau. Chứa cả Phần E —
@@ -49,13 +54,26 @@ src/ALWAYS_RULE.md            Rule cứng global — bản "seed". Lúc bootstra
 
 ## Kiến trúc cốt lõi
 
-**`src/commands/pr.md`** encode 10 bước tuần tự (Bước 0-9): validate — nhận diện linh hoạt 1 tham chiếu
-PR GitHub bất kể phần đuôi (`/changes`, `/files`, query, fragment), chỉ trích `owner/repo/pull_number`
-từ phần khớp → lấy context qua `gh pr view/diff` → detect stack theo đuôi file/path cho từng file
-trong diff → thiết lập lần đầu nếu cần (đọc `src/setup-flow.md` có điều kiện) → đảm bảo có local template
-cho từng stack → nạp `src/ALWAYS_RULE.md` LOCAL + memory + template local → đọc lại comment cũ của chính
-PR để phát hiện đồng thuận convention mới (re-review) → review theo khung 6 mục → định dạng kết quả →
-post đúng 1 lần qua `gh api POST .../pulls/{n}/reviews`.
+**`src/commands/pr.md`** encode 11 bước tuần tự (Bước 0-10): validate — nhận diện linh hoạt 1 tham
+chiếu PR GitHub bất kể phần đuôi (`/changes`, `/files`, query, fragment), chỉ trích
+`owner/repo/pull_number` từ phần khớp → lấy context qua `gh pr view/diff` → đồng bộ local cho
+source/target branch + chặn review nếu working tree bẩn → detect stack theo đuôi file/path cho
+từng file trong diff → thiết lập lần đầu nếu cần (đọc `src/setup-flow.md` có điều kiện) → đảm bảo
+có local template cho từng stack → nạp `src/ALWAYS_RULE.md` LOCAL + memory + template local → đọc
+lại comment cũ của chính PR để phát hiện đồng thuận convention mới (re-review) → review theo khung
+6 mục → định dạng kết quả → post đúng 1 lần qua `gh api POST .../pulls/{n}/reviews`.
+
+**Quy tắc an toàn CRITICAL (đầu `pr.md`, trước Bước 0):** lệnh này CHỈ được review + post 1 review
+comment — KHÔNG được tự ý close/merge/reopen PR, xoá/tạo/đổi branch, push, hay sửa code trong repo
+đang review, dù phát hiện vấn đề nghiêm trọng tới đâu (chỉ nêu trong review, không tự hành động).
+Enforce ở 2 lớp: chữ viết (rule tường minh) + `allowed-tools` thu hẹp đúng subcommand cần dùng
+(không có `gh pr close/merge`, không có `git push`/`branch -D`/`reset --hard`).
+
+**Bước 1 (đồng bộ local) là bước AN TOÀN kiểu fail-closed.** `git fetch origin <base> <head>` luôn
+chạy được (chỉ cập nhật ref, không đụng working tree). Sau đó `git status --porcelain` tại pwd —
+CÓ output (working tree bẩn) → dừng TOÀN BỘ review ngay, yêu cầu user commit/`git stash` trước.
+Đọc file ngoài phạm vi diff dùng `git show <ref>:<path>` (không `checkout`/tạo worktree — không
+đụng branch hiện tại của user).
 
 **Tên thư mục memory (`repo name`) = CHÍNH segment `<repo>` cắt từ PR URL — định nghĩa DUY NHẤT.**
 Không suy tên repo từ basename pwd/thư mục con/git remote (nếu không, 2 PR cùng repo sẽ tạo 2 thư
@@ -111,10 +129,15 @@ phải trong plugin), có git nested riêng (không push). Bootstrap + doctor (`
 gặp stack chưa từng thấy ở repo đó, kể cả sau khi đã bootstrap/doctor xong lâu rồi — đây là 2 điều
 kiện khác nhau, đừng gộp chung 1 gate. Đừng nhầm thư mục này là dữ liệu của plugin repo này.
 
+**Danh tính commit vào `notebooks/review/.git`: project-local trước, global sau, synthetic cuối
+cùng.** `git config user.name`/`user.email` (không kèm `--local`/`--global`) tại root repo CHÍNH
+đang review tự resolve local-project-trước-global — dùng kết quả đó cho commit vào git nested nếu
+có; chỉ dùng danh tính giả `review-plugin`/`review-plugin@local` khi CẢ 2 tầng đều không có gì.
+
 **`src/ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Đây là rule cứng global (vd ngôn ngữ output,
 default English). Bản plugin `${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` (biến môi trường chuẩn Claude
 Code, portable mọi máy — KHÔNG hardcode path tuyệt đối của 1 máy cụ thể) là "seed", được `cp` sang
-bản LOCAL `notebooks/review/<repo>/ALWAYS_RULE.md` lúc bootstrap; review (Bước 4) đọc bản LOCAL —
+bản LOCAL `notebooks/review/<repo>/ALWAYS_RULE.md` lúc bootstrap; review (Bước 5) đọc bản LOCAL —
 khác với convention riêng từng repo nằm trong `memory.md`.
 
 **Doctor (setup-flow Phần C) quét TOÀN REPO, 1 lần duy nhất, dùng subagent song song.** Không giới
