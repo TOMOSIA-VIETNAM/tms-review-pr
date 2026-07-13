@@ -6,7 +6,7 @@ description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua
 
 > **QUY TẮC AN TOÀN BẮT BUỘC (CRITICAL):** Lệnh này CHỈ được review + post 1 review comment lên PR
 > (Bước 9) — CỘNG THÊM đúng 1 review nữa lên PR submodule khi phát hiện bump submodule kèm link
-> (xem `submodule-review.md`, điều kiện ở Bước 1), không hơn. TUYỆT ĐỐI KHÔNG tự ý close/merge/reopen
+> (xem `src/cases/submodule-review.md`, điều kiện ở Bước 1), không hơn. TUYỆT ĐỐI KHÔNG tự ý close/merge/reopen
 > PR, KHÔNG xoá/tạo/đổi branch trên repo đang review, KHÔNG push, KHÔNG sửa code trong repo đang
 > review, KHÔNG thực hiện bất kỳ hành động nào ngoài phạm vi review mà KHÔNG có sự đồng ý rõ ràng của
 > user — kể cả khi phát hiện vấn đề nghiêm trọng. Nếu thấy cần hành động khác ngoài comment (vd đề
@@ -128,7 +128,7 @@ khác PR, cùng repo) luôn có thư mục riêng biệt, không cần thêm cơ
    ```
 5. **Review PR submodule (nếu có):** nếu `meta.json.has_submodules == true` (field từ doctor, xem
    Phần D `setup-flow.md`) VÀ "Diff đầy đủ" đã lấy ở block Ngữ cảnh chứa dòng `Subproject commit`
-   (submodule pointer đổi) → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/submodule-review.md` và làm theo.
+   (submodule pointer đổi) → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/cases/submodule-review.md` và làm theo.
    Repo không có `.gitmodules` (`has_submodules` luôn `false`) → bỏ qua hoàn toàn, KHÔNG BAO GIỜ đọc
    file này. (Lần review ĐẦU TIÊN của 1 repo hoàn toàn mới — trước khi Bước 3 chạy doctor lần đầu —
    `meta.json`/`has_submodules` chưa tồn tại; coi như `false` cho ĐÚNG lần chạy đó, bỏ qua nhánh này,
@@ -385,7 +385,7 @@ Rẽ theo `auto_submit_review` (đọc từ `meta.json` ở Bước 3):
 - Thay `{owner}`, `{repo}`, `{pull_number}` bằng giá trị thật đã parse. Đây là lần gọi `gh api`
   POST DUY NHẤT của lệnh cho PR CHÍNH đang review — không gọi thêm lần POST review nào khác cho PR
   này. (PR submodule, nếu có phát hiện ở Bước 1 mục 5, có đúng 1 lần POST RIÊNG của chính nó lên
-  repo submodule — xem `submodule-review.md`, không tính vào ràng buộc "duy nhất" ở đây vì là PR
+  repo submodule — xem `src/cases/submodule-review.md`, không tính vào ràng buộc "duy nhất" ở đây vì là PR
   khác, có thể ở repo khác.) Khi có mặt, `event` LUÔN là `"COMMENT"` — KHÔNG BAO GIỜ dùng
   `"APPROVE"` hay `"REQUEST_CHANGES"` (đó là quyết định của con người, ngoài phạm vi quy tắc an
   toàn ở đầu file này).

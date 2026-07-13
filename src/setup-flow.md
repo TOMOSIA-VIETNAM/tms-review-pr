@@ -184,7 +184,7 @@ phần nếu PR mới đụng tới stack chưa từng gặp ở repo này, kể
 
 `has_submodules` detect đúng 1 lần lúc doctor (Phần C bước 5, check `.gitmodules` tại root repo),
 KHÔNG dò lại mỗi lần review. `pr.md` (Bước 1 mục 5) đọc field này để quyết định có đọc
-`submodule-review.md` hay không.
+`src/cases/submodule-review.md` hay không.
 
 `auto_submit_review`/`auto_resolve_fixed_findings` được hỏi + ghi đúng 1 lần lúc bootstrap (Phần A
 bước 6/9), mặc định `false` nếu user không có ý kiến khác. `pr.md` đọc lại 2 field này ở Bước 3 và
