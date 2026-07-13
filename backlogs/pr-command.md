@@ -3,6 +3,12 @@
 Mục tiêu: encode toàn bộ luồng review vào 1 file lệnh DUY NHẤT. Vertical slice: dựng bản chạy được
 review đơn-stack trước, rồi mới layer thêm memory + re-review + multi-stack + overlay (lambda/laravel/wordpress).
 
+**Cập nhật kiến trúc (sau khi P1-P8 đã build xong lần đầu):** phần thiết lập lần đầu (bootstrap +
+doctor) đã tách ra file riêng `setup-flow.md` (ngoài `commands/`, không phải slash command), để
+`pr.md` chỉ chứa logic review thuần — xem Task P9. `pr.md` chỉ `Read` `setup-flow.md` khi
+`meta.json` cho thấy repo CHƯA thiết lập xong, không dùng bash `!`...`` để gate có điều kiện (bash
+chạy trước khi model thấy prompt, không thể điều kiện theo kết quả suy luận của model).
+
 ## Task P1 (Slice 1): Khung command + validate + context + post review đơn giản
 - Lưu ý danh tính: review post lên PR không hardcode tên người review — `gh api` tự đăng bằng tài
   khoản `gh auth` đang active trên máy chạy lệnh (khác với `author.name` trong plugin.json, vốn là
@@ -74,5 +80,23 @@ review đơn-stack trước, rồi mới layer thêm memory + re-review + multi-
   tự phát biểu convention → agent hỏi xác nhận trước khi ghi memory. Không tạo command riêng.
 - Dependency: P4.
 
-## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8
+## Task P9: Tách setup-flow.md khỏi pr.md + local template copy per-stack
+- Acceptance:
+  - `setup-flow.md` chứa Phần A (bootstrap, = nội dung cũ Task P4) + Phần B (copy/tự soạn local
+    template, = Task M6) + Phần C (doctor, = nội dung cũ Task P5's bootstrap-adjacent phần) + Phần
+    D (schema `meta.json` đầy đủ: `bootstrapped`, `doctored`, `doctored_at`, `project_docs_found`,
+    `templates_copied`).
+  - `pr.md` Bước 2 (thiết lập lần đầu): `Read meta.json` → nếu thiếu `bootstrapped`/`doctored` →
+    `Read setup-flow.md`, làm theo Phần A+C; nếu đã đủ → bỏ qua hoàn toàn, KHÔNG `Read` file đó.
+  - `pr.md` Bước 3 (đảm bảo local template): chạy MỖI LẦN cho từng stack detect ở Bước 1, kiểm
+    `templates_copied` — thiếu thì `Read setup-flow.md` Phần B rồi làm theo. Test: PR sau thêm stack
+    mới ở repo đã setup xong từ lâu vẫn tự copy đúng template mới, không bị bỏ qua nhầm.
+  - `pr.md` Bước 4 (nạp template) đọc từ `notebooks/review/<short_name>/templates/<stack>.md` (bản
+    LOCAL), không đọc trực tiếp `${CLAUDE_PLUGIN_ROOT}/templates/` nữa.
+  - Test bắt buộc: review 1 PR trên repo ĐÃ setup xong từ trước → transcript KHÔNG có tool call
+    `Read setup-flow.md` nào (trừ khi PR đó đụng stack mới, khi đó chỉ đọc Phần B, không đọc lại
+    Phần A/C).
+- Dependency: P4 (thay thế nội dung), M6.
+
+## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9
 (P1 là vertical-slice nên test thật càng sớm càng tốt khi có PR test — xem testing.md)

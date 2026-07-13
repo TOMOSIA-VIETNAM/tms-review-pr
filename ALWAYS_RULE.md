@@ -1,15 +1,8 @@
-# ALWAYS RULE — Rule cứng của plugin `review`
+# Always Rule — quy tắc chung của plugin `review`
 
-> **Đây là rule CỨNG, áp dụng cho MỌI repo được review qua plugin `review` này** — không phải
-> file cấu hình riêng của 1 dự án cụ thể. File này sống tại đường dẫn TUYỆT ĐỐI của plugin:
->
-> ```
-> /Users/minhtang/Documents/Projects/MyProject/any4ai/github-reviewer/ALWAYS_RULE.md
-> ```
->
-> `commands/pr.md` đọc file này bằng đường dẫn tuyệt đối ở trên (KHÔNG phải path tương đối tính từ
-> repo đang được review) — dù đang review repo nào, ở đâu, agent vẫn phải đọc đúng file này tại
-> plugin, tránh nhầm với `ALWAYS_RULE.md`/convention nào đó nằm trong chính repo đang review.
+Quy tắc trong file này áp dụng cho MỌI repo được review qua plugin `review`, không phải cấu hình
+riêng của 1 dự án cụ thể (convention riêng từng dự án sống ở nơi khác — xem `commands/pr.md`).
+Team có thể sửa trực tiếp file này để thay đổi hành vi chung của plugin trên mọi máy.
 
 ## Ngôn ngữ
 

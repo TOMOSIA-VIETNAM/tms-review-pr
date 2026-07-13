@@ -17,9 +17,14 @@ plugin vào Claude Code rồi gọi `/review:pr <PR_URL>` thật trên 1 repo kh
 
 ```
 .claude-plugin/plugin.json   Metadata plugin (name: "review", trỏ commands: "./commands/")
-commands/pr.md                Toàn bộ logic của slash command /review:pr — file quan trọng nhất
-templates/*.md                Tiêu chí review theo từng ngôn ngữ/framework (nội dung thuần, không
-                               logic điều phối)
+commands/pr.md                Slash command DUY NHẤT /review:pr — CHỈ chứa logic review, không
+                               chứa chi tiết thiết lập lần đầu (xem setup-flow.md)
+setup-flow.md                 KHÔNG phải slash command (nằm ngoài commands/, có ý — xem bên dưới).
+                               `pr.md` chỉ đọc file này bằng tool Read khi repo CHƯA thiết lập
+                               xong, để không tốn context cho nội dung setup ở các lần review sau
+templates/*.md                Template GỐC (thư viện dùng chung) theo từng ngôn ngữ/framework —
+                               nội dung thuần, không logic điều phối. Mỗi repo được review có bản
+                               LOCAL copy riêng, xem "Local template" bên dưới
 ALWAYS_RULE.md                Rule cứng global, áp dụng mọi repo được review qua plugin này
 backlogs/*.md                 Task breakdown lịch sử khi build plugin lần đầu (tham khảo khi mở
                                rộng thêm stack/tính năng, không phải doc vận hành runtime)
@@ -27,12 +32,29 @@ backlogs/*.md                 Task breakdown lịch sử khi build plugin lần 
 
 ## Kiến trúc cốt lõi
 
-**`commands/pr.md`** encode 9 bước tuần tự: validate URL PR → lấy context qua `gh pr view/diff` →
-detect stack theo đuôi file/path cho từng file trong diff → bootstrap (idempotent) thư mục
-`notebooks/review/<short_name>/` tại **root của repo đang được review** (không phải trong plugin
-này) → nạp `ALWAYS_RULE.md` + memory + template tương ứng → đọc lại comment cũ của chính PR để phát
-hiện đồng thuận convention mới (re-review) → review theo khung 6 mục → định dạng kết quả → post
-đúng 1 lần qua `gh api POST .../pulls/{n}/reviews`.
+**`commands/pr.md`** encode 10 bước tuần tự: validate URL PR → lấy context qua `gh pr view/diff` →
+detect stack theo đuôi file/path cho từng file trong diff → thiết lập lần đầu nếu cần (đọc
+`setup-flow.md` có điều kiện) → đảm bảo có local template cho từng stack → nạp `ALWAYS_RULE.md` +
+memory + template local → đọc lại comment cũ của chính PR để phát hiện đồng thuận convention mới
+(re-review) → review theo khung 6 mục → định dạng kết quả → post đúng 1 lần qua
+`gh api POST .../pulls/{n}/reviews`.
+
+**Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `pr.md` chỉ dùng
+`Read` để nạp `setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +
+doctor) — nếu đã xong, không `Read` file đó, nội dung setup không vào context của lần review đó.
+Lý do dùng `Read` (tool call, agent tự quyết định lúc reasoning) thay vì `!`...`` bash substitution:
+mọi lệnh `!`...`` trong 1 command file chạy **trước khi model thấy prompt**, không thể điều kiện
+theo kết quả suy luận (vd stack nào đã detect) — chỉ tool call thật sự (Read) mới sequence đúng
+theo logic của agent.
+
+**Local template = bản có hiệu lực cho từng repo, không phải `${CLAUDE_PLUGIN_ROOT}/templates/`
+trực tiếp.** Lần đầu 1 stack xuất hiện trong 1 repo, `pr.md` (qua `setup-flow.md` Phần B) copy
+template gốc từ plugin vào `notebooks/review/<short_name>/templates/<stack>.md` — team có thể tự
+sửa bản local này riêng cho repo mà không ảnh hưởng plugin dùng chung. Nếu plugin CHƯA có template
+cho 1 stack nào đó, agent tự soạn mới (theo đúng khung 6 mục) và lưu local — đây là cơ chế "tự cải
+thiện" (self-improve) của plugin, không phải bộ tiêu chí đóng cứng. Việc đưa 1 template mới do agent
+tự soạn ngược trở lại `${CLAUDE_PLUGIN_ROOT}/templates/` để dùng chung cho repo khác là thao tác
+THỦ CÔNG của user, KHÔNG tự động (tránh mutate file dùng chung từ ngữ cảnh 1 repo cụ thể).
 
 **Baseline (ALWAYS_RULE.md) + delta (templates/) — không lặp nội dung.** Tiêu chí CHUNG cho mọi
 stack (mục 1,2,3,4,6 — bug/logic rõ ràng, hardcode secret, DRY, tên biến rõ ràng, comment logic
@@ -50,14 +72,17 @@ baseline. Khi sửa template nền, kiểm tra overlay tương ứng có bị tr
 Tránh viết dạng liệt kê khiến agent hiểu nhầm là chỉ cần tìm đúng những ý đã ghi — luôn giữ khung
 câu kiểu "ví dụ, không giới hạn ở đây" khi thêm tiêu chí mới.
 
-**Memory là state runtime, sống ngoài repo này.** `notebooks/review/<short_name>/memory.md` +
-`memories/<lesson>.md` được `/review:pr` tự tạo bên trong repo đang được review (không phải trong
-plugin), có git nested riêng (không push), và bootstrap CHỈ chạy nếu chưa tồn tại — đã tồn tại rồi
-thì lệnh bỏ qua hoàn toàn, không tạo/sửa lại. Đừng nhầm đây là dữ liệu của plugin repo này.
+**Memory là state runtime, sống ngoài repo này.** `notebooks/review/<short_name>/{memory.md,
+memories/, templates/, meta.json}` được `/review:pr` tự tạo bên trong repo đang được review (không
+phải trong plugin), có git nested riêng (không push). Bootstrap + doctor (`meta.json.bootstrapped`/
+`.doctored`) chỉ chạy 1 lần; local template copy (`meta.json.templates_copied`) chạy lại mỗi khi
+gặp stack chưa từng thấy ở repo đó, kể cả sau khi đã bootstrap/doctor xong lâu rồi — đây là 2 điều
+kiện khác nhau, đừng gộp chung 1 gate. Đừng nhầm thư mục này là dữ liệu của plugin repo này.
 
 **`ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Đây là rule cứng global (vd ngôn ngữ output,
-default English), đọc bằng đường dẫn tuyệt đối tới root plugin — khác với convention riêng từng
-repo nằm trong `memory.md`.
+default English), đọc qua `${CLAUDE_PLUGIN_ROOT}` (biến môi trường chuẩn Claude Code, portable mọi
+máy — KHÔNG hardcode path tuyệt đối của 1 máy cụ thể) — khác với convention riêng từng repo nằm
+trong `memory.md`.
 
 **Phân loại file-level vs line-level finding là phán đoán ngữ cảnh của agent lúc review**, cố tình
 không có danh sách cứng/enum trong `pr.md` — đừng thêm danh sách cứng vào đó khi sửa.

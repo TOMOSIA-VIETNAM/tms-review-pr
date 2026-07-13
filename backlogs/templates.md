@@ -15,6 +15,14 @@ hiểu nhầm chỉ cần tìm đúng những ý đã ghi.
 
 Dependency chung: cần Task S3 (thư mục `templates/` tồn tại) xong trước khi bắt đầu bất kỳ task nào.
 
+**Lưu ý vai trò của `templates/` (plugin) vs local copy (per-repo):** file trong thư mục này là
+THƯ VIỆN GỐC dùng chung cho mọi repo — không phải bản mà `pr.md` đọc trực tiếp lúc review. Mỗi repo
+được review có bản LOCAL copy riêng tại `notebooks/review/<short_name>/templates/<stack>.md` (xem
+Task M6, memory-system.md), được tạo lần đầu stack đó xuất hiện trong repo, và có thể được team tự
+sửa riêng. Nếu plugin CHƯA có template cho 1 stack, agent tự soạn thẳng vào bản local — việc thêm
+file mới vào chính `templates/` (để dùng chung cho repo khác) là thao tác thủ công của
+user/maintainer plugin, không tự động.
+
 ## Task T1: `templates/rails.md`
 - Nguồn: port nguyên khung 6 mục từ `review_be.md` (gộp API + View, giữ nguyên tiêu chí, bỏ phần
   context/gh-command/post vì đó là việc của pr.md).

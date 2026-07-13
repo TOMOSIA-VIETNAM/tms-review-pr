@@ -28,8 +28,21 @@ Mục tiêu: dựng khung thư mục + file cấu hình tối thiểu để Clau
   - Ghi chú agent nên nhận diện yêu cầu review PR bằng ngôn ngữ tự nhiên (không bắt buộc user gõ
     đúng cú pháp `/review:pr <url>`) và tự map sang luồng review tương ứng.
   - Phần còn lại để trống cho user tự điền rule riêng dự án/tổ chức sau này.
-  - Ghi rõ: file này được `commands/pr.md` tham chiếu bằng đường dẫn TUYỆT ĐỐI tới plugin (không
-    phải path tương đối tính từ repo đang review) — tránh nhầm khi maintain.
+  - Viết trung lập (đọc được bởi cả human lẫn agent, không phải câu văn "diễn giải" hướng dẫn cho
+    agent) — KHÔNG chứa path tuyệt đối của 1 máy cụ thể (plugin dùng chung nhiều máy trong team;
+    `pr.md` tự trỏ tới file này qua biến `${CLAUDE_PLUGIN_ROOT}`, không cần file này tự mô tả path).
 - Dependency: S3.
 
-## Thứ tự: S1 → S2 → S3 → S4
+## Task S5: Tạo `setup-flow.md` (KHÔNG đặt trong `commands/`)
+- Acceptance:
+  - Đặt tại root plugin (ngang hàng `ALWAYS_RULE.md`), KHÔNG đặt trong `commands/` — nếu đặt trong
+    `commands/` nó sẽ tự trở thành 1 slash command khác, vi phạm quyết định "chỉ 1 command duy nhất".
+  - Chứa: Phần A (bootstrap `notebooks/review/<short_name>/`), Phần B (copy/tự soạn local template
+    theo stack), Phần C (doctor — khám phá convention có sẵn của dự án), Phần D (schema
+    `meta.json`).
+  - `commands/pr.md` chỉ đọc file này bằng tool `Read` khi `meta.json` cho thấy chưa thiết lập
+    xong — không dùng bash `!`...`` để include có điều kiện (bash chạy trước khi model thấy prompt,
+    không thể điều kiện theo kết quả suy luận của model).
+- Dependency: S3.
+
+## Thứ tự: S1 → S2 → S3 → S4, S5 (song song)
