@@ -30,13 +30,15 @@ backlogs/*.md                 Task breakdown lịch sử khi build plugin lần 
 .gitignore                    Dev repo, không liên quan runtime plugin
 
 src/commands/pr.md            Slash command DUY NHẤT /review:pr — CHỈ chứa logic review, không
-                               chứa chi tiết detect-stack (xem src/stack-detection.md) hay thiết
-                               lập lần đầu (xem src/setup-flow.md). Mở đầu bằng 1 quy tắc an toàn
-                               CRITICAL (chỉ review + comment, không close/merge/push/xoá branch).
+                               chứa chi tiết detect-stack (xem src/stack-detection.md), thiết lập
+                               lần đầu (xem src/setup-flow.md), hay case điều kiện theo từng PR
+                               (xem src/cases/ bên dưới). Mở đầu bằng 1 quy tắc an toàn CRITICAL
+                               (chỉ review + comment, không close/merge/push/xoá branch).
                                allowed-tools thu hẹp đúng subcommand cần dùng: `gh pr view`,
-                               `gh pr diff`, `gh api`, `git init`, `git -C notebooks/review:*`,
-                               `git fetch`, `git status`, `git show`, `cp`, `mkdir`, `Agent`
-                               (doctor song song), `Read`, `Write`, `Edit` — KHÔNG có
+                               `gh pr diff`, `gh pr checkout`, `gh api`, `git init`,
+                               `git -C notebooks/review:*`, `git fetch`, `git status`,
+                               `git branch`, `git checkout`, `git show`, `cp`, `mkdir`, `Agent`
+                               (doctor song song), `Read`, `Grep`, `Write`, `Edit` — KHÔNG có
                                `gh pr close/merge`, KHÔNG có `git push/branch -D/reset --hard`
 src/stack-detection.md        KHÔNG phải slash command. Bảng mapping đuôi file/path → stack +
                                overlay rule; `pr.md` Bước 2 đọc bằng Read
@@ -44,6 +46,13 @@ src/setup-flow.md             KHÔNG phải slash command (có ý — xem bên d
                                file này bằng tool Read khi repo CHƯA thiết lập xong, để không tốn
                                context cho nội dung setup ở các lần review sau. Chứa cả Phần E —
                                quy trình ghi lesson vào memory (dùng chung)
+src/cases/*.md                KHÔNG phải slash command. Logic review-time áp dụng CÓ ĐIỀU KIỆN theo
+                               1 trigger cụ thể của từng PR — khác `setup-flow.md` (gate theo trạng
+                               thái CỦA REPO, chạy 1 lần lúc onboarding) và `stack-detection.md`
+                               (bảng tra cứu, đọc MỌI lần review bất kể PR). `pr.md` chỉ `Read` 1
+                               file trong đây khi trigger tương ứng đúng cho PR hiện tại — nhiều PR
+                               không bao giờ chạm case nào đó thì không tốn context cho nó. Thư mục
+                               CHỦ Ý để MỞ RỘNG (chi tiết + danh sách hiện có ở Kiến trúc cốt lõi)
 src/templates/*.md            Template GỐC (thư viện dùng chung) theo từng ngôn ngữ/framework —
                                nội dung thuần, không logic điều phối. Mỗi repo được review có bản
                                LOCAL copy riêng, xem "Local template" bên dưới
@@ -56,12 +65,15 @@ src/ALWAYS_RULE.md            Rule cứng global — bản "seed". Lúc bootstra
 
 **`src/commands/pr.md`** encode 11 bước tuần tự (Bước 0-10): validate — nhận diện linh hoạt 1 tham
 chiếu PR GitHub bất kể phần đuôi (`/changes`, `/files`, query, fragment), chỉ trích
-`owner/repo/pull_number` từ phần khớp → lấy context qua `gh pr view/diff` → đồng bộ local cho
-source/target branch + chặn review nếu working tree bẩn → detect stack theo đuôi file/path cho
-từng file trong diff → thiết lập lần đầu nếu cần (đọc `src/setup-flow.md` có điều kiện) → đảm bảo
-có local template cho từng stack → nạp `src/ALWAYS_RULE.md` LOCAL + memory + template local → đọc
-lại comment cũ của chính PR để phát hiện đồng thuận convention mới (re-review) → review theo khung
-6 mục → định dạng kết quả → post đúng 1 lần qua `gh api POST .../pulls/{n}/reviews`.
+`owner/repo/pull_number` từ phần khớp → lấy context qua `gh pr view/diff` (kèm review comments cũ
+của chính PR, fetch 1 lần, dùng ở Bước 6) → đồng bộ local cho source/target branch + chặn review
+nếu working tree bẩn → detect stack theo đuôi file/path cho từng file trong diff → thiết lập lần
+đầu nếu cần (đọc `src/setup-flow.md` có điều kiện) → đảm bảo có local template cho từng stack →
+nạp `src/ALWAYS_RULE.md` LOCAL + memory + template local → nếu PR đã có comment cũ, đọc
+`src/cases/re-review.md` để phát hiện đồng thuận convention mới VÀ kiểm tra finding cũ do chính
+lệnh này để lại đã fix chưa → review theo khung 6 mục (đối chiếu thêm PR template checklist của dự
+án qua `src/cases/pr-template-checklist.md` nếu repo có template) → định dạng kết quả → post đúng 1
+lần qua `gh api POST .../pulls/{n}/reviews` (có field `event` hay không tuỳ `auto_submit_review`).
 
 **Quy tắc an toàn CRITICAL (đầu `pr.md`, trước Bước 0):** lệnh này CHỈ được review + post 1 review
 comment — KHÔNG được tự ý close/merge/reopen PR, xoá/tạo/đổi branch, push, hay sửa code trong repo
@@ -90,6 +102,12 @@ cảnh là nguồn duy nhất — không refetch qua `git diff`/`gh api .../file
 vụn vặt lấy số lượng — PR tốt thì "LGTM". Nhãn 3 mức nghiêm trọng là TEXT thuần (Bắt buộc sửa / Nên
 sửa / Đề xuất; EN: MUST FIX / SHOULD FIX / SUGGESTION) — KHÔNG dùng emoji màu.
 
+**Finding cấp LINE xác định `side` theo đúng nửa diff, không hardcode.** Bước 7 xác định `side` cho
+mỗi finding cấp LINE dựa vào vị trí thật trong diff: dòng bị XOÁ (tiền tố `-`, thuộc nửa CŨ/before)
+→ `side: "LEFT"`, số dòng lấy theo file CŨ (base); dòng THÊM hoặc GIỮ NGUYÊN (tiền tố `+` hoặc dòng
+context, thuộc nửa MỚI/after) → `side: "RIGHT"`, số dòng lấy theo file MỚI (head). Không mặc định
+`RIGHT` cho mọi trường hợp — sai `side` khiến GitHub gắn comment nhầm dòng hoặc từ chối payload.
+
 **Finding cấp FILE nằm trong body tổng quan, KHÔNG vào `comments[]` (Bước 8/9).** GitHub reviews
 API 422 "position null" khi trộn comment không-line chung request với comment có-line (đã gặp thật)
 — nên `comments[]` chỉ chứa finding cấp LINE; finding cấp FILE thành bullet trong body theo đúng
@@ -97,11 +115,48 @@ mức nghiêm trọng. Verify sau post (Bước 9) bó hẹp đúng 1 lần chec
 tra/test nào khác; lỗi POST thì sửa payload theo schema rồi thử lại 1 lần, KHÔNG tạo/xoá comment
 test trên PR thật để debug (nguyên nhân 1 lần thật để lại 3 review object thay vì 1).
 
-**Bước 6 còn tự kiểm tra finding cũ của chính lệnh này đã được fix chưa** (khác việc học convention
-ở trên, dùng chung dữ liệu comment đã fetch): lọc comment top-level do chính `gh auth` hiện tại để
-lại, khớp khung finding (`**Vấn đề**`); đối chiếu với code hiện tại (đã checkout ở Bước 1) — đã fix
-→ reply ngắn + resolve thread qua GraphQL (`resolveReviewThread`, REST không hỗ trợ resolve); chưa
-fix → không làm gì, không nhắc lại.
+**`src/cases/` — logic review-time có điều kiện theo TỪNG PR, không phải theo trạng thái repo.**
+Khác `setup-flow.md` (gate theo trạng thái CỦA REPO — đã bootstrap/doctor chưa, chạy 1 lần) và
+`stack-detection.md` (bảng tra cứu, đọc MỌI lần review bất kể PR), mỗi file trong `src/cases/` gắn
+với 1 trigger riêng CỦA PR ĐANG REVIEW — `pr.md` chỉ `Read` file đó khi trigger đúng, nên nhiều PR
+không bao giờ tốn context cho case không áp dụng. Hiện có:
+
+- `re-review.md` — trigger: PR đã có comment review cũ (fetch 1 lần ở block "Ngữ cảnh", dùng ở
+  Bước 6). Gồm 2 việc dùng chung dữ liệu đã fetch: đề xuất 1 lesson convention mới nếu phát hiện
+  đồng thuận trong reply chain của thread (CHỜ user xác nhận trước khi ghi, không tự ghi ngay), VÀ
+  kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
+  khớp khung `**Vấn đề**`) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
+  `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
+  (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
+  không nhắc lại.
+- `pr-template-checklist.md` — trigger: repo có file dạng `.github/PULL_REQUEST_TEMPLATE.md` (phát
+  hiện 1 lần lúc doctor, cache tại `meta.json.pr_template_paths`, dùng ở Bước 7). Đối chiếu
+  description thật của PR với checklist trong template đó, gộp mọi mục còn thiếu/chưa tick thành
+  ĐÚNG 1 finding tổng hợp cấp FILE mức `[Nên sửa]`. Khác 2 kiểm tra title/description còn lại của
+  Bước 7 (rõ business, prefix ticket theo branch) — 2 kiểm tra đó chỉ mang tính overview, KHÔNG tính
+  vào 3 mức nghiêm trọng; kiểm tra checklist này CÓ tính, vì đây là vi phạm 1 rule dự án tự đặt ra
+  qua PR template, không chỉ là góp ý phong cách.
+
+Thư mục này CHỦ Ý để MỞ RỘNG: case mới nào chỉ áp dụng có điều kiện (không phải mọi PR/repo) — thêm
+1 file mới vào đây, theo đúng pattern "1 `Read`, 1 trigger", thay vì nhét thẳng vào `pr.md` làm
+phình context cho mọi lần review kể cả khi case đó không áp dụng.
+
+**Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
+`setup-flow.md` hỏi user 3 câu trong 1 lượt, ngay lúc bootstrap lần đầu: ngôn ngữ output (vi/en/ja),
+`auto_submit_review` (mặc định `false`), `auto_resolve_fixed_findings` (mặc định `false`).
+
+- Ngôn ngữ output KHÔNG lưu trong `meta.json` — ghi thẳng đè lên comment ngôn ngữ có sẵn trong bản
+  LOCAL `ALWAYS_RULE.md` (tránh 2 nguồn sự thật cho cùng 1 fact); "đã hỏi chưa" tự suy ra từ việc
+  dòng comment đó còn giữ nguyên văn mặc định hay đã bị ghi đè, không lưu trạng thái riêng ở đâu khác.
+- `auto_submit_review`/`auto_resolve_fixed_findings` lưu dạng boolean trong `meta.json`, đọc lại ở
+  Bước 3, dùng lần lượt ở Bước 9 và Bước 6.
+- `auto_submit_review` chi phối payload Bước 9: `true` → payload luôn có `"event": "COMMENT"` (post
+  ngay, tác giả PR thấy comment ngay lập tức); `false` → bỏ hẳn field `event` khỏi payload, review
+  dừng ở trạng thái PENDING (chỉ tài khoản đang chạy lệnh tự thấy, phải submit thủ công trên GitHub)
+  — verify ngay sau khi post coi PENDING lúc này là kết quả CHỦ Ý, không tự ý submit hộ.
+- `auto_resolve_fixed_findings` chi phối nhánh "finding cũ đã fix" trong `src/cases/re-review.md`:
+  `true` → reply xác nhận VÀ resolve thread GitHub qua GraphQL; `false` → chỉ reply, để user tự
+  resolve thủ công trên GitHub.
 
 **Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `pr.md` chỉ dùng
 `Read` để nạp `src/setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +
