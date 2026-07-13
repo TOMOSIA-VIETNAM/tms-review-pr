@@ -240,14 +240,28 @@ là phán đoán theo ngữ cảnh của agent lúc review, KHÔNG dùng enum/da
   vấn đề". Chất lượng hơn số lượng.
 
 **Định dạng nội dung mỗi finding** (áp dụng cho `body` của MỌI finding, cả cấp FILE lẫn LINE, dùng ở
-Bước 9) — 2-3 dòng theo đúng khung sau, nhãn dịch theo ngôn ngữ output đã chọn (tiếng Việt dưới đây,
-tiếng Anh: `**Issue**` / `**Fix**` / `*(if needed)* because ...`):
+Bước 9) — theo đúng khung sau, nhãn dịch theo ngôn ngữ output đã chọn (tiếng Việt dưới đây, tiếng
+Anh: `**Issue**` / `**Fix**` / `*(if needed)* because ...`):
 
 ```
 **Vấn đề** — <mô tả ngắn gọn lỗi/code thừa/inconsistent>.
-**Cách fix** — <hành động cụ thể cần làm>.
+**Cách fix** — <code hoặc mô tả, xem 2 trường hợp dưới>
 *(chỉ thêm nếu cần)* vì <lý do ngắn gọn trong 1 câu>.
 ```
+
+Phần **Cách fix** chọn 1 trong 2 dạng tuỳ bản chất của fix, KHÔNG cố ép dạng còn lại:
+
+- **Fix thể hiện được bằng code** (sửa 1 đoạn cụ thể, đổi tên biến, thêm check, đổi cách gọi API...)
+  → viết dưới dạng code block, KHÔNG diễn giải bằng lời thay cho code:
+  - Finding cấp **LINE** mà fix là thay thế trực tiếp đúng (các) dòng đang comment → dùng
+    ` ```suggestion ` (đúng cú pháp GitHub suggestion) thay vì code block thường — GitHub render
+    thành nút "Apply suggestion" cho dev bấm áp dụng ngay, không cần gõ lại tay.
+  - Các trường hợp còn lại (fix nằm ở chỗ khác trong file, cần thêm code mới, liên quan nhiều dòng
+    không liền kề, hoặc finding cấp FILE) → dùng code block thường với tag ngôn ngữ phù hợp
+    (```` ```ruby ````, ```` ```ts ````...), không dùng `suggestion`.
+- **Fix KHÔNG thể hiện được bằng code** (quan điểm thiết kế, đề nghị đổi tên cho rõ nghĩa hơn nhưng
+  không có 1 đáp án code duy nhất, cân nhắc kiến trúc, xác nhận lại giả định nghiệp vụ...) → viết
+  bằng lời như hiện tại (1 câu ngắn gọn), KHÔNG gượng ép bọc vào code block.
 
 Dòng lý do là TÙY CHỌN — chỉ thêm khi lý do không hiển nhiên từ mô tả vấn đề/cách fix.
 
@@ -300,6 +314,10 @@ EOF
 
 - Finding cấp **LINE**: object gồm `path` + `line` + `"side": "RIGHT"` + `body`.
 - Finding cấp **FILE**: object chỉ gồm `path` + `body`, KHÔNG có `line`/`side`.
+- `body` có thể chứa code block nhiều dòng (kể cả ` ```suggestion `, xem Bước 7) — đây vẫn là 1
+  string JSON bình thường, chỉ cần escape xuống dòng đúng chuẩn JSON (`\n`) khi dựng payload, không
+  cần xử lý gì thêm. ` ```suggestion ` CHỈ dùng cho finding cấp LINE mà nội dung suggestion thay thế
+  ĐÚNG (các) dòng đang bị comment — sai dòng sẽ khiến GitHub áp dụng suggestion nhầm chỗ.
 - Thay `{owner}`, `{repo}`, `{pull_number}` bằng giá trị thật đã parse. Đây là lần gọi `gh api`
   POST DUY NHẤT của cả lệnh — không gọi thêm lần POST review nào khác. `event` LUÔN là `"COMMENT"`
   — KHÔNG BAO GIỜ dùng `"APPROVE"` hay `"REQUEST_CHANGES"` (đó là quyết định của con người, ngoài
