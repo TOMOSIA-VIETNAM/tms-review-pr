@@ -201,7 +201,35 @@ Tạo branch riêng từ `main` (SAU khi P10 đã merge/commit xong) để user 
   không bao giờ đọc `submodule-review.md`.
 - Dependency: P10 (branch tạo từ `main` sau khi P10 xong).
 
-## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9 → P10 → P11
-(P1 là vertical-slice nên test thật càng sớm càng tốt khi có PR test — xem testing.md. P10 làm trên
-`main`; P11 tạo branch `feature/pr-review-worktree` riêng sau khi P10 xong, để user tự thử nghiệm
-trước khi merge.)
+## Task P12: Đối chiếu PR description với PR template checklist của dự án (nhánh `main`)
+
+Bối cảnh: khác với doctor quét convention chung (AGENTS.md/CLAUDE.md/docs/wiki — đã có ở Phần C),
+nhiều repo có riêng 1 file PR template (`.github/PULL_REQUEST_TEMPLATE.md` hoặc biến thể) quy định
+checklist tác giả PR phải điền/tick khi tạo PR. Review phải đối chiếu description thật của PR với
+checklist đó, không chỉ tin description tự do.
+
+- **Detect template — gộp vào doctor (Phần C), quét 1 lần duy nhất, KHÔNG thêm bước quét riêng.**
+  Tìm các path phổ biến: `.github/PULL_REQUEST_TEMPLATE.md`, `.github/pull_request_template.md`,
+  `.github/PULL_REQUEST_TEMPLATE/*.md` (GitHub hỗ trợ nhiều template chọn qua query param), root
+  `PULL_REQUEST_TEMPLATE.md`, `docs/PULL_REQUEST_TEMPLATE.md`. Cache danh sách path tìm được (mảng
+  rỗng nếu không có) vào `meta.json` field mới, vd `pr_template_paths`.
+- **Bước 7 của `pr.md`** (đoạn đã có sẵn kiểm tra title/description) mở rộng thêm: nếu
+  `pr_template_paths` không rỗng → đọc nội dung (các) template đó, đối chiếu với `body` thật của PR
+  — checkbox `- [ ]` còn chưa tick, section còn nguyên placeholder/HTML-comment gốc chưa điền → coi
+  là VI PHẠM rule dự án đã tự đặt ra. Đây là phán đoán ngữ cảnh (không enum cứng danh sách item nào
+  bắt buộc), gộp thành 1 finding tổng hợp (không tách vụn từng checkbox thiếu) theo đúng khung
+  Vấn đề/Cách fix.
+- **Khác với check title/description hiện có (vẫn chỉ nằm ở tổng quan, không tính N)** — finding
+  loại này XẾP THẲNG vào mức **[Nên sửa]**, tính vào N đếm ở Bước 8 (đã vi phạm rule dự án tự đặt,
+  không chỉ là góp ý phong cách). Đây là finding cấp FILE (không gắn được 1 dòng code cụ thể) — vào
+  body Bước 8, KHÔNG vào `comments[]`.
+- Repo không có template nào (`pr_template_paths` rỗng) → bỏ qua hoàn toàn, không finding gì.
+- Acceptance: repo có `.github/PULL_REQUEST_TEMPLATE.md` với checklist, PR test để trống 1 mục →
+  xuất hiện đúng 1 finding [Nên sửa] nêu rõ mục nào thiếu; PR điền đủ → không finding; repo không có
+  template → không bao giờ chạm nhánh này.
+- Dependency: P10 (độc lập với P11 — không liên quan worktree, có thể làm song song hoặc trước/sau).
+
+## Thứ tự: P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9 → P10 → P11 → P12
+(P1 là vertical-slice nên test thật càng sớm càng tốt khi có PR test — xem testing.md. P10 và P12 làm
+trên `main`; P11 tạo branch `feature/pr-review-worktree` riêng sau khi P10 xong, để user tự thử
+nghiệm trước khi merge — P12 không phụ thuộc P11, độc lập hoàn toàn với worktree.)
