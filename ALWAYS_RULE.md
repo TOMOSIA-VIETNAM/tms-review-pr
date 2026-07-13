@@ -1,7 +1,7 @@
 # Always Rule — quy tắc chung của plugin `review`
 
 Phạm vi: áp dụng cho mọi repo review qua plugin `review`. Convention riêng từng repo sống ở
-`notebooks/review/<short_name>/`, ngoài phạm vi file này.
+`notebooks/review/<repo>/`, ngoài phạm vi file này.
 
 ## Ngôn ngữ output
 
