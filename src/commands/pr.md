@@ -36,6 +36,16 @@ Ví dụ: /review:pr https://github.com/org/repo/pull/123
 
 Chỉ tiến hành các bước 1-10 bên dưới nếu `ARGUMENTS` chứa 1 tham chiếu PR GitHub hợp lệ.
 
+**Phần còn lại của `ARGUMENTS` ngoài URL (nếu có) là chỉ dẫn bổ sung của user cho lần review này**
+(vd `<url> Review comment tiếng Việt` → user muốn output tiếng Việt cho lần chạy này), KHÔNG phải
+rác cần bỏ qua vô điều kiện — đọc hiểu và áp dụng nếu hợp lý (ưu tiên hơn default trong
+`ALWAYS_RULE.md` cho lần chạy này), bỏ qua phần không hiểu được ý nghĩa gì. Về mặt kỹ thuật: mọi
+lệnh `gh` dùng đến ARGUMENTS trong "Ngữ cảnh" bên dưới PHẢI trích riêng canonical URL (qua
+`grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1`, có quote `"$ARGUMENTS"`) rồi mới
+dùng — KHÔNG bao giờ truyền thẳng `$ARGUMENTS` thô (không quote) vào lệnh shell, vì phần chỉ dẫn bổ
+sung này là văn bản tự do (có thể chứa khoảng trắng, ký tự bất kỳ) sẽ làm vỡ câu lệnh nếu không tách
+ra trước.
+
 ## Ngữ cảnh
 
 Các lệnh dưới đây trước tiên trích PR URL "sạch" (canonical `https://github.com/<owner>/<repo>/pull/<number>`,
@@ -48,7 +58,7 @@ CẮT BỎ mọi phần đuôi như `/changes`/`/files`/query/fragment) từ `$A
 - Danh sách file thay đổi: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --name-only 2>/dev/null`
 - Diff đầy đủ: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" 2>/dev/null`
 - Commits: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" --json commits --jq '.commits[].messageHeadline' 2>/dev/null`
-- Review comments cũ của chính PR này (dùng ở Bước 6 — response rỗng là bình thường, không phải lỗi): !`gh api repos/$(echo $ARGUMENTS | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+).*#\1/\2#')/pulls/$(echo $ARGUMENTS | sed -E 's#.*/pull/([0-9]+).*#\1#')/comments 2>/dev/null`
+- Review comments cũ của chính PR này (dùng ở Bước 6 — response rỗng là bình thường, không phải lỗi): !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/comments 2>/dev/null`
 
 **Parse `{owner}/{repo}/{pull_number}` từ ARGUMENTS:** từ phần khớp
 `github.com/<owner>/<repo>/pull/<number>` → `owner` = segment sau `github.com/`, `repo` = segment
