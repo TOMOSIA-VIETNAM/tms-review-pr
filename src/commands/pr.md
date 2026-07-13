@@ -173,6 +173,18 @@ là phán đoán theo ngữ cảnh của agent lúc review, KHÔNG dùng enum/da
   tắt chỉ cần "LGTM" (hoặc bản dịch tương ứng theo ngôn ngữ output đã chọn), 3 mức đều "Không có
   vấn đề". Chất lượng hơn số lượng.
 
+**Định dạng nội dung mỗi finding** (áp dụng cho `body` của MỌI finding, cả cấp FILE lẫn LINE, dùng ở
+Bước 8) — 2-3 dòng theo đúng khung sau, nhãn dịch theo ngôn ngữ output đã chọn (tiếng Việt dưới đây,
+tiếng Anh: `**Issue**` / `**Fix**` / `*(if needed)* because ...`):
+
+```
+**Vấn đề** — <mô tả ngắn gọn lỗi/code thừa/inconsistent>.
+**Cách fix** — <hành động cụ thể cần làm>.
+*(chỉ thêm nếu cần)* vì <lý do ngắn gọn trong 1 câu>.
+```
+
+Dòng lý do là TÙY CHỌN — chỉ thêm khi lý do không hiển nhiên từ mô tả vấn đề/cách fix.
+
 ## Bước 7 — Định dạng kết quả
 
 Giữ khung định dạng sau (ngôn ngữ lấy theo `ALWAYS_RULE.md` đã đọc ở Bước 4, default **English**
@@ -222,6 +234,20 @@ EOF
 - Finding cấp **FILE**: object chỉ gồm `path` + `body`, KHÔNG có `line`/`side`.
 - Thay `{owner}`, `{repo}`, `{pull_number}` bằng giá trị thật đã parse. Đây là lần gọi `gh api`
   POST DUY NHẤT của cả lệnh — không gọi thêm lần POST review nào khác.
+
+**Field `"event"` BẮT BUỘC có mặt trong payload trên** (`"COMMENT"` ở ví dụ) — thiếu field này khiến
+GitHub tạo review ở trạng thái **PENDING** (chỉ người review tự thấy, dev KHÔNG thấy comment nào cho
+tới khi có người bấm submit thủ công trên UI — đây là nguyên nhân review "biến mất" nếu bị thiếu).
+KHÔNG dùng `gh pr review --comment` hay POST riêng lẻ từng comment qua
+`/pulls/{pull_number}/comments` — cả 2 cách này đều KHÔNG đảm bảo review được submit kèm comment,
+CHỈ dùng đúng 1 lệnh `POST .../pulls/{pull_number}/reviews` có `event` như trên.
+
+**Verify ngay sau khi post** (bắt buộc, không bỏ qua): gọi
+`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews --jq '.[-1] | {id, state}'` để lấy review
+vừa tạo. Nếu `state` là `"PENDING"` (nghĩa là lần POST ở trên vì lý do nào đó không submit được) →
+submit ngay bằng `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events
+-f event="COMMENT"` (thay `{review_id}` bằng `id` vừa lấy được). KHÔNG coi lệnh post ở Bước 8 là
+hoàn tất cho tới khi xác nhận `state` KHÁC `"PENDING"` (vd `"COMMENTED"`).
 
 ## Bước 9 — Hành vi chung khi plugin "review" active (ngoài luồng `/review:pr`)
 
