@@ -129,11 +129,14 @@ mục khác nhau — chính bug đã gặp). Mọi thao tác filesystem thực h
 khỏi pwd. (Thuật ngữ cũ "short_name" đã bỏ hoàn toàn — dùng "repo name".)
 
 **Kỷ luật phạm vi review (Bước 7):** tập trung phần THAY ĐỔI in-scope; vấn đề code cũ ngoài phạm
-vi thì tách riêng nhãn "ngoài phạm vi", không ép fix. KHÔNG đọc source thư viện/framework như thói
-quen (dựa kiến thức chung trước, chỉ tra source khi thật sự không chắc). Diff đã fetch 1 lần ở Ngữ
-cảnh là nguồn duy nhất — không refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding
-vụn vặt lấy số lượng — PR tốt thì "LGTM". Nhãn 3 mức nghiêm trọng là TEXT thuần (Bắt buộc sửa / Nên
-sửa / Đề xuất; EN: MUST FIX / SHOULD FIX / SUGGESTION) — KHÔNG dùng emoji màu.
+vi, hoặc chưa cần fix ngay trong PR này, gắn nhãn 📝 NOTE riêng — không ép fix, không tính vào 3
+mức nghiêm trọng. KHÔNG đọc source thư viện/framework như thói quen (dựa kiến thức chung trước,
+chỉ tra source khi thật sự không chắc). Diff đã fetch 1 lần ở Ngữ cảnh là nguồn duy nhất — không
+refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding vụn vặt lấy số lượng — PR
+hoàn toàn sạch thì **LGTM 🌟** (đậm, kèm emoji), không viết "không có vấn đề" cho từng mức rỗng.
+Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt buộc sửa) / 🟠 SHOULD FIX
+(Nên sửa) / 🔵 SUGGESTION (Đề xuất) — áp cho cả FILE (heading Bước 8) lẫn LINE (prefix ngay trong
+`comments[]`, không chỉ nhóm theo heading).
 
 **Finding cấp LINE xác định `side` theo đúng nửa diff, không hardcode.** Bước 7 xác định `side` cho
 mỗi finding cấp LINE dựa vào vị trí thật trong diff: dòng bị XOÁ (tiền tố `-`, thuộc nửa CŨ/before)
@@ -143,9 +146,11 @@ context, thuộc nửa MỚI/after) → `side: "RIGHT"`, số dòng lấy theo f
 
 **Finding cấp FILE nằm trong body tổng quan, KHÔNG vào `comments[]` (Bước 8/9).** GitHub reviews
 API 422 "position null" khi trộn comment không-line chung request với comment có-line (đã gặp thật)
-— nên `comments[]` chỉ chứa finding cấp LINE; finding cấp FILE thành bullet trong body theo đúng
-mức nghiêm trọng. **Body tổng quan CẤM paste lại Vấn đề/Cách fix của LINE** (đã có inline) — LINE
-chỉ đếm vào N; tránh duplicate tốn token. Verify sau post (Bước 9) bó hẹp đúng 1 lần check state;
+— nên `comments[]` chỉ chứa finding cấp LINE; finding cấp FILE thành bullet trong body dưới đúng
+heading emoji mức nghiêm trọng. **Body tổng quan CẤM paste lại Vấn đề/Cách fix của LINE** (đã có
+inline, đã trực quan theo đúng dòng diff) — overview không liệt kê lại, không đếm số lượng LINE
+finding dưới bất kỳ hình thức nào; tránh duplicate tốn token. Verify sau post (Bước 9) bó hẹp đúng
+1 lần check state;
 lỗi POST → `post-review.md`, retry 1 lần, KHÔNG tạo/xoá comment test trên PR thật.
 
 **`src/cases/` — logic review-time có điều kiện theo TỪNG PR, không phải theo trạng thái repo.**
@@ -166,7 +171,7 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
 - `pr-template-checklist.md` — trigger: repo có file dạng `.github/PULL_REQUEST_TEMPLATE.md` (phát
   hiện 1 lần lúc doctor, cache tại `meta.json.pr_template_paths`, dùng ở Bước 7). Đối chiếu
   description thật của PR với checklist trong template đó, gộp mọi mục còn thiếu/chưa tick thành
-  ĐÚNG 1 finding tổng hợp cấp FILE mức `[Nên sửa]`. Khác 2 kiểm tra title/description còn lại của
+  ĐÚNG 1 finding tổng hợp cấp FILE mức `🟠 SHOULD FIX`. Khác 2 kiểm tra title/description còn lại của
   Bước 7 (rõ business, prefix ticket theo branch) — 2 kiểm tra đó chỉ mang tính overview, KHÔNG tính
   vào 3 mức nghiêm trọng; kiểm tra checklist này CÓ tính, vì đây là vi phạm 1 rule dự án tự đặt ra
   qua PR template, không chỉ là góp ý phong cách.
