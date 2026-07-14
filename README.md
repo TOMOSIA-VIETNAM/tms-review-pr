@@ -25,6 +25,18 @@ Trong phiên Claude Code:
 /plugin install tms@review-pr
 ```
 
+## Cập nhật lên bản mới nhất
+
+`plugin.json` không khai `version` (dự án đang dev tích cực) — mỗi commit mới trên `main` tự thành
+1 bản. Đã cài rồi thì lấy bản mới:
+
+```
+/plugin marketplace update review-pr
+/plugin update tms@review-pr
+```
+
+Rồi `/reload-plugins` (hoặc mở phiên Claude Code mới) để nạp lại.
+
 ## Dùng thế nào
 
 Slash command **chỉ chạy khi bạn gõ đúng lệnh** — Claude không tự gọi `/tms:review-pr`
