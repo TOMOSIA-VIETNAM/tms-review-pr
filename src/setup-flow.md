@@ -38,7 +38,7 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
      append thêm dòng đó.
    - Đã có đủ → bỏ qua.
 5. Copy `ALWAYS_RULE.md` từ plugin vào bản LOCAL của repo bằng `cp` (KHÔNG Read+Write qua context):
-   `cp "${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
+   `cp "${CLAUDE_PLUGIN_ROOT}/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `review-pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
 6. Hỏi user **4 câu trong 1 lượt**, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
@@ -88,19 +88,19 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
 Với MỖI stack đã detect được ở Bước 2 của `review-pr.md` mà CHƯA có trong `templates_copied` (mảng trong
 `meta.json`, xem Phần D):
 
-1. Kiểm `${CLAUDE_PLUGIN_ROOT}/src/templates/<stack>.md` có tồn tại không (plugin có sẵn template cho
+1. Kiểm `${CLAUDE_PLUGIN_ROOT}/templates/<stack>.md` có tồn tại không (plugin có sẵn template cho
    stack này chưa).
    - **Có sẵn** → copy nguyên bản bằng `cp` (KHÔNG Read+Write qua context — tốn token với file dài):
-     `cp "${CLAUDE_PLUGIN_ROOT}/src/templates/<stack>.md" "notebooks/review/<repo>/templates/<stack>.md"`
+     `cp "${CLAUDE_PLUGIN_ROOT}/templates/<stack>.md" "notebooks/review/<repo>/templates/<stack>.md"`
      (bản LOCAL, repo có thể tự chỉnh sửa riêng sau này mà không ảnh hưởng plugin dùng chung cho
      repo khác).
    - **CHƯA có sẵn** (plugin chưa cover stack này) → tự soạn 1 template MỚI theo đúng khung 6 mục
      (1.Lỗi&logic 2.Bảo mật 3.Hiệu suất 4.Chất lượng code 5.Đặc thù framework/ngôn ngữ 6.Bảo trì&dễ
-     đọc — tham khảo các file trong `${CLAUDE_PLUGIN_ROOT}/src/templates/` để giữ văn phong/độ chi tiết
+     đọc — tham khảo các file trong `${CLAUDE_PLUGIN_ROOT}/templates/` để giữ văn phong/độ chi tiết
      nhất quán, KHÔNG lặp tiêu chí đã có trong baseline `ALWAYS_RULE.md`, chỉ viết phần đặc thù),
      lưu vào `notebooks/review/<repo>/templates/<stack>.md`. Báo cho user biết trong chat là
      đã tự tạo template mới cho stack này, kèm gợi ý: user có thể tự copy file này vào
-     `${CLAUDE_PLUGIN_ROOT}/src/templates/` để dùng chung cho repo khác — plugin KHÔNG tự động làm (tránh
+     `${CLAUDE_PLUGIN_ROOT}/templates/` để dùng chung cho repo khác — plugin KHÔNG tự động làm (tránh
      mutate file dùng chung từ 1 phiên review của 1 repo cụ thể).
 2. Thêm `<stack>` vào mảng `templates_copied` trong `meta.json`.
 3. `git -C notebooks/review add <repo>` + commit (local only) phần thay đổi này.

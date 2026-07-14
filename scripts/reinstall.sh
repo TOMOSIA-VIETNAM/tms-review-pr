@@ -7,7 +7,7 @@ set -euo pipefail
 SCOPE="${SCOPE:-user}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PLUGIN_MANIFEST="$SCRIPT_DIR/.claude-plugin/plugin.json"
+PLUGIN_MANIFEST="$SCRIPT_DIR/src/.claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST="$SCRIPT_DIR/.claude-plugin/marketplace.json"
 
 if ! command -v claude >/dev/null 2>&1; then

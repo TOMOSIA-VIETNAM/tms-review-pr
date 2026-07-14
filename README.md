@@ -21,8 +21,8 @@ convention để memory không lỗi thời. Chi tiết lịch: [Chu kỳ cập 
 Trong phiên Claude Code:
 
 ```
-/plugin marketplace add /đường/dẫn/tới/github-reviewer
-/plugin install tms@github-reviewer
+/plugin marketplace add TOMOSIA-VIETNAM/tms-review-pr
+/plugin install tms@review-pr
 ```
 
 ## Dùng thế nào

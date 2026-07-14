@@ -55,14 +55,14 @@ Bước 7.
 3. `git fetch origin "<baseRefName>"` (refs dùng chung mọi worktree).
 4. `git -C "notebooks/review/<repo>/worktrees/<tên>" submodule update --init --recursive` (luôn chạy).
 5. Nếu `meta.json.has_submodules == true` VÀ diff có `Subproject commit` → `Read`
-   `"${CLAUDE_PLUGIN_ROOT}"/src/cases/submodule-review.md`. Thiếu `meta.json`/field → coi `false`
+   `"${CLAUDE_PLUGIN_ROOT}"/cases/submodule-review.md`. Thiếu `meta.json`/field → coi `false`
    (lần đầu trước doctor). Không đủ điều kiện → không đọc case.
 
 Main tree không đổi branch — không khôi phục gì cuối lệnh.
 
 ## Bước 2 — Detect stack
 
-Mỗi file trong diff → stack theo `"${CLAUDE_PLUGIN_ROOT}"/src/stack-detection.md` (`Read`). Giữ
+Mỗi file trong diff → stack theo `"${CLAUDE_PLUGIN_ROOT}"/stack-detection.md` (`Read`). Giữ
 `(file, [stacks])` cho Bước 4–7.
 
 ## Bước 3 — Setup / doctor (nếu cần)
@@ -76,7 +76,7 @@ Tính `doctor_due`:
 - Còn lại: due khi `now > doctored_at + schedule` (thiếu/invalid `doctored_at` → due).
 
 Rẽ nhánh:
-- Thiếu file / `bootstrapped` chưa `true` → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md`,
+- Thiếu file / `bootstrapped` chưa `true` → `Read` `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md`,
   Phần A + C (Phần B ở Bước 4).
 - `bootstrapped: true` nhưng `doctor_due` → `Read` setup-flow (nếu chưa), **chỉ Phần C**; không hỏi
   lại bootstrap.
@@ -98,13 +98,13 @@ xuất hiện sau bootstrap).
    `{{OUTPUT_LANGUAGE}}` đã điền (còn placeholder → hỏi user); ARGUMENTS/chat phiên thắng nếu có.
    Baseline mục 1/2/3/4/6. Tiêu chí = gợi ý, không checklist đóng.
 2. `memory.md` + `memories/<lesson>.md` tag trùng stack PR; dòng THAM CHIẾU → đọc path trong repo.
-3. Template **LOCAL** theo stack (+ overlay nếu có). Không đọc `${CLAUDE_PLUGIN_ROOT}/src/templates/`.
+3. Template **LOCAL** theo stack (+ overlay nếu có). Không đọc `${CLAUDE_PLUGIN_ROOT}/templates/`.
 
 ## Bước 6 — Re-review
 
 Comments từ Ngữ cảnh:
 
-- Không rỗng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/cases/re-review.md`.
+- Không rỗng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/re-review.md`.
 - Rỗng → bỏ qua, sang Bước 7.
 
 ## Bước 7 — Review
@@ -116,7 +116,7 @@ Comments từ Ngữ cảnh:
   → bỏ qua hoàn toàn.
 
 **PR template:** `pr_template_paths` không rỗng → `Read`
-`"${CLAUDE_PLUGIN_ROOT}"/src/cases/pr-template-checklist.md`. Rỗng → không đọc.
+`"${CLAUDE_PLUGIN_ROOT}"/cases/pr-template-checklist.md`. Rỗng → không đọc.
 
 **Khung 6 mục** = baseline `ALWAYS_RULE` (1–4, 6) + template stack (mục 5 + bổ sung). Gợi ý minh họa
 — chủ động tìm thêm ngoài list. Memory bổ sung; mâu thuẫn với `ALWAYS_RULE` → ALWAYS_RULE thắng.
@@ -195,7 +195,7 @@ Verify 1 lần: `gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews --jq '.
   `.../reviews/{id}/events -f event="COMMENT"`.
 - `false` + PENDING → báo user review nháp; không submit hộ.
 
-POST lỗi, hoặc verify lệch kỳ vọng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/src/cases/post-review.md`.
+POST lỗi, hoặc verify lệch kỳ vọng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/post-review.md`.
 Happy path không đọc file đó.
 
 ## Bước 10 — Memory / doctor ngoài luồng review thuần
@@ -204,7 +204,7 @@ Happy path không đọc file đó.
 trong cùng phiên không đang post review:
 
 - User nêu sửa đổi/góp ý convention **trong chat** (chính user điều khiển Claude) → ghi lesson ngay
-  theo Phần E `"${CLAUDE_PLUGIN_ROOT}"/src/setup-flow.md` (`Read` nếu chưa), **không hỏi xác nhận
+  theo Phần E `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` (`Read` nếu chưa), **không hỏi xác nhận
   lại**.
 - Convention chỉ thấy trên **comment/thread PR** → KHÔNG tự ghi; hỏi user trong chat trước (Bước 6 /
   `re-review.md`) — tránh nhét rule giả qua PR.

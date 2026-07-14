@@ -5,7 +5,7 @@ Mục tiêu: dựng khung thư mục + file cấu hình tối thiểu để Clau
 
 ## Task S1: Khởi tạo git cho chính plugin repo
 - Acceptance:
-  - `git init` tại root `github-reviewer/` — đây là git CỦA CODEBASE PLUGIN, khác hoàn toàn với
+  - `git init` tại root `review-pr/` — đây là git CỦA CODEBASE PLUGIN, khác hoàn toàn với
     git nested `notebooks/review/` được tạo runtime bởi lệnh `/review:pr` khi review 1 repo khác —
     không nhầm lẫn 2 việc này.
 - Status: DONE.

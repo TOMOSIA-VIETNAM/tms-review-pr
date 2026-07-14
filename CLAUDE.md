@@ -15,15 +15,18 @@ plugin vào Claude Code rồi gọi `/tms:review-pr <PR_URL>` thật trên 1 rep
 
 ## Cấu trúc
 
-Sản phẩm (những gì `${CLAUDE_PLUGIN_ROOT}` trỏ tới lúc runtime) nằm trong `src/`; phần phục vụ
-phát triển repo này nằm ở root, tách bạch khỏi nội dung plugin thật sự chạy.
+Sản phẩm (những gì `${CLAUDE_PLUGIN_ROOT}` trỏ tới lúc runtime) nằm trong `src/` — `src/` CHÍNH LÀ
+plugin root thật (có `.claude-plugin/plugin.json` riêng), không phải repo root. Nhờ vậy lúc
+`/plugin install`, Claude Code chỉ copy đúng `src/` vào plugin cache — README, CLAUDE.md,
+backlogs/, scripts/ ở repo root (phục vụ phát triển repo này) không lọt vào máy user cài plugin.
 
 ```
-.claude-plugin/plugin.json   Metadata plugin (name: "tms", trỏ commands: "./src/commands/")
-.claude-plugin/marketplace.json  Marketplace tự host (source: "./") — root plugin không đổi dù
-                               nội dung bên trong tổ chức lại vào src/
+.claude-plugin/marketplace.json  Marketplace tự host (source: "./src") — chỉ copy `src/` vào
+                               plugin cache lúc install, không phải cả repo root
+src/.claude-plugin/plugin.json   Metadata plugin (name: "tms", trỏ commands: "./commands/" — path
+                               tính từ root MỚI là src/, không phải repo root)
 scripts/reinstall.sh          Script dev: uninstall/re-add marketplace/install lại (đọc tên qua
-                               2 manifest trên, không đụng src/)
+                               2 manifest trên, không đụng nội dung src/)
 CLAUDE.md                     File này
 backlogs/*.md                 Task breakdown lịch sử khi build plugin lần đầu (tạm, sẽ xoá sau
                                khi xong dự án — không phải doc vận hành runtime)
@@ -214,7 +217,7 @@ mọi lệnh `!`...`` trong 1 command file chạy **trước khi model thấy pr
 theo kết quả suy luận (vd stack nào đã detect) — chỉ tool call thật sự (Read) mới sequence đúng
 theo logic của agent.
 
-**Local template = bản có hiệu lực cho từng repo, không phải `${CLAUDE_PLUGIN_ROOT}/src/templates/`
+**Local template = bản có hiệu lực cho từng repo, không phải `${CLAUDE_PLUGIN_ROOT}/templates/`
 trực tiếp.** Lần đầu 1 stack xuất hiện trong 1 repo, `review-pr.md` (qua `src/setup-flow.md` Phần B) copy
 template gốc từ plugin vào `notebooks/review/<repo>/templates/<stack>.md` **bằng `cp`** (không
 Read+Write qua context — tiết kiệm token với file dài; chỉ nhánh "plugin chưa có template, agent tự
@@ -222,7 +225,7 @@ soạn mới" mới dùng Read tham khảo + Write lưu). Team có thể tự
 sửa bản local này riêng cho repo mà không ảnh hưởng plugin dùng chung. Nếu plugin CHƯA có template
 cho 1 stack nào đó, agent tự soạn mới (theo đúng khung 6 mục) và lưu local — đây là cơ chế "tự cải
 thiện" (self-improve) của plugin, không phải bộ tiêu chí đóng cứng. Việc đưa 1 template mới do agent
-tự soạn ngược trở lại `${CLAUDE_PLUGIN_ROOT}/src/templates/` để dùng chung cho repo khác là thao tác
+tự soạn ngược trở lại `${CLAUDE_PLUGIN_ROOT}/templates/` để dùng chung cho repo khác là thao tác
 THỦ CÔNG của user, KHÔNG tự động (tránh mutate file dùng chung từ ngữ cảnh 1 repo cụ thể).
 
 **Baseline (ALWAYS_RULE.md) + delta (templates/) — không lặp nội dung.** Tiêu chí CHUNG cho mọi
@@ -253,7 +256,7 @@ chính) để code PR checkout vào đó không bao giờ lọt vào git nested 
 memory/template/rule. Đừng nhầm thư mục `notebooks/review/` này là dữ liệu của plugin repo này.
 
 **`src/ALWAYS_RULE.md` luôn thắng memory nếu mâu thuẫn.** Rule cứng global. Seed
-`${CLAUDE_PLUGIN_ROOT}/src/ALWAYS_RULE.md` được `cp` sang LOCAL lúc bootstrap; Bước 5 đọc LOCAL.
+`${CLAUDE_PLUGIN_ROOT}/ALWAYS_RULE.md` được `cp` sang LOCAL lúc bootstrap; Bước 5 đọc LOCAL.
 Ngôn ngữ = placeholder `{{OUTPUT_LANGUAGE}}` điền lúc bootstrap (không còn "default rồi ghi đè").
 Hành vi memory/doctor ngoài luồng (Bước 10) nằm trong `review-pr.md`, không trong seed. **Không
 auto-migrate** local đã bootstrap — copy tay section mới nếu cần (xem README).
