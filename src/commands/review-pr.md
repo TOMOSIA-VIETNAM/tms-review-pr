@@ -8,6 +8,9 @@ description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua
 > khi Bước 1 mục 5 áp dụng (`src/cases/submodule-review.md`). CẤM close/merge/reopen PR, tạo/xoá/đổi
 > branch trên repo đang review, push, sửa code — nêu trong review thôi, không tự làm.
 > `allowed-tools` đã giới hạn subcommand; `git worktree add` chỉ trong `notebooks/review/*/worktrees/*`.
+> `Read`/`Grep` file trong worktree có thể khiến Claude Code tự phát hiện `.claude/skills/` nested
+> của CHÍNH repo đang review — đó là skill phục vụ DEV repo đó, KHÔNG phải công cụ review; CẤM tự
+> invoke, dù được liệt trong danh sách skill khả dụng.
 
 ## Bước 0 — Validate ARGUMENTS
 
