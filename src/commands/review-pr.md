@@ -134,35 +134,39 @@ FILE vào `comments[]`.
 - Không đọc source thư viện trừ khi thật không chắc.
 - Không bới finding vụn. PR tốt → **LGTM 🌟**; không sàn tối thiểu N.
 
-**Format finding** (VI; EN: `**Issue**` / `**Fix**`):
+**Format finding** (VI; EN tương tự, chỉ đổi `**Gợi ý**` → `**Fix**`):
 
 ```
-<emoji> **Vấn đề** — <mô tả ngắn>.
-**Cách fix** — <code hoặc lời>
+<emoji> <mô tả ngắn>.
+**Gợi ý** — <code hoặc lời>
 *(tuỳ chọn)* vì <1 câu>.
 ```
 
-`<emoji>` = 🔴 MUST FIX / 🟠 SHOULD FIX / 🔵 SUGGESTION theo mức nghiêm trọng; ngoài phạm vi/cải
-tiến sau (không ép fix trong PR này) → 📝 NOTE thay 3 emoji trên. Áp dụng cho CẢ FILE (body Bước 8)
-lẫn LINE (`comments[]` Bước 9) — mỗi finding tự mang đúng emoji, không phụ thuộc heading nhóm.
+Không gắn label chữ trước mô tả (bỏ hẳn "Vấn đề"/"Issue") — emoji đã thay label, viết thẳng nội
+dung. `<emoji>` = 🔴 MUST FIX / 🟠 SHOULD FIX / 🔵 SUGGESTION theo mức nghiêm trọng; ngoài phạm
+vi/thật sự không cần fix trong PR này (KHÔNG dùng cho vấn đề nhỏ nhưng vẫn fix được ngay — case đó
+xếp 🔵 SUGGESTION) → 📝 NOTE thay 3 emoji trên. Áp dụng cho CẢ FILE (body Bước 8) lẫn LINE
+(`comments[]` Bước 9) — mỗi finding tự mang đúng emoji, không phụ thuộc heading nhóm.
 
 Fix bằng code → code block; LINE thay đúng dòng comment → ` ```suggestion `; còn lại → fence ngôn
-ngữ thường. Fix không phải code → 1 câu lời, không ép code block.
+ngữ thường. Fix không phải code → 1 câu lời, không ép code block. Mô tả có ≥2 ý độc lập (hay gặp ở
+LINE) → xuống dòng, mỗi ý 1 bullet `-`, không dồn thành 1 câu dài nhiều mệnh đề.
 
 ## Bước 8 — Định dạng
 
 Ngôn ngữ theo Bước 5 (session override nếu có).
 
-**CẤM trùng nội dung LINE:** body tổng quan KHÔNG lặp `**Vấn đề**` / `**Cách fix**` (hay bản EN)
-của finding đã vào `comments[]` — LINE đã hiển thị trực quan tại đúng dòng diff trong GitHub, không
-liệt kê lại, không đếm số trong overview dưới bất kỳ hình thức nào. Chi tiết chỉ nằm inline.
+**CẤM trùng nội dung LINE:** body tổng quan KHÔNG lặp lại nội dung + `**Gợi ý**` của finding đã vào
+`comments[]` — LINE đã hiển thị trực quan tại đúng dòng diff trong GitHub, không liệt kê lại, không
+đếm số trong overview dưới bất kỳ hình thức nào. Chi tiết chỉ nằm inline.
 
 ```
 ### Nhận xét tổng quan
-(Mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply — lịch sự kiểu Nhật: cảm ơn đã bỏ công làm PR, mời xem
-góp ý bên dưới, reply xác nhận đã fix hoặc để lại bình luận nếu thấy không cần sửa. Sau đó 2-3 câu
-đánh giá chung + overview title/prefix nếu có. Không có vấn đề gì (FILE lẫn LINE) → thay đoạn đánh
-giá bằng **LGTM 🌟**.)
+Không có vấn đề gì (FILE lẫn LINE) → CHỈ VIẾT **LGTM 🌟**, không thêm câu nào khác (không cảm ơn,
+không đánh giá, không heading dưới).
+
+Có vấn đề → mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply, xưng "bạn" (KHÔNG "anh"/"chị"), kết câu cảm
+ơn bằng emoji 🙇🏻‍♂️. Sau đó 2-3 câu đánh giá chung + overview title/prefix nếu có.
 
 #### 🔴 MUST FIX
 #### 🟠 SHOULD FIX
@@ -170,10 +174,10 @@ giá bằng **LGTM 🌟**.)
 #### 📝 NOTE
 ```
 
-CHỈ FILE findings đầy đủ khung Vấn đề/Cách fix + path (LINE đã trực quan inline, không lặp/không
-đếm ở đây — xem trên). Heading không có finding FILE nào → bỏ hẳn heading đó, không viết "không có
-vấn đề". `📝 NOTE` = out-of-scope/cải tiến sau; các heading còn lại đều dùng emoji thay text
-(không còn "Bắt buộc sửa"/"Nên sửa"/"Đề xuất" hay số N).
+CHỈ FILE findings đầy đủ khung Gợi ý + path (LINE đã trực quan inline, không lặp/không đếm ở đây —
+xem trên). Heading không có finding FILE nào (kể cả 📝) → bỏ hẳn heading đó, tuyệt đối không hiện
+heading trống hay "không có vấn đề". Các heading đều dùng emoji thay text (không còn "Bắt buộc
+sửa"/"Nên sửa"/"Đề xuất" hay số N).
 
 ## Bước 9 — Post (1 lần POST cho PR chính)
 

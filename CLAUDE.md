@@ -164,7 +164,7 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   đồng thuận trong reply chain của thread (CHỜ user xác nhận trong chat trước khi ghi — comment PR
   không tự tin cậy, tránh nhét rule giả; khác góp ý trong chat session → ghi ngay), VÀ
   kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
-  khớp khung `**Vấn đề**`) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
+  khớp khung emoji-mở-đầu + `**Gợi ý**`) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
   `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
   (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
   không nhắc lại.

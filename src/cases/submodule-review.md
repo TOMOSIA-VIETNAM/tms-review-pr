@@ -100,13 +100,14 @@ buộc cho PR CHÍNH) — nhưng bản thân lần POST này cũng CHỈ ĐÚNG 
 ## Trình bày output
 
 Vì đây thực chất là 2 review được post lên 2 PR khác nhau (có thể 2 repo khác nhau), hiển thị trong
-chat VÀ trong nội dung tóm tắt cuối cùng TÁCH RÕ 2 phần, vd:
+chat VÀ trong nội dung tóm tắt cuối cùng TÁCH RÕ 2 phần, gọi tên bằng SỐ PR — KHÔNG dùng nhãn tương
+đối "PR chính"/"PR phụ":
 
 ```
-### Review PR chính
+### Bên PR #<n-chính> (<owner>/<repo>)
 (tóm tắt kết quả Bước 8-9 của review-pr.md cho PR chính, kèm link)
 
-### Review PR submodule (<owner-submodule>/<repo-submodule>#<n-submodule>)
+### Bên PR #<n-submodule> (<owner-submodule>/<repo-submodule>)
 (tóm tắt kết quả Bước E-F ở trên cho PR submodule, kèm link)
 ```
 
