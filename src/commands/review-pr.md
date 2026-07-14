@@ -39,6 +39,7 @@ Canonical URL từ `$ARGUMENTS` (cắt đuôi). Mọi `gh pr view`/`gh pr diff` 
 - Diff: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" 2>/dev/null`
 - Commits: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json commits --jq '.commits[].messageHeadline' 2>/dev/null`
 - Comments cũ: !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/comments 2>/dev/null`
+- Size diff theo file (byte, dùng cho Bước 7 guard file to/dump): !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/files --jq '.[] | if .patch == null then "UNKNOWN(quá lớn, GitHub bỏ patch) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null`
 
 **Repo name** (thư mục memory) = segment `<repo>` từ PR URL — không suy từ pwd/remote. Hai owner
 trùng tên repo dùng chung 1 thư mục (giới hạn đã biết).
@@ -132,7 +133,19 @@ FILE vào `comments[]`.
 
 - Ưu tiên thay đổi in-scope; out-of-scope hoặc chưa cần fix ngay → nhãn 📝 NOTE, không ép fix,
   không tính vào 3 mức nghiêm trọng.
-- Đọc thêm tại `<worktree>/<path>` khi cần; không bắt buộc.
+- Đọc thêm tại `<worktree>/<path>` khi cần; không bắt buộc — nhưng LUÔN dùng `offset`/`limit` của
+  `Read` khoanh theo vùng đổi (lấy dòng bắt đầu từ hunk header diff `@@ -a,b +c,d @@` ± ~20-30 dòng
+  buffer), CẤM `Read` trần không offset/limit trên file có thay đổi cục bộ (không phải file mới/bị
+  viết lại toàn bộ) — file to mà PR chỉ sửa 1 đoạn nhỏ thì không cần nuốt cả file.
+- File có size diff (mục "Size diff theo file" ở Ngữ cảnh) **> 20KB, hoặc `UNKNOWN`** → peek CÓ
+  GIỚI HẠN (`Read` offset/limit ~30-50 dòng đầu hunk, không đọc hết) để phán đoán data/seed/dump/
+  generated (lặp cấu trúc, toàn literal, không control flow) hay logic thật tình cờ đổi nhiều:
+  - Data/dump/generated → KHÔNG review chi tiết dòng-by-dòng, KHÔNG paste lại nội dung dump vào
+    finding; đúng 1 finding cấp FILE (thường 📝 NOTE hoặc 🔵 SUGGESTION) nêu "diff lớn — có vẻ
+    seed/dump data, xác nhận đúng ý chưa". Ghi lại `<path>` + lý do vào danh sách "file bỏ qua" để
+    liệt kê ở Bước 8.
+  - Logic thật (chỉ tình cờ to) → review bình thường, đọc tiếp theo từng đoạn (offset/limit như
+    trên), không Read trọn patch 1 lần.
 - Diff Ngữ cảnh = nguồn duy nhất cho nội dung đổi — không refetch cùng diff.
 - Không đọc source thư viện trừ khi thật không chắc.
 - Không bới finding vụn. PR tốt → **LGTM 🌟**; không sàn tối thiểu N.
@@ -166,7 +179,7 @@ Ngôn ngữ theo Bước 5 (session override nếu có).
 ```
 ### Nhận xét tổng quan
 Không có vấn đề gì (FILE lẫn LINE) → CHỈ VIẾT **LGTM 🌟**, không thêm câu nào khác (không cảm ơn,
-không đánh giá, không heading dưới).
+không đánh giá, không heading dưới) — TRỪ mục "File đã bỏ qua review chi tiết" ngay dưới nếu có.
 
 Có vấn đề → mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply, xưng "bạn" (KHÔNG "anh"/"chị"), kết câu cảm
 ơn bằng emoji 🙇🏻‍♂️. Sau đó 2-3 câu đánh giá chung + overview title/prefix nếu có.
@@ -175,12 +188,19 @@ Có vấn đề → mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply, 
 #### 🟠 SHOULD FIX
 #### 🔵 SUGGESTION
 #### 📝 NOTE
+
+#### File đã bỏ qua review chi tiết
+- `<path>` — <lý do ngắn, vd "diff ~35KB, có vẻ seed/dump data">
 ```
 
 CHỈ FILE findings đầy đủ khung Gợi ý + path (LINE đã trực quan inline, không lặp/không đếm ở đây —
 xem trên). Heading không có finding FILE nào (kể cả 📝) → bỏ hẳn heading đó, tuyệt đối không hiện
 heading trống hay "không có vấn đề". Các heading đều dùng emoji thay text (không còn "Bắt buộc
 sửa"/"Nên sửa"/"Đề xuất" hay số N).
+
+**"File đã bỏ qua review chi tiết"** = danh sách tích luỹ ở Bước 7 (guard file to/dump) — LUÔN
+hiện ở CUỐI overview khi danh sách không rỗng, kể cả khi mọi thứ khác đều LGTM, để user biết chỗ
+nào agent chưa xem kỹ và tự vào xem lại. Danh sách rỗng → bỏ hẳn heading này, không viết "không có".
 
 ## Bước 9 — Post (1 lần POST cho PR chính)
 
