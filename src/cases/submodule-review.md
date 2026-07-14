@@ -104,10 +104,10 @@ chat VÀ trong nội dung tóm tắt cuối cùng TÁCH RÕ 2 phần, gọi tên
 đối "PR chính"/"PR phụ":
 
 ```
-### Bên PR #<n-chính> (<owner>/<repo>)
+### Review PR #<n-chính> (<owner>/<repo>)
 (tóm tắt kết quả Bước 8-9 của review-pr.md cho PR chính, kèm link)
 
-### Bên PR #<n-submodule> (<owner-submodule>/<repo-submodule>)
+### Review PR #<n-submodule> (<owner-submodule>/<repo-submodule>)
 (tóm tắt kết quả Bước E-F ở trên cho PR submodule, kèm link)
 ```
 
