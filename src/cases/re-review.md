@@ -35,9 +35,10 @@ Mục tiêu riêng, khác việc học convention ở trên:
    path/vùng đó (đã có sẵn trong worktree tạo ở Bước 1 của `review-pr.md`, dùng `Read` tại
    `<worktree>/<path>` — KHÔNG phải path trực tiếp ở pwd) — tự phán đoán vấn đề đã được fix hay
    chưa, không có rule cứng, dựa vào đọc hiểu thực tế.
-   - **Đã fix** → reply ngắn gọn xác nhận vào ĐÚNG thread đó:
+   - **Đã fix** → reply ngắn gọn xác nhận vào ĐÚNG thread đó, ĐÚNG giọng REVIEWER xác nhận (không
+     viết như thể chính reviewer là người vừa sửa code):
      `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies -f
-     body="<nhận xét cơ bản, 1 câu, theo ngôn ngữ output đã chọn, vd 'Đã fix, cảm ơn.'/'Fixed, thanks.'>"`.
+     body="<xác nhận ngắn, 1 câu, theo ngôn ngữ output đã chọn, vd 'Xác nhận đã fix, cảm ơn bạn!'/'Confirmed fixed, thanks!'>"`.
      Sau đó rẽ theo `auto_resolve_fixed_findings` (đọc từ `meta.json` ở Bước 3 của `review-pr.md`):
      - **`true`** → resolve luôn thread: query `reviewThreads` qua GraphQL để tìm `threadId` ứng với
        `comment_id` đó
@@ -49,3 +50,19 @@ Mục tiêu riêng, khác việc học convention ở trên:
      - **`false`** → CHỈ reply như trên, KHÔNG gọi GraphQL resolve — thread giữ nguyên trạng thái
        chưa resolve, để user tự resolve trên GitHub nếu muốn.
    - **Chưa fix** → KHÔNG làm gì cả, giữ nguyên comment, không nhắc lại, không tạo thêm nội dung gì.
+
+## Reaction lên reply của dev (bổ sung, không bắt buộc)
+
+Trong danh sách comment đã fetch, nếu thread của finding (mục trên) có reply từ DEV (`user.login`
+KHÁC tài khoản đang chạy lệnh, `in_reply_to_id` trỏ đúng comment finding hoặc đúng thread đó) — có
+thể thêm 1 reaction vào ĐÚNG comment reply đó của dev (KHÔNG phải comment finding gốc), khớp tông
+nội dung reply, làm việc BỔ SUNG cho reply text ở nhánh "Đã fix" phía trên, không thay thế nó:
+
+- Dev xác nhận/đồng ý rõ ràng, tông tích cực → `+1` hoặc `rocket`.
+- Dev cảm ơn/khen lại → `heart` hoặc `hooray`.
+- Dev còn thắc mắc/nêu lăn tăn/hỏi ngược lại (chưa hẳn đồng ý) → `confused` hoặc `eyes`.
+- **CẤM tuyệt đối** `-1` hay bất kỳ phản ứng tiêu cực nào.
+- Không phán đoán được tông rõ ràng → bỏ qua, không ép reaction.
+
+API: `gh api -X POST repos/{owner}/{repo}/pulls/comments/{comment_id_reply_của_dev}/reactions -f
+content=<+1|heart|hooray|rocket|confused|eyes>`.

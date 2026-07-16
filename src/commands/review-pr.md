@@ -119,6 +119,11 @@ Comments từ Ngữ cảnh:
 - `headRefName` có mã ticket mà title thiếu prefix tương ứng → nêu tổng quan. Branch không có ticket
   → bỏ qua hoàn toàn.
 
+**Không gọi tên vai trò cụ thể khi đề nghị xác nhận lại 1 điểm mập mờ** (áp dụng cho MỌI finding,
+không riêng overview) — KHÔNG viết "xác nhận với BA/client/PM/QA..."; dự án review có thể không có
+vai trò đó, ghi cụ thể sẽ lạc lõng. Chỉ viết trung lập: "xác nhận lại yêu cầu/spec này" hoặc "đề
+nghị xác nhận lại với người phù hợp", không nêu tên vai trò.
+
 **PR template:** `pr_template_paths` không rỗng → `Read`
 `"${CLAUDE_PLUGIN_ROOT}"/cases/pr-template-checklist.md`. Rỗng → không đọc.
 
@@ -176,13 +181,17 @@ Ngôn ngữ theo Bước 5 (session override nếu có).
 `comments[]` — LINE đã hiển thị trực quan tại đúng dòng diff trong GitHub, không liệt kê lại, không
 đếm số trong overview dưới bất kỳ hình thức nào. Chi tiết chỉ nằm inline.
 
+KHÔNG có vấn đề gì (FILE lẫn LINE) → TOÀN BỘ body CHỈ 1 DÒNG: **LGTM 🌟** — KHÔNG có heading
+"### Nhận xét tổng quan" phía trên, không câu nào khác (không cảm ơn, không đánh giá) — TRỪ mục
+"File đã bỏ qua review chi tiết" ngay dưới nếu danh sách đó không rỗng.
+
+CÓ vấn đề → theo cấu trúc:
+
 ```
 ### Nhận xét tổng quan
-Không có vấn đề gì (FILE lẫn LINE) → CHỈ VIẾT **LGTM 🌟**, không thêm câu nào khác (không cảm ơn,
-không đánh giá, không heading dưới) — TRỪ mục "File đã bỏ qua review chi tiết" ngay dưới nếu có.
-
-Có vấn đề → mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply, xưng "bạn" (KHÔNG "anh"/"chị"), kết câu cảm
-ơn bằng emoji 🙇🏻‍♂️. Sau đó 2-3 câu đánh giá chung + overview title/prefix nếu có.
+Mở đầu ĐÚNG cụm "Cảm ơn bạn! 🙇🏻‍♂️" (ngắn gọn — KHÔNG thêm mô tả kiểu "đã gửi PR này"/"đã bỏ công
+làm việc"), rồi 1 câu hướng dẫn reply, xưng "bạn" (KHÔNG "anh"/"chị"). Sau đó 2-3 câu đánh giá
+chung + overview title/prefix nếu có.
 
 #### 🔴 MUST FIX
 #### 🟠 SHOULD FIX
@@ -194,9 +203,11 @@ Có vấn đề → mở đầu 1 câu cảm ơn ngắn + hướng dẫn reply, 
 ```
 
 CHỈ FILE findings đầy đủ khung Gợi ý + path (LINE đã trực quan inline, không lặp/không đếm ở đây —
-xem trên). Heading không có finding FILE nào (kể cả 📝) → bỏ hẳn heading đó, tuyệt đối không hiện
-heading trống hay "không có vấn đề". Các heading đều dùng emoji thay text (không còn "Bắt buộc
-sửa"/"Nên sửa"/"Đề xuất" hay số N).
+xem trên). **TRƯỚC KHI in mỗi `#### <emoji>`, tự hỏi: có ÍT NHẤT 1 finding CẤP FILE ở đúng mức
+này chưa?** Chưa có (kể cả khi mức đó CÓ finding LINE, hoặc heading đang xét là 📝) → bỏ hẳn heading
+đó, tuyệt đối không in heading rồi để trống bên dưới, không viết "không có vấn đề" — dev đọc dòng
+LINE inline + đánh giá chung là đủ, không cần heading rỗng nhắc lại. Các heading đều dùng emoji
+thay text (không còn "Bắt buộc sửa"/"Nên sửa"/"Đề xuất" hay số N).
 
 **"File đã bỏ qua review chi tiết"** = danh sách tích luỹ ở Bước 7 (guard file to/dump) — LUÔN
 hiện ở CUỐI overview khi danh sách không rỗng, kể cả khi mọi thứ khác đều LGTM, để user biết chỗ
