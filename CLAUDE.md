@@ -198,6 +198,15 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
 
 Thư mục này CHỦ Ý để MỞ RỘNG: case mới = hard gate boolean + 1 file, không nhét vào `review-pr.md`.
 
+**Quyết định nội dung mới thuộc `ALWAYS_RULE.md` hay `review-pr.md`/`cases/`: hỏi "đây là tiêu
+chí đánh giá CODE PR, hay hành vi/quy trình của TOOL?"** Tiêu chí đánh giá code (bug, hardcode,
+DRY, naming...) → `ALWAYS_RULE.md` — CHỦ Ý cho user customize per-repo (bị `cp` thành bản LOCAL,
+không auto-migrate khi plugin gốc đổi, xem mục "Không auto-migrate" dưới). Hành vi/quy trình của
+tool (cách post, tip sau khi xong, rule an toàn...) → `review-pr.md` (luôn áp dụng) hoặc 1 file
+mới trong `cases/` (có điều kiện) — 2 nơi này KHÔNG có bản LOCAL, sửa 1 lần ở plugin áp dụng ngay
+mọi repo lúc `/plugin update`. Nhầm trục này (đặt hành vi tool vào `ALWAYS_RULE.md`) tạo đúng vấn
+đề "phải sửa nhiều nơi" mà bản LOCAL sinh ra.
+
 **Lý do bug đã gặp (D — không đưa lại runtime `review-pr.md`):** API 422 "position null" khi trộn comment
 không-line với có-line → FILE chỉ trong body, LINE trong `comments[]`. Debug bằng post/xoá comment
 test từng để lại nhiều review object → cấm; sửa schema rồi retry 1 lần rồi dừng. Sai `side`
