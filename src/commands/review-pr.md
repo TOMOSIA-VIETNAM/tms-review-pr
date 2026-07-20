@@ -321,6 +321,12 @@ nào agent chưa xem kỹ và tự vào xem lại. File không tồn tại/rỗn
 
 ## Bước 9 — Post (1 lần POST cho PR chính)
 
+**CẤM tuyệt đối `gh pr review --comment` hay POST lẻ `/pulls/{pull_number}/comments`** (endpoint tạo
+1 comment ĐỘC LẬP, không qua review object) — CHỈ đúng 1 endpoint dưới đây,
+`POST .../pulls/{pull_number}/reviews`. `allowed-tools` KHÔNG chặn triệt để việc này bằng permission
+(`gh` cho phép flag như `-X POST` đứng SAU path, lách qua literal-prefix pattern của endpoint GET
+comments — residual gap, xem CLAUDE.md) — rule này CHÍNH LÀ lớp chặn thật.
+
 **Re-fetch `headRefOid` NGAY TRƯỚC KHI POST** (không dùng lại giá trị đã lấy ở Ngữ cảnh đầu lệnh) —
 cùng lệnh `gh pr view` đã dùng ở Ngữ cảnh: `gh pr view <url> -R "<owner>/<repo>" --json headRefOid
 --jq .headRefOid` (đã nằm trong `allowed-tools`, không cần quyền mới). Giữa lúc fetch context ban đầu và

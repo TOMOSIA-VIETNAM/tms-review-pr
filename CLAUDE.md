@@ -112,6 +112,18 @@ bằng tool-permission. Đã cân nhắc bỏ hẳn feature auto-resolve thread 
 thật — quyết định KHÔNG làm (feature nhỏ, rủi ro graphql tự nó thấp vì chỉ 2 query cố định trong
 prose, không nhận input tự do — đổi cả feature không đáng).
 
+**Ngoại lệ chấp nhận #2: pattern `gh api repos/*/pulls/*/comments:*` (và tương tự
+`.../reviews:*`, `--paginate .../files:*`) chỉ khớp theo literal PREFIX, không neo vị trí flag.**
+`gh` (Cobra CLI) cho `-X POST` đứng SAU path thay vì trước — `gh api repos/o/r/pulls/n/comments -X
+POST -f body=...` vẫn khớp đúng prefix của pattern GET, lách qua việc tách method GET/POST mà mục
+trên đang nhắm tới. Endpoint đó (`POST /pulls/{n}/comments`) tạo được 1 comment ĐỘC LẬP ngoài
+`/reviews` — mức nghiêm trọng THẤP hơn gap graphql (chỉ tạo thêm 1 comment thừa, human xoá/sửa
+được ngay, không phải hành động không đảo ngược như archive/xoá repo) nên KHÔNG đưa lên CRITICAL —
+chặn bằng 1 câu cấm tường minh ngay Bước 9 `review-pr.md` (luôn đọc, không cần severity cao mới
+đáng ghi). Không sửa lại `allowed-tools` thêm vì chưa xác nhận được cách Claude Code match pattern
+này thật sự strict tới đâu (naive string-prefix hay có parse argv) — tránh sửa mù có thể vô tình
+làm hỏng cách match của các pattern khác trong cùng danh sách.
+
 **Bước 1 (worktree ephemeral) đưa code PR vào 1 `git worktree` RIÊNG, không đụng working tree chính
 của pwd.** Mục đích không đổi so với thiết kế trước (tận dụng index/search sẵn có của Claude Code/IDE
 — không mandate đọc full codebase), nhưng cơ chế khác hẳn: `git worktree add
