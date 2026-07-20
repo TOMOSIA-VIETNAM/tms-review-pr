@@ -28,10 +28,15 @@ Mục tiêu riêng, khác việc học convention ở trên:
 
 1. Lấy tài khoản đang chạy lệnh: `gh api user --jq .login`.
 2. Trong danh sách comment đã fetch, lọc ra các comment TOP-LEVEL (không phải reply, tức không có
-   `in_reply_to_id`) mà `user.login` TRÙNG tài khoản ở mục 1 VÀ nội dung CHỨA marker `<!-- tms-finding -->`
-   (cuối khung finding Bước 7 của `review-pr.md`) — marker này ổn định, không phụ thuộc hình dạng
-   prose (emoji/bullet/độ dài mô tả có thể đổi qua thời gian, marker không đổi) — đây là các finding
-   do chính lệnh này để lại ở (các) lần chạy trước trên PR này.
+   `in_reply_to_id`) mà `user.login` TRÙNG tài khoản ở mục 1 VÀ khớp 1 trong 2 khung (kiểm marker
+   trước, không có mới xét fallback — KHÔNG bắt buộc cả 2):
+   - **Marker** (mọi finding từ nay, chuẩn CHÍNH): nội dung chứa `<!-- bot-finding -->` — ổn định,
+     không phụ thuộc hình dạng prose (emoji/bullet/độ dài mô tả đổi qua thời gian không ảnh hưởng).
+   - **Fallback** (CHỈ cho comment đăng TRƯỚC KHI marker ra đời — cầu nối migration, KHÔNG dùng cho
+     finding mới vì marker đã đủ): dòng đầu mở bằng 1 trong 4 emoji 🔴/🟠/🔵/📝, kèm dòng
+     `**Gợi ý**`/`**Fix**` ngay sau. An toàn xoá nhánh fallback này khi không còn PR nào mở từ
+     trước lúc marker ra đời (không có lịch tự động xoá — người sửa code tự quyết định lúc dọn).
+   Cả 2 đều là finding do chính lệnh này để lại ở (các) lần chạy trước trên PR này.
 3. Với MỖI comment như vậy: đối chiếu mô tả vấn đề trong comment với code HIỆN TẠI tại đúng
    path/vùng đó (đã có sẵn trong worktree tạo ở Bước 1 của `review-pr.md`, dùng `Read` tại
    `<worktree>/<path>` — KHÔNG phải path trực tiếp ở pwd) — tự phán đoán vấn đề đã được fix hay
@@ -51,6 +56,8 @@ Mục tiêu riêng, khác việc học convention ở trên:
      - **`false`** → CHỈ reply như trên, KHÔNG gọi GraphQL resolve — thread giữ nguyên trạng thái
        chưa resolve, để user tự resolve trên GitHub nếu muốn.
    - **Chưa fix** → KHÔNG làm gì cả, giữ nguyên comment, không nhắc lại, không tạo thêm nội dung gì.
+     **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — Bước 7 `review-pr.md`
+     dùng danh sách này để loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
 
 ## Reaction lên reply của dev (bổ sung, không bắt buộc)
 

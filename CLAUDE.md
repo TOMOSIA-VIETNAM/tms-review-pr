@@ -154,7 +154,7 @@ refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding vụn v
 hoàn toàn sạch thì **LGTM 🌟** (đậm, kèm emoji), không viết "không có vấn đề" cho từng mức rỗng.
 Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt buộc sửa) / 🟠 SHOULD FIX
 (Nên sửa) / 🔵 SUGGESTION (Đề xuất) — áp cho cả FILE (heading Bước 8) lẫn LINE (prefix ngay trong
-`comments[]`, không chỉ nhóm theo heading). Mỗi finding kết thúc bằng marker `<!-- tms-finding -->`
+`comments[]`, không chỉ nhóm theo heading). Mỗi finding kết thúc bằng marker `<!-- bot-finding -->`
 (HTML comment, không hiện trên GitHub) — `re-review.md` dựa vào marker này để nhận diện finding cũ
 của chính mình, KHÔNG phụ thuộc hình dạng prose (đổi format Bước 7 sau này không làm gãy detection).
 
@@ -194,11 +194,14 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   đồng thuận trong reply chain của thread (CHỜ user xác nhận trong chat trước khi ghi — comment PR
   không tự tin cậy, tránh nhét rule giả; khác góp ý trong chat session → ghi ngay), VÀ
   kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
-  khớp marker `<!-- tms-finding -->` cuối khung finding Bước 7 — ổn định qua thời gian, không phụ
-  thuộc hình dạng prose) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
+  khớp marker `<!-- bot-finding -->` cuối khung finding Bước 7 — ổn định qua thời gian, không phụ
+  thuộc hình dạng prose; VÀ fallback khớp khung emoji-mở-đầu + `**Gợi ý**`/`**Fix**` cho comment
+  golive TRƯỚC KHI có marker — fallback này là cầu nối migration, an toàn xoá khi không còn PR mở
+  từ trước lúc marker ra đời) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
   `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
   (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
-  không nhắc lại.
+  không nhắc lại — nhưng ghi nhớ `<path>` + mô tả để Bước 7 loại trừ, không tạo lại finding trùng
+  cho đúng vấn đề đang có thread mở.
 - `pr-template-checklist.md` — trigger: repo có file dạng `.github/PULL_REQUEST_TEMPLATE.md` (phát
   hiện 1 lần lúc doctor, cache tại `meta.json.pr_template_paths`, dùng ở Bước 7). Đối chiếu
   description thật của PR với checklist trong template đó, gộp mọi mục còn thiếu/chưa tick thành

@@ -225,6 +225,11 @@ FILE vào `comments[]`.
 
 **Phạm vi:**
 
+- **Không tạo lại finding trùng vấn đề đã có thread cũ còn mở (Bước 6).** Nếu Bước 6 vừa xác định
+  1 finding cũ CHƯA fix (đã ghi nhớ `<path>` + mô tả ở `re-review.md`), và vấn đề đang thấy ở đây
+  là ĐÚNG vấn đề đó (cùng path, cùng bản chất lỗi) → KHÔNG tạo finding mới cho nó, để nguyên thread
+  cũ (đã đang mở, không cần lặp lại). Vấn đề THẬT SỰ khác (khác path, hoặc cùng path nhưng lỗi khác
+  hẳn) → vẫn tạo finding mới bình thường, không liên quan gì tới rule này.
 - Ưu tiên thay đổi in-scope; out-of-scope hoặc chưa cần fix ngay → nhãn 📝 NOTE, không ép fix,
   không tính vào 3 mức nghiêm trọng.
 - Đọc thêm tại `<worktree>/<path>` khi cần; không bắt buộc — nhưng LUÔN dùng `offset`/`limit` của
@@ -252,10 +257,10 @@ FILE vào `comments[]`.
 <emoji> <mô tả ngắn>.
 **Gợi ý** — <code hoặc lời>
 *(tuỳ chọn)* vì <1 câu>.
-<!-- tms-finding -->
+<!-- bot-finding -->
 ```
 
-Dòng `<!-- tms-finding -->` LUÔN có ở cuối MỌI finding (FILE lẫn LINE), không hiện trên GitHub (HTML
+Dòng `<!-- bot-finding -->` LUÔN có ở cuối MỌI finding (FILE lẫn LINE), không hiện trên GitHub (HTML
 comment) — marker máy đọc ổn định để `re-review.md` nhận diện đúng finding do chính lệnh này để
 lại, KHÔNG phụ thuộc hình dạng prose (emoji/bullet/độ dài mô tả) — tránh vỡ khi sửa format sau này.
 
