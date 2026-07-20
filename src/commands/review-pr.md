@@ -247,10 +247,6 @@ Verify 1 lần: `gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews --jq '.
 POST lỗi, hoặc verify lệch kỳ vọng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/post-review.md`.
 Happy path không đọc file đó.
 
-Post thành công (happy path) → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/final-chat-tips.md` NẾU PR
-này CHƯA từng hiện tip trong session (kiểm theo tập hợp mọi PR đã tip, không chỉ 1 PR gần nhất);
-đã hiện tip rồi (bất kỳ lúc nào trong phiên) → bỏ qua, không đọc.
-
 ## Bước 10 — Memory / doctor ngoài luồng review thuần
 
 Áp dụng khi repo đã có `notebooks/review/<repo>/` (sau lần `/tms:review-pr` trước), kể cả lúc chat
