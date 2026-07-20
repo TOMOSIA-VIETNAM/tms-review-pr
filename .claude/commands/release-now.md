@@ -65,10 +65,34 @@ checkout main), `gh release create` kèm `--prerelease`.
 
 ## Bước 3 — Soạn draft + đề xuất version
 
-Nhóm các commit message theo prefix conventional-commit (`feat`/`fix`/`security`/`chore`/`docs`/
-`refactor`/`revert`...) thành bullet ngắn, mỗi bullet 1 dòng đầu commit message (bỏ phần thân dài,
-bỏ `Co-Authored-By`). Gộp theo nhóm: Breaking change (nếu có commit `!` hoặc nhắc "BREAKING") /
-Features / Fixes / Security / Chore-docs.
+**Ngôn ngữ:** viết toàn bộ nội dung release note bằng **tiếng Việt** — repo này build chủ yếu bằng
+tiếng Việt (commit/code vẫn tiếng Anh như thường, chỉ riêng phần release note đọc cho user).
+
+**Văn phong — Vấn đề → Giải pháp, không liệt kê khô:** mỗi thay đổi đáng kể viết thành 1 cặp
+**Vấn đề:** (pain point cụ thể user gặp trước bản này) / **Giải quyết:** (bản này xử lý thế nào) —
+không chỉ dán lại dòng đầu commit message. Nhóm các cặp này theo chủ đề (Bảo mật / Tính năng /
+Breaking change...), không theo tên file/commit. Đọc `git show <sha>` hoặc `git log -p` của commit
+đó nếu dòng đầu message không đủ rõ "vấn đề gì" — đừng đoán.
+
+**Xác minh số liệu/claim trước khi viết, không suy từ release note cũ hoặc trí nhớ:** mọi con số cụ
+thể (số câu hỏi bootstrap, giá trị default, tên field...) PHẢI đọc lại đúng file nguồn hiện tại
+(`src/setup-flow.md`, `src/commands/review-pr.md`, `README.md`) tại thời điểm viết — file có thể đã
+đổi sau lần release trước, dùng số cũ sẽ SAI (đã xảy ra thật: "7 câu" viết cứng trong 1 bản release
+trong khi code đã sửa thành "6 hoặc 7 câu tuỳ điều kiện").
+
+**Luôn có mục hướng dẫn cập nhật**, đặt ngay đầu note (device đã cài plugin cần biết cách lấy bản
+mới) — nội dung lấy đúng từ `README.md` mục "Cập nhật lên bản mới nhất" hiện tại (đọc lại bằng
+`Read`, không chép từ note release trước, phòng README đã đổi lệnh):
+
+```
+/plugin marketplace update review-pr
+/plugin update tms@review-pr
+```
+
+rồi `/reload-plugins` (hoặc mở phiên mới).
+
+**Nhóm commit** theo prefix conventional-commit (`feat`/`fix`/`security`/`chore`/`docs`/`refactor`/
+`revert`...) làm khung, rồi viết lại từng nhóm theo văn phong Vấn đề → Giải pháp ở trên.
 
 Đề xuất version mới dựa trên tag chính thức gần nhất (semver, dự án đang pre-1.0):
 - Có commit breaking → bump **MINOR** (vd `v0.1.0` → `v0.2.0`)
