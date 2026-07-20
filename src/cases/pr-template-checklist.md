@@ -18,6 +18,7 @@ gốc thay vì nội dung thật của PR. Đây là phán đoán ngữ cảnh, 
 buộc phải điền".
 
 Phát hiện ≥1 chỗ chưa điền → gộp thành ĐÚNG 1 finding TỔNG HỢP (liệt kê các mục còn thiếu trong
-cùng 1 finding, KHÔNG tách vụn mỗi checkbox thành 1 finding riêng) theo khung Vấn đề/Cách fix của
-Bước 7. Finding này xếp mức **🟠 SHOULD FIX**, là finding cấp **FILE** (không gắn 1 dòng code cụ
-thể) nên vào body Bước 8 dưới heading `#### 🟠 SHOULD FIX`, KHÔNG vào `comments[]` ở Bước 9.
+cùng 1 finding, KHÔNG tách vụn mỗi checkbox thành 1 finding riêng) theo khung finding của Bước 7
+(`🟠 <mô tả ngắn>` + dòng `**Gợi ý**` — KHÔNG label "Vấn đề"). Finding này xếp mức **🟠 SHOULD
+FIX**, là finding cấp **FILE** (không gắn 1 dòng code cụ thể) nên vào body Bước 8 dưới heading
+`#### 🟠 SHOULD FIX`, KHÔNG vào `comments[]` ở Bước 9.

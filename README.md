@@ -89,8 +89,8 @@ Review phần thay đổi, theo:
         │
         ▼
 Đăng 1 review: tổng quan + comment từng dòng (khi cần)
-  • mức độ bằng chữ: Bắt buộc sửa / Nên sửa / Đề xuất
-  • PR sạch → "LGTM", không bới lỗi vụn
+  • mức độ bằng emoji: 🔴 MUST FIX / 🟠 SHOULD FIX / 🔵 SUGGESTION / 📝 NOTE
+  • PR sạch → **LGTM 🌟**, không bới lỗi vụn
 ```
 
 Hỗ trợ nhiều stack: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell,

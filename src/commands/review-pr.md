@@ -39,7 +39,8 @@ Canonical URL từ `$ARGUMENTS` (cắt đuôi). Mọi `gh pr view`/`gh pr diff` 
 - Diff: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" 2>/dev/null`
 - Commits: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json commits --jq '.commits[].messageHeadline' 2>/dev/null`
 - Comments cũ: !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/comments 2>/dev/null`
-- Size diff theo file (byte, dùng cho Bước 7 guard file to/dump): !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/files --jq '.[] | if .patch == null then "UNKNOWN(quá lớn, GitHub bỏ patch) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null`
+- Size diff theo file (byte, dùng cho Bước 7 guard file to/dump; `--paginate` — PR >30 file thì
+  GitHub trả nhiều trang, thiếu cờ này sẽ mất size của file ở trang sau): !`gh api --paginate repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/files --jq '.[] | if .patch == null then "UNKNOWN(không có patch — quá lớn/binary/rename) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null`
 
 **Repo name** (thư mục memory) = segment `<repo>` từ PR URL — không suy từ pwd/remote. Hai owner
 trùng tên repo dùng chung 1 thư mục (giới hạn đã biết).
@@ -247,7 +248,8 @@ POST lỗi, hoặc verify lệch kỳ vọng → `Read` `"${CLAUDE_PLUGIN_ROOT}"
 Happy path không đọc file đó.
 
 Post thành công (happy path) → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/final-chat-tips.md` NẾU PR
-này khác PR gần nhất đã hiện tip trong session; PR giống PR gần nhất → bỏ qua, không đọc.
+này CHƯA từng hiện tip trong session (kiểm theo tập hợp mọi PR đã tip, không chỉ 1 PR gần nhất);
+đã hiện tip rồi (bất kỳ lúc nào trong phiên) → bỏ qua, không đọc.
 
 ## Bước 10 — Memory / doctor ngoài luồng review thuần
 

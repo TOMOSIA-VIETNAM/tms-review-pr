@@ -189,10 +189,11 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
 - `post-review.md` — trigger: POST review lỗi **hoặc** verify `state` lệch kỳ vọng
   `auto_submit_review`. Retry 1 lần theo schema; cấm comment/review test trên PR thật; nhánh
   submit-events khi `true` mà vẫn PENDING. Happy path không đọc file này.
-- `final-chat-tips.md` — trigger: Bước 9 post THÀNH CÔNG (happy path) VÀ PR đang review khác PR
-  gần nhất đã hiện tip này TRONG CHÍNH SESSION (tự nhớ qua lịch sử chat, không ghi file — ephemeral
-  theo phiên, không phải state của repo). Chỉ 1 việc: gợi ý tên session (rút từ PR number + repo +
-  từ khoá title) + 1 câu lý do, hiện SAU tóm tắt trong chat (không vào PR body), câu chữ trung lập
+- `final-chat-tips.md` — trigger: Bước 9 post THÀNH CÔNG (happy path) VÀ PR đang review CHƯA từng
+  hiện tip này TRONG CHÍNH SESSION (kiểm theo TẬP HỢP mọi PR đã tip từ đầu phiên, không chỉ so với
+  1 PR gần nhất — tự nhớ qua lịch sử chat, không ghi file — ephemeral theo phiên, không phải state
+  của repo). Chỉ 1 việc: gợi ý tên session (rút từ PR number + repo + từ khoá title) + 1 câu lý do,
+  hiện SAU tóm tắt trong chat (không vào PR body), câu chữ trung lập
   không gắn lệnh riêng của 1 tool cụ thể (plugin chạy trên nhiều IDE khác nhau, không chỉ Claude
   Code). Review lại đúng PR đã hiện tip trong phiên (re-review) → không hiện lại.
 
