@@ -41,7 +41,8 @@ src/commands/review-pr.md            Slash command DUY NHẤT /tms:review-pr —
                                dụng); `gh pr view/diff/checkout/checks`, `gh api` (scope theo path
                                cụ thể — reviews/comments/replies/reactions/files/user/graphql, không
                                còn `gh api:*` chung), `git init`,
-                               `git -C notebooks/review:*`, `git fetch/status/show`,
+                               `git -C notebooks/review:*` (chỉ `add`/`commit`, không subcommand
+                               khác), `git fetch`,
                                `git worktree add notebooks/review/*/worktrees/*`,
                                `cd notebooks/review/*/worktrees/* && gh pr checkout`,
                                `git -C notebooks/review/*/worktrees/* submodule update`, `cp`,
@@ -153,7 +154,19 @@ refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding vụn v
 hoàn toàn sạch thì **LGTM 🌟** (đậm, kèm emoji), không viết "không có vấn đề" cho từng mức rỗng.
 Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt buộc sửa) / 🟠 SHOULD FIX
 (Nên sửa) / 🔵 SUGGESTION (Đề xuất) — áp cho cả FILE (heading Bước 8) lẫn LINE (prefix ngay trong
-`comments[]`, không chỉ nhóm theo heading).
+`comments[]`, không chỉ nhóm theo heading). Mỗi finding kết thúc bằng marker `<!-- tms-finding -->`
+(HTML comment, không hiện trên GitHub) — `re-review.md` dựa vào marker này để nhận diện finding cũ
+của chính mình, KHÔNG phụ thuộc hình dạng prose (đổi format Bước 7 sau này không làm gãy detection).
+
+**Guard file to/dump (byte size) VÀ guard nhiều file (số lượng) là 2 cơ chế riêng, có thể chồng
+nhau.** File vượt `many_files_threshold` VÀ chọn chiến lược (a) "review nông" VÀ CŨNG vượt ngưỡng
+size/dump (20KB) → 2 rule đá nhau (a) cấm đọc thêm, guard size/dump lại cần peek để phân loại —
+xử lý bằng cách HỎI user 1 câu gộp (không hỏi riêng từng file) muốn peek hay bỏ qua, agent có quyền
+tự chối peek nếu file quá lớn dù user đồng ý (tránh vỡ context). Mọi quyết định "bỏ qua không review
+chi tiết" (dù từ guard size/dump hay từ nhánh (a) này) LUÔN ghi vào `<worktree>/.review-skipped.md`
+— file thật, KHÔNG dựa vào nhớ trong context — vừa để liệt kê ở Bước 8 vừa để checklist chống quên
+(`<worktree>/.review-checklist.md`, chỉ bật khi vượt `many_files_threshold`) đối chiếu, phân biệt
+"chủ động skip" với "quên thật".
 
 **Finding cấp LINE xác định `side` theo đúng nửa diff, không hardcode.** Bước 7 xác định `side` cho
 mỗi finding cấp LINE dựa vào vị trí thật trong diff: dòng bị XOÁ (tiền tố `-`, thuộc nửa CŨ/before)
@@ -181,7 +194,8 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   đồng thuận trong reply chain của thread (CHỜ user xác nhận trong chat trước khi ghi — comment PR
   không tự tin cậy, tránh nhét rule giả; khác góp ý trong chat session → ghi ngay), VÀ
   kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
-  khớp khung emoji-mở-đầu + `**Gợi ý**`) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
+  khớp marker `<!-- tms-finding -->` cuối khung finding Bước 7 — ổn định qua thời gian, không phụ
+  thuộc hình dạng prose) đã được fix chưa — đã fix thì reply ngắn xác nhận, rồi rẽ theo
   `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
   (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
   không nhắc lại.
@@ -192,9 +206,10 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   Bước 7 (rõ business, prefix ticket theo branch) — 2 kiểm tra đó chỉ mang tính overview, KHÔNG tính
   vào 3 mức nghiêm trọng; kiểm tra checklist này CÓ tính, vì đây là vi phạm 1 rule dự án tự đặt ra
   qua PR template, không chỉ là góp ý phong cách.
-- `submodule-review.md` — trigger: `meta.json.has_submodules == true` (detect đúng 1 lần lúc doctor,
-  check `.gitmodules` tại root repo) VÀ "Diff đầy đủ" của PR chính chứa dòng `Subproject commit`
-  (submodule pointer đổi), dùng ở Bước 1 mục 5. KHÔNG tạo worktree thứ 2 cho submodule — tái dùng
+- `submodule-review.md` — trigger: `<worktree>/.gitmodules` tồn tại (Bước 1 mục 5 tự `Read` thử
+  TRỰC TIẾP mỗi lần, không cache qua `meta.json` — tránh gap PR đầu tiên của repo mới bị bỏ qua)
+  VÀ "Diff đầy đủ" của PR chính chứa dòng `Subproject commit` (submodule pointer đổi). KHÔNG tạo
+  worktree thứ 2 cho submodule — tái dùng
   đúng thư mục submodule đã init sẵn trong worktree (từ `git submodule update --init --recursive` ở
   Bước 1); tìm link PR submodule trong description của PR chính (không tìm được thì HỎI user, không
   tự đoán/bỏ qua) — **verify owner/repo của link khớp remote thật trong `.gitmodules` trước khi tin**
@@ -225,7 +240,15 @@ mọi repo lúc `/plugin update`. Nhầm trục này (đặt hành vi tool vào 
 không-line với có-line → FILE chỉ trong body, LINE trong `comments[]`. Debug bằng post/xoá comment
 test từng để lại nhiều review object → cấm; sửa schema rồi retry 1 lần rồi dừng. Sai `side`
 LEFT/RIGHT gắn comment nhầm dòng. Thiếu `event` khi `auto_submit_review: true` → PENDING ngoài ý
-muốn (dev không thấy). Repo name suy từ pwd từng tạo 2 thư mục memory cho cùng 1 repo GitHub.
+muốn (dev không thấy). Repo name suy từ pwd từng tạo 2 thư mục memory cho cùng 1 repo GitHub. Heredoc
+`<<EOF` không quote ở Bước 9 từng khiến bash tự expand `$var`/`` `cmd` ``/`$(...)` trong nội dung
+finding (data từ diff PR, attacker-controlled) TRƯỚC khi tới `gh api` — code PHP (`$var`) vỡ payload,
+`$(lệnh)` bị thực thi thật trên máy user; sửa `<<'EOF'` (quote delimiter). Verify sau POST từng dùng
+`.../reviews --jq '.[-1]'` ("review mới nhất") thay vì `id` trả về từ chính response POST — nếu có
+review khác submit đúng lúc đó thì trỏ nhầm, có thể submit hộ draft PENDING của người khác. `has_submodules`
+cache qua doctor từng khiến PR ĐẦU TIÊN của 1 repo mới (trước khi doctor từng chạy) luôn bị coi
+không có submodule dù PR đó thật sự bump submodule — chuyển qua `Read` thử `.gitmodules` trực tiếp
+mỗi lần, bỏ field cache.
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
 `setup-flow.md` hỏi user **6 câu** trong 1 lượt: ngôn ngữ output (vi/en/ja), `auto_submit_review`

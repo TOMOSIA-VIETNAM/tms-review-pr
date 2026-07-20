@@ -28,9 +28,10 @@ Mục tiêu riêng, khác việc học convention ở trên:
 
 1. Lấy tài khoản đang chạy lệnh: `gh api user --jq .login`.
 2. Trong danh sách comment đã fetch, lọc ra các comment TOP-LEVEL (không phải reply, tức không có
-   `in_reply_to_id`) mà `user.login` TRÙNG tài khoản ở mục 1 VÀ nội dung khớp khung finding ở Bước 7
-   của `review-pr.md` (dòng đầu mở bằng 1 trong 4 emoji 🔴/🟠/🔵/📝, kèm dòng `**Gợi ý**`/`**Fix**`
-   ngay sau) — đây là các finding do chính lệnh này để lại ở (các) lần chạy trước trên PR này.
+   `in_reply_to_id`) mà `user.login` TRÙNG tài khoản ở mục 1 VÀ nội dung CHỨA marker `<!-- tms-finding -->`
+   (cuối khung finding Bước 7 của `review-pr.md`) — marker này ổn định, không phụ thuộc hình dạng
+   prose (emoji/bullet/độ dài mô tả có thể đổi qua thời gian, marker không đổi) — đây là các finding
+   do chính lệnh này để lại ở (các) lần chạy trước trên PR này.
 3. Với MỖI comment như vậy: đối chiếu mô tả vấn đề trong comment với code HIỆN TẠI tại đúng
    path/vùng đó (đã có sẵn trong worktree tạo ở Bước 1 của `review-pr.md`, dùng `Read` tại
    `<worktree>/<path>` — KHÔNG phải path trực tiếp ở pwd) — tự phán đoán vấn đề đã được fix hay

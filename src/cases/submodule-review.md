@@ -1,9 +1,9 @@
 # Submodule review — review PR submodule khi phát hiện bump
 
 Không phải slash command (nằm ngoài `commands/`); `commands/review-pr.md` nạp file này bằng `Read` CHỈ khi
-(Bước 1 mục 5) `meta.json.has_submodules == true` VÀ "Diff đầy đủ" của PR chính chứa dòng
-`Subproject commit` (submodule pointer đổi). Repo không có `.gitmodules` → `has_submodules` luôn
-`false` → KHÔNG BAO GIỜ đọc file này.
+(Bước 1 mục 5) `<worktree>/.gitmodules` tồn tại (kiểm trực tiếp mỗi lần, không cache) VÀ "Diff đầy
+đủ" của PR chính chứa dòng `Subproject commit` (submodule pointer đổi). Repo không có `.gitmodules`
+→ KHÔNG BAO GIỜ đọc file này.
 
 Tới đây, code PR chính đã checkout xong trong 1 worktree ephemeral (`review-pr.md` Bước 1 mục 1-2), và
 `git submodule update --init --recursive` đã chạy VÔ ĐIỀU KIỆN trên worktree đó (Bước 1 mục 4) —
@@ -101,7 +101,9 @@ submodule, không phải comments của PR chính).
 theo đúng schema/quy tắc Bước 9 của `review-pr.md` (payload `body`/`commit_id`/`comments[]`, xử lý lỗi 422,
 verify sau post) — chỉ khác chỗ:
 
-- `commit_id` = `headRefOid` của PR SUBMODULE (lấy ở Bước D), không phải của PR chính.
+- `commit_id` = `headRefOid` của PR SUBMODULE — RE-FETCH lại ngay trước POST bằng đúng lệnh Bước D
+  (`gh pr view ... --json headRefOid --jq .headRefOid`), không dùng lại giá trị đã lấy ở Bước D
+  (cùng lý do staleness đã nêu ở Bước 9 `review-pr.md`) — không phải `headRefOid` của PR chính.
 - `auto_submit_review`/`auto_resolve_fixed_findings` đọc từ CÙNG `meta.json` của repo chính (đã đọc
   ở Bước 3 của `review-pr.md`) — không hỏi lại, không có bộ cấu hình riêng cho submodule.
 
