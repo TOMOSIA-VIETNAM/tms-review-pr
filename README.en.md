@@ -55,14 +55,19 @@ Add instructions right after the URL for **that run only** (does not change save
 
 ## First time for a repo that's never been set up
 
-The plugin asks **once** (4 questions):
+The plugin asks **once** (7 questions):
 
 1. Review **language** (vi / en / ja)
 2. **Post the review now or keep it as a draft?** (`auto_submit_review`) — `true`: everyone sees it immediately; `false` (default): a draft on GitHub you Submit yourself
 3. **Auto-close a thread when an old finding is fixed?** (`auto_resolve_fixed_findings`) — default `false`
 4. **How often to re-scan project conventions?** — see [Convention refresh cycle](#convention-refresh-cycle) below (default every **1 month**)
+5. **Cross-check real CI status?** (`review_ci_status`) — default `true`; a failing check gets a one-line warning in the overview (not counted as a must-fix issue)
+6. **File-count threshold to ask for a review strategy?** (`many_files_threshold`) — default **30**; a PR touching more files than this asks whether you want a shallow full review, a selective deep review, or to stop and suggest splitting the PR
+7. **Per-file size threshold to treat as a big/dump file?** (`big_file_threshold_kb`) — default **20** (KB, ~5,000 tokens, at a rough ~4 chars/token); a changed file over this threshold (e.g. `package-lock.json`) only gets a quick classification pass instead of a line-by-line review — independent of the file-count threshold in question 6
 
 After that it reads your existing convention docs and remembers them for later runs.
+
+**Repo you've used for a while, from before one of these settings existed?** No action needed — on the next review the plugin notices, uses the default for now, and mentions it once in chat. Want to change any of the 7 settings (anytime, no need to wait for a review run) — just say "reconfigure the review settings" (or similar) in chat; the plugin prints the values in effect and asks which one to change.
 
 Remembered data lives inside the repo you're reviewing, at `notebooks/review/<repo-name>/` (its own local git, not pushed). Keep this directory in your project's `.gitignore` — the plugin adds it if missing.
 
