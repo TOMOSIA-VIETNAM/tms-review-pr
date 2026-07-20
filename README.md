@@ -60,7 +60,7 @@ chỉnh sửa bình thường trên nhánh hiện tại.
 
 ## Lần đầu cho 1 repo chưa từng thiết lập
 
-Plugin hỏi **một lần** (6 câu):
+Plugin hỏi **một lần** (7 câu):
 
 1. **Ngôn ngữ** review (vi / en / ja)
 2. **Đăng review ngay hay để nháp?** (`auto_submit_review`) — `true`: mọi người thấy ngay; `false`
@@ -73,11 +73,14 @@ Plugin hỏi **một lần** (6 câu):
 6. **Ngưỡng số file để hỏi chiến lược review?** (`many_files_threshold`) — mặc định **30**; PR đổi
    nhiều file hơn số này thì plugin hỏi bạn muốn review nông toàn bộ, review sâu có chọn lọc, hay
    dừng đề nghị tách PR
+7. **Ngưỡng size/file để coi là file to/dump?** (`big_file_threshold_kb`) — mặc định **20** (KB,
+   ~5.000 token, ước lượng ~4 ký tự/token); file đổi vượt ngưỡng này (vd `package-lock.json`) chỉ
+   lướt qua phân loại, không review chi tiết dòng-by-dòng — độc lập với ngưỡng số file ở câu 6
 
 Sau đó nó đọc tài liệu quy ước sẵn có và nhớ lại cho các lần sau.
 
 **Repo đã dùng lâu, từ trước khi 1 cài đặt nào đó mới xuất hiện?** Không cần làm gì — lần review kế
-tiếp plugin tự nhận ra, tạm dùng default, báo 1 câu trong chat cho biết. Muốn đổi lại 1 trong 6 cài
+tiếp plugin tự nhận ra, tạm dùng default, báo 1 câu trong chat cho biết. Muốn đổi lại 1 trong 7 cài
 đặt (bất cứ lúc nào, không cần chờ review chạy) — gõ trong chat "đổi cấu hình review" (hoặc "xem
 setting hiện tại"), plugin in ra giá trị đang áp dụng và hỏi bạn muốn đổi field nào.
 

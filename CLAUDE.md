@@ -158,9 +158,10 @@ Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt 
 (HTML comment, không hiện trên GitHub) — `re-review.md` dựa vào marker này để nhận diện finding cũ
 của chính mình, KHÔNG phụ thuộc hình dạng prose (đổi format Bước 7 sau này không làm gãy detection).
 
-**Guard file to/dump (byte size) VÀ guard nhiều file (số lượng) là 2 cơ chế riêng, có thể chồng
-nhau.** File vượt `many_files_threshold` VÀ chọn chiến lược (a) "review nông" VÀ CŨNG vượt ngưỡng
-size/dump (20KB) → 2 rule đá nhau (a) cấm đọc thêm, guard size/dump lại cần peek để phân loại —
+**Guard file to/dump (byte size, `big_file_threshold_kb`) VÀ guard nhiều file (số lượng,
+`many_files_threshold`) là 2 cơ chế riêng, có thể chồng nhau.** File vượt `many_files_threshold` VÀ
+chọn chiến lược (a) "review nông" VÀ CŨNG vượt ngưỡng size/dump (`big_file_threshold_kb`, default
+`20` KB ~ 5.000 token) → 2 rule đá nhau (a) cấm đọc thêm, guard size/dump lại cần peek để phân loại —
 xử lý bằng cách HỎI user 1 câu gộp (không hỏi riêng từng file) muốn peek hay bỏ qua, agent có quyền
 tự chối peek nếu file quá lớn dù user đồng ý (tránh vỡ context). Mọi quyết định "bỏ qua không review
 chi tiết" (dù từ guard size/dump hay từ nhánh (a) này) LUÔN ghi vào `<worktree>/.review-skipped.md`
@@ -254,16 +255,17 @@ không có submodule dù PR đó thật sự bump submodule — chuyển qua `Re
 mỗi lần, bỏ field cache.
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
-`setup-flow.md` hỏi user **6 câu** trong 1 lượt: ngôn ngữ output (vi/en/ja), `auto_submit_review`
+`setup-flow.md` hỏi user **7 câu** trong 1 lượt: ngôn ngữ output (vi/en/ja), `auto_submit_review`
 (mặc định `false`), `auto_resolve_fixed_findings` (mặc định `false`), `doctor_schedule` (mặc định
 `"1 months"`; giá trị `{N} days|weeks|months` hoặc `never`), `review_ci_status` (mặc định `true`),
-`many_files_threshold` (mặc định `30`).
+`many_files_threshold` (mặc định `30`), `big_file_threshold_kb` (mặc định `20`, ~5.000 token — ước
+lượng ~4 ký tự/token).
 
 - Ngôn ngữ: thay placeholder `{{OUTPUT_LANGUAGE}}` trong LOCAL `ALWAYS_RULE.md` — không lưu
   `meta.json`. Chỉ dẫn ngôn ngữ trong ARGUMENTS/chat phiên thắng giá trị file (chỉ lần đó).
 - `auto_submit_review`/`auto_resolve_fixed_findings`/`doctor_schedule`/`review_ci_status`/
-  `many_files_threshold` → `meta.json`; đọc Bước 3. Bootstrap cũng ghi `_comments.doctor_schedule`
-  (chú thích giá trị hợp lệ cho sửa tay; runtime bỏ qua).
+  `many_files_threshold`/`big_file_threshold_kb` → `meta.json`; đọc Bước 3. Bootstrap cũng ghi
+  `_comments.doctor_schedule` (chú thích giá trị hợp lệ cho sửa tay; runtime bỏ qua).
 - `doctor_schedule` + `doctored_at`: Bước 3 tính `doctor_due` → hết hạn thì chỉ chạy lại Phần C
   (không hỏi bootstrap lại). `never` = không tự due theo lịch. Repo cũ thiếu field → coi
   `"1 months"`.
@@ -275,9 +277,13 @@ mỗi lần, bỏ field cache.
 - `many_files_threshold` chi phối guard đầu Bước 7: PR đổi nhiều file hơn ngưỡng này (default `30`)
   → hỏi chiến lược review (nông toàn bộ / sâu chọn lọc / dừng đề nghị tách PR), trừ khi
   ARGUMENTS/chat đã chỉ định sẵn.
+- `big_file_threshold_kb` chi phối guard size/dump ở Bước 7: file có diff vượt ngưỡng này tính bằng
+  KB (default `20`), hoặc `UNKNOWN` (GitHub bỏ patch vì quá lớn) → peek có giới hạn để phân loại
+  data/dump thay vì review chi tiết dòng-by-dòng.
 - `auto_resolve_fixed_findings` chi phối nhánh finding đã fix trong `re-review.md`.
 - **Repo đã bootstrap TRƯỚC KHI 1 field cấu hình ra đời** (vd repo cũ review trước khi
-  `review_ci_status`/`many_files_threshold` xuất hiện) — Phần A KHÔNG tự chạy lại để hỏi bổ sung
+  `review_ci_status`/`many_files_threshold`/`big_file_threshold_kb` xuất hiện) — Phần A KHÔNG tự
+  chạy lại để hỏi bổ sung
   (bootstrap chỉ 1 lần theo `bootstrapped: true`). Không cần user chủ động phát hiện: Bước 3
   `review-pr.md` TỰ so field User config đang thiếu trong `meta.json` với danh sách field hiện có,
   `Edit` backfill NGAY giá trị default, báo đúng 1 câu chat-only gộp mọi field mới phát hiện (không

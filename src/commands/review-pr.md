@@ -110,7 +110,8 @@ Rẽ nhánh:
 Giữ từ meta — 2 nhóm khác lifecycle:
 - **User config** (Phần A hỏi 1 lần lúc bootstrap, đổi được qua Bước 10 "đổi cấu hình review"):
   `auto_submit_review`/`auto_resolve_fixed_findings` (default `false`), `doctor_schedule` (default
-  `"1 months"`), `review_ci_status` (default `true`), `many_files_threshold` (default `30`).
+  `"1 months"`), `review_ci_status` (default `true`), `many_files_threshold` (default `30`),
+  `big_file_threshold_kb` (default `20`, ~5,000 token — ước lượng ~4 ký tự/token).
 - **Doctor-detected** (Phần C tự dò lại mỗi khi due, không phải cấu hình user chọn):
   `pr_template_paths` (default `[]`).
 
@@ -167,8 +168,9 @@ Comments từ Ngữ cảnh:
     ```
   - Chọn **(a)**: toàn bộ Bước 7 dưới đây vẫn áp dụng cho MỌI file, nhưng bỏ mục "Đọc thêm tại
     `<worktree>/<path>` khi cần" — chỉ dựa vào diff Ngữ cảnh, không tự ý đọc thêm context ngoài diff.
-    **Ngoại lệ — file trùng CẢ (a) VÀ guard size/dump** (mục "Size diff theo file" ở Ngữ cảnh > 20KB
-    hoặc `UNKNOWN`, xem "Phạm vi" dưới): liệt kê ĐÚNG các file này ngay sau khi user chọn (a) —
+    **Ngoại lệ — file trùng CẢ (a) VÀ guard size/dump** (mục "Size diff theo file" ở Ngữ cảnh >
+    `big_file_threshold_kb` KB (Bước 3, default `20`) hoặc `UNKNOWN`, xem "Phạm vi" dưới): liệt kê
+    ĐÚNG các file này ngay sau khi user chọn (a) —
     gộp thành 1 câu hỏi DUY NHẤT (không hỏi riêng từng file), hỏi user muốn peek để phân loại
     data/dump-vs-logic-thật hay bỏ qua luôn:
     - User đồng ý (tất cả hoặc chỉ định file cụ thể) → peek CÓ GIỚI HẠN đúng quy tắc size/dump ở
@@ -236,9 +238,10 @@ FILE vào `comments[]`.
   `Read` khoanh theo vùng đổi (lấy dòng bắt đầu từ hunk header diff `@@ -a,b +c,d @@` ± ~20-30 dòng
   buffer), CẤM `Read` trần không offset/limit trên file có thay đổi cục bộ (không phải file mới/bị
   viết lại toàn bộ) — file to mà PR chỉ sửa 1 đoạn nhỏ thì không cần nuốt cả file.
-- File có size diff (mục "Size diff theo file" ở Ngữ cảnh) **> 20KB, hoặc `UNKNOWN`** → peek CÓ
-  GIỚI HẠN (`Read` offset/limit ~30-50 dòng đầu hunk, không đọc hết) để phán đoán data/seed/dump/
-  generated (lặp cấu trúc, toàn literal, không control flow) hay logic thật tình cờ đổi nhiều:
+- File có size diff (mục "Size diff theo file" ở Ngữ cảnh) **> `big_file_threshold_kb` KB (Bước 3,
+  default `20`), hoặc `UNKNOWN`** → peek CÓ GIỚI HẠN (`Read` offset/limit ~30-50 dòng đầu hunk,
+  không đọc hết) để phán đoán data/seed/dump/generated (lặp cấu trúc, toàn literal, không control
+  flow) hay logic thật tình cờ đổi nhiều:
   - Data/dump/generated → KHÔNG review chi tiết dòng-by-dòng, KHÔNG paste lại nội dung dump vào
     finding; đúng 1 finding cấp FILE (thường 📝 NOTE hoặc 🔵 SUGGESTION) nêu "diff lớn — có vẻ
     seed/dump data, xác nhận đúng ý chưa". Ghi lại `<path>` + lý do vào
