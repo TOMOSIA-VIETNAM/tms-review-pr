@@ -53,6 +53,26 @@ claude plugin marketplace add "$SCRIPT_DIR"
 echo "→ Installing $PLUGIN_ID..."
 claude plugin install "$PLUGIN_ID" --scope "$SCOPE"
 
+echo "→ Dọn cache cũ (uninstall/update chỉ orphan, không xoá ngay — tự xoá sau 7 ngày theo mặc định
+   của Claude Code; ở đây xoá ngay, chỉ giữ đúng bản đang active)..."
+CACHE_DIR="$HOME/.claude/plugins/cache/$MARKETPLACE_NAME/$PLUGIN_NAME"
+INSTALLED_JSON="$HOME/.claude/plugins/installed_plugins.json"
+ACTIVE_PATH=""
+if [ -f "$INSTALLED_JSON" ]; then
+  ACTIVE_PATH="$(grep -A3 "\"$PLUGIN_ID\"" "$INSTALLED_JSON" | grep -m1 '"installPath"' | sed -E 's/.*"installPath":[[:space:]]*"([^"]+)".*/\1/')"
+fi
+if [ -d "$CACHE_DIR" ] && [ -n "$ACTIVE_PATH" ]; then
+  for d in "$CACHE_DIR"/*/; do
+    d="${d%/}"
+    if [ "$d" != "$ACTIVE_PATH" ]; then
+      echo "   xoá bản cũ: $d"
+      rm -rf "$d"
+    fi
+  done
+else
+  echo "   ⚠️  Không xác định được bản đang active — bỏ qua dọn cache (an toàn, không xoá gì)."
+fi
+
 echo
 echo "✅ Installed. Restart Claude Code (or start a new session) to load /tms:review-pr."
 claude plugin list
