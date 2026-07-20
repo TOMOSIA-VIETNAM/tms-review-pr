@@ -62,7 +62,7 @@ chỉnh sửa bình thường trên nhánh hiện tại.
 
 ## Lần đầu cho 1 repo chưa từng thiết lập
 
-Plugin hỏi **một lần** (7 câu):
+Plugin hỏi **một lần** (6 hoặc 7 câu, tuỳ repo có CI hay không — xem câu 5):
 
 1. **Ngôn ngữ** review (vi / en / ja)
 2. **Đăng review ngay hay để nháp?** (`auto_submit_review`) — `true`: mọi người thấy ngay; `false`
@@ -70,8 +70,9 @@ Plugin hỏi **một lần** (7 câu):
 3. **Tự đóng thread khi finding cũ đã fix?** (`auto_resolve_fixed_findings`) — mặc định `false`
 4. **Bao lâu quét lại quy ước dự án?** — xem mục [Chu kỳ cập nhật quy ước](#chu-kỳ-cập-nhật-quy-ước)
    bên dưới (mặc định mỗi **1 tháng**)
-5. **Có đối chiếu trạng thái CI check thật không?** (`review_ci_status`) — mặc định `true`; CI có
-   check fail thì cảnh báo 1 câu trong tổng quan (không tính lỗi phải fix)
+5. **Có đối chiếu trạng thái CI check thật không?** (`review_ci_status`) — **chỉ hỏi nếu PR này có
+   CI check** (repo không có CI → bỏ qua câu này, tự để `false`); mặc định `true` nếu được hỏi; CI
+   có check fail thì cảnh báo 1 câu trong tổng quan (không tính lỗi phải fix)
 6. **Ngưỡng số file để hỏi chiến lược review?** (`many_files_threshold`) — mặc định **30**; PR đổi
    nhiều file hơn số này thì plugin hỏi bạn muốn review nông toàn bộ, review sâu có chọn lọc, hay
    dừng đề nghị tách PR

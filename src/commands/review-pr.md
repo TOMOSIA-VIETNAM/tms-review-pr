@@ -51,9 +51,11 @@ Canonical URL từ `$ARGUMENTS` (cắt đuôi). Mọi `gh pr view`/`gh pr diff` 
 - Comments cũ: !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/comments 2>/dev/null`
 - Size diff theo file (byte, dùng cho Bước 7 guard file to/dump; `--paginate` — PR >30 file thì
   GitHub trả nhiều trang, thiếu cờ này sẽ mất size của file ở trang sau): !`gh api --paginate repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/files --jq '.[] | if .patch == null then "UNKNOWN(không có patch — quá lớn/binary/rename) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null`
-- CI checks fail (dùng cho Bước 7 khi `review_ci_status` != `false`; fetch luôn vô hại nếu repo
-  không có CI hoặc mọi check pass — `|| true` để không exit lỗi khi `gh pr checks` báo check
-  fail/pending): !`gh pr checks "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json bucket,name,link --jq '.[] | select(.bucket=="fail") | "\(.name) — \(.link)"' 2>/dev/null || true`
+- CI checks (TOÀN BỘ, không filter — Bước 7 tự lọc `bucket=="fail"` để cảnh báo khi
+  `review_ci_status` != `false`; setup-flow Phần A dùng chính mảng này để quyết định CÓ hỏi câu
+  `review_ci_status` lúc bootstrap hay không — rỗng nghĩa là repo/PR này không có CI check nào, hỏi
+  sẽ vô nghĩa. Fetch luôn vô hại nếu repo không có CI — `|| true` để không exit lỗi khi `gh pr
+  checks` báo check fail/pending): !`gh pr checks "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json bucket,name,link --jq '.[] | "\(.bucket) \(.name) — \(.link)"' 2>/dev/null || true`
 
 **Repo name** (thư mục memory) = segment `<repo>` từ PR URL — không suy từ pwd/remote. Hai owner
 trùng tên repo dùng chung 1 thư mục (giới hạn đã biết).
@@ -110,7 +112,8 @@ Rẽ nhánh:
 Giữ từ meta — 2 nhóm khác lifecycle:
 - **User config** (Phần A hỏi 1 lần lúc bootstrap, đổi được qua Bước 10 "đổi cấu hình review"):
   `auto_submit_review`/`auto_resolve_fixed_findings` (default `false`), `doctor_schedule` (default
-  `"1 months"`), `review_ci_status` (default `true`), `many_files_threshold` (default `30`),
+  `"1 months"`), `review_ci_status` (default theo mảng "CI checks" ở Ngữ cảnh — có entry → `true`,
+  rỗng → `false`; xem setup-flow Phần A bước 6), `many_files_threshold` (default `30`),
   `big_file_threshold_kb` (default `20`, ~5,000 token — ước lượng ~4 ký tự/token).
 - **Doctor-detected** (Phần C tự dò lại mỗi khi due, không phải cấu hình user chọn):
   `pr_template_paths` (default `[]`).
@@ -118,10 +121,13 @@ Giữ từ meta — 2 nhóm khác lifecycle:
 Field **User config** nào mà `meta.json` THIẾU dù `bootstrapped: true` (repo bootstrap từ trước khi
 field đó ra đời) → `Edit` điền NGAY default tương ứng (không hỏi), gộp mọi field thiếu phát hiện
 được thành ĐÚNG 1 câu báo chat-only, không chặn, không chờ reply (vd "`review_ci_status` là cài đặt
-mới, đã tạm dùng default `true` cho repo này — gõ 'đổi cấu hình review' nếu muốn đổi."), rồi tiếp
-tục Bước 4 bình thường. Field **Doctor-detected** thiếu → KHÔNG áp dụng rule này, chỉ chờ Phần C
-chạy lại bình thường. Rule backfill này CHỈ áp dụng khi `bootstrapped: true` ĐÃ TỪ TRƯỚC — lần Phần
-A đang bootstrap đầu tiên không cần rule này, Phần A tự hỏi đủ mọi field.
+mới, PR này có CI check nên đã tạm bật `true` cho repo này — gõ 'đổi cấu hình review' nếu muốn
+đổi."), rồi tiếp tục Bước 4 bình thường. `review_ci_status` backfill dùng đúng tín hiệu "mảng CI
+checks rỗng hay không" của lần review NÀY (không mặc định cứng `true`) — repo/PR không có CI thì
+backfill `false`, im lặng luôn theo đúng rule ở Bước 7. Field **Doctor-detected** thiếu → KHÔNG áp
+dụng rule này, chỉ chờ Phần C chạy lại bình thường. Rule backfill này CHỈ áp dụng khi
+`bootstrapped: true` ĐÃ TỪ TRƯỚC — lần Phần A đang bootstrap đầu tiên không cần rule này, Phần A tự
+hỏi đủ mọi field.
 
 Sau setup ổn định: không đụng `notebooks/review/` ngoài Bước 4 (template mới), Bước 6 (lesson),
 Bước 3 (backfill field thiếu, ngay trên), hoặc Phần C khi due.
@@ -205,10 +211,11 @@ CẢ (a) và (b), KHÔNG áp dụng cho (c) vì không review gì):**
 - Title/body mập mờ về business → nêu đầu tổng quan Bước 8; đề nghị dev bổ sung, không viết thay.
 - `headRefName` có mã ticket mà title thiếu prefix tương ứng → nêu tổng quan. Branch không có ticket
   → bỏ qua hoàn toàn.
-- Mục "CI checks fail" ở Ngữ cảnh KHÔNG rỗng VÀ `review_ci_status` (Bước 3) khác `false` → nêu 1
-  câu cảnh báo trong tổng quan (tên check + link) — CHỈ là lời cảnh báo, KHÔNG tính severity, KHÔNG
-  ép fix (có check fail không cần fix, vd flaky). Không có check fail, không có CI, hoặc
-  `review_ci_status: false` → im lặng hoàn toàn, không đề cập theo bất kỳ hình thức nào.
+- Mục "CI checks" ở Ngữ cảnh có ít nhất 1 dòng `bucket` = `fail` VÀ `review_ci_status` (Bước 3)
+  khác `false` → nêu 1 câu cảnh báo trong tổng quan (tên check + link) — CHỈ là lời cảnh báo, KHÔNG
+  tính severity, KHÔNG ép fix (có check fail không cần fix, vd flaky). Không có dòng `fail` nào,
+  không có CI (mảng rỗng), hoặc `review_ci_status: false` → im lặng hoàn toàn, không đề cập theo
+  bất kỳ hình thức nào.
 
 **Không gọi tên vai trò cụ thể khi đề nghị xác nhận lại 1 điểm mập mờ** (áp dụng cho MỌI finding,
 không riêng overview) — KHÔNG viết "xác nhận với BA/client/PM/QA..."; dự án review có thể không có

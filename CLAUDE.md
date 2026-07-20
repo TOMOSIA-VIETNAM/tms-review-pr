@@ -267,11 +267,12 @@ không có submodule dù PR đó thật sự bump submodule — chuyển qua `Re
 mỗi lần, bỏ field cache.
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
-`setup-flow.md` hỏi user **7 câu** trong 1 lượt: ngôn ngữ output (vi/en/ja), `auto_submit_review`
-(mặc định `false`), `auto_resolve_fixed_findings` (mặc định `false`), `doctor_schedule` (mặc định
-`"1 months"`; giá trị `{N} days|weeks|months` hoặc `never`), `review_ci_status` (mặc định `true`),
-`many_files_threshold` (mặc định `30`), `big_file_threshold_kb` (mặc định `20`, ~5.000 token — ước
-lượng ~4 ký tự/token).
+`setup-flow.md` hỏi user **6 hoặc 7 câu** trong 1 lượt (câu `review_ci_status` chỉ hỏi khi PR đang
+review có CI thật — xem bên dưới): ngôn ngữ output (vi/en/ja), `auto_submit_review` (mặc định
+`false`), `auto_resolve_fixed_findings` (mặc định `false`), `doctor_schedule` (mặc định
+`"1 months"`; giá trị `{N} days|weeks|months` hoặc `never`), `review_ci_status` (điều kiện, xem
+dưới), `many_files_threshold` (mặc định `30`), `big_file_threshold_kb` (mặc định `20`, ~5.000
+token — ước lượng ~4 ký tự/token).
 
 - Ngôn ngữ: thay placeholder `{{OUTPUT_LANGUAGE}}` trong LOCAL `ALWAYS_RULE.md` — không lưu
   `meta.json`. Chỉ dẫn ngôn ngữ trong ARGUMENTS/chat phiên thắng giá trị file (chỉ lần đó).
@@ -283,9 +284,12 @@ lượng ~4 ký tự/token).
   `"1 months"`.
 - `auto_submit_review` chi phối payload Bước 9: `true` → `"event": "COMMENT"`; `false` → bỏ `event`
   (PENDING chủ ý).
-- `review_ci_status` chi phối Bước 7: `true` (default) → CI check fail (fetch ở Ngữ cảnh qua `gh pr
-  checks`) hiện thành 1 câu cảnh báo trong overview, không tính severity; `false` → bỏ qua hoàn
-  toàn, không fetch data đó dù đã có trong Ngữ cảnh.
+- `review_ci_status`: **chỉ hỏi lúc bootstrap nếu PR đang review có ít nhất 1 CI check** (mảng "CI
+  checks" ở Ngữ cảnh — fetch KHÔNG filter, luôn chạy mọi lần review bất kể config — không rỗng);
+  PR không có CI nào → không hỏi, tự ghi `false` (hỏi cũng vô nghĩa, tránh câu hỏi "ngu" cho repo
+  chưa có CI). Được hỏi thì mặc định `true` nếu user không chọn. Chi phối Bước 7: `true` → CI check
+  fail (lọc `bucket=="fail"` từ mảng đã fetch) hiện thành 1 câu cảnh báo trong overview, không tính
+  severity; `false` → bỏ qua hoàn toàn, không tham chiếu data đó dù đã có trong Ngữ cảnh.
 - `many_files_threshold` chi phối guard đầu Bước 7: PR đổi nhiều file hơn ngưỡng này (default `30`)
   → hỏi chiến lược review (nông toàn bộ / sâu chọn lọc / dừng đề nghị tách PR), trừ khi
   ARGUMENTS/chat đã chỉ định sẵn.

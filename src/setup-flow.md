@@ -41,24 +41,28 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    `cp "${CLAUDE_PLUGIN_ROOT}/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `review-pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
-6. Hỏi user **7 câu trong 1 lượt**, ngay trong chat (câu hỏi tự nhiên là đủ, không bắt buộc tool cụ
-   thể): (1) ngôn ngữ output — vi/en/ja; (2) `auto_submit_review` true/false (mặc định **false**);
-   (3) `auto_resolve_fixed_findings` true/false (mặc định **false**); (4) `doctor_schedule` — chu kỳ
-   doctor lại convention (`{N} days` | `{N} weeks` | `{N} months` | `never`; mặc định **`1 months`**
-   nếu user không chọn); (5) `review_ci_status` true/false — có đối chiếu trạng thái CI check thật
-   (qua `gh pr checks`) không (mặc định **true**); (6) `many_files_threshold` — số file thay đổi
-   vượt mức thì hỏi chiến lược review trước khi làm (mặc định **`30`** nếu user không chọn); (7)
-   `big_file_threshold_kb` — size diff/file (KB) vượt mức thì coi là file to/dump, peek có giới hạn
-   thay vì review chi tiết (mặc định **`20`** ~ 5.000 token, ước lượng ~4 ký tự/token, nếu user
-   không chọn). Xử lý câu trả lời:
+6. Hỏi user **6 hoặc 7 câu trong 1 lượt** (tuỳ có CI hay không — xem câu 5), ngay trong chat (câu
+   hỏi tự nhiên là đủ, không bắt buộc tool cụ thể): (1) ngôn ngữ output — vi/en/ja; (2)
+   `auto_submit_review` true/false (mặc định **false**); (3) `auto_resolve_fixed_findings`
+   true/false (mặc định **false**); (4) `doctor_schedule` — chu kỳ doctor lại convention (`{N} days`
+   | `{N} weeks` | `{N} months` | `never`; mặc định **`1 months`** nếu user không chọn); (5)
+   `review_ci_status` true/false — **CHỈ hỏi nếu mảng "CI checks" ở Ngữ cảnh của PR đang review
+   KHÔNG rỗng** (repo/PR này có ít nhất 1 check thật, dù pass hay fail — nghĩa là có cấu hình CI);
+   mảng đó RỖNG (không có CI nào chạy trên PR này) → **bỏ qua câu hỏi này hoàn toàn** (hỏi cũng vô
+   nghĩa vì chưa có gì để đối chiếu), tự ghi `false`, không cần báo lý do trong chat (hiển nhiên từ
+   ngữ cảnh); (6) `many_files_threshold` — số file thay đổi vượt mức thì hỏi chiến lược review
+   trước khi làm (mặc định **`30`** nếu user không chọn); (7) `big_file_threshold_kb` — size
+   diff/file (KB) vượt mức thì coi là file to/dump, peek có giới hạn thay vì review chi tiết (mặc
+   định **`20`** ~ 5.000 token, ước lượng ~4 ký tự/token, nếu user không chọn). Xử lý câu trả lời:
    - **Ngôn ngữ** → `Edit` bản LOCAL vừa copy ở bước 5: thay đúng token `{{OUTPUT_LANGUAGE}}` trong
      khối code fence bằng giá trị cụ thể (`English` / `Vietnamese` / `Japanese`, …). KHÔNG thêm
      field ngôn ngữ vào `meta.json`. "Đã hỏi chưa" = placeholder còn nguyên hay đã được thay.
    - **`auto_submit_review` / `auto_resolve_fixed_findings` / `doctor_schedule` / `review_ci_status`
      / `many_files_threshold` / `big_file_threshold_kb`** → ghi nhớ, đưa vào `meta.json` cùng
      `bootstrapped: true` ở bước 9 (schema Phần D). `doctor_schedule` thiếu hoặc không parse được →
-     ghi `"1 months"`; `review_ci_status` thiếu → ghi `true`; `many_files_threshold` thiếu/không
-     parse được số → ghi `30`; `big_file_threshold_kb` thiếu/không parse được số → ghi `20`.
+     ghi `"1 months"`; `review_ci_status` KHÔNG hỏi (câu 5 bị bỏ qua vì không có CI) → ghi `false`;
+     `many_files_threshold` thiếu/không parse được số → ghi `30`; `big_file_threshold_kb` thiếu/
+     không parse được số → ghi `20`.
 7. Kiểm `notebooks/review/.git` đã tồn tại chưa (thử `Read` file `notebooks/review/.git/HEAD`):
    - **CHƯA tồn tại** → `git init notebooks/review` — 1 git repo DUY NHẤT, nested, độc lập hoàn
      toàn với git của repo chính đang review, bao trùm MỌI `<repo>/` sẽ có sau này. TUYỆT ĐỐI
@@ -86,7 +90,9 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
 9. Ghi nhận vào `notebooks/review/<repo>/meta.json` (tạo file nếu chưa có, giữ nguyên các field
    khác nếu file đã tồn tại từ trước — xem Phần D): `"bootstrapped": true`,
    `"auto_submit_review": <bước 6>`, `"auto_resolve_fixed_findings": <bước 6>`,
-   `"doctor_schedule": "<bước 6, default 1 months>"`, `"review_ci_status": <bước 6, default true>`,
+   `"doctor_schedule": "<bước 6, default 1 months>"`,
+   `"review_ci_status": <bước 6 — PR có CI → hỏi, default true nếu user không chọn; PR không có
+   CI → không hỏi, ghi thẳng false>`,
    `"many_files_threshold": <bước 6, default 30>`, `"big_file_threshold_kb": <bước 6, default 20>`,
    và object `_comments` (ít nhất key
    `doctor_schedule` — text gợi ý giá trị hợp lệ để user sửa tay; xem Phần D). Runtime/`review-pr.md`
@@ -232,9 +238,12 @@ bước 6/9). `review-pr.md` Bước 3 đọc lại; dùng ở Bước 6/9 và g
 
 `pr_template_paths` ghi lúc doctor (Phần C bước 1/5). `review-pr.md` Bước 3 đọc, Bước 7 dùng.
 
-`review_ci_status` (boolean): hỏi + ghi lúc bootstrap (Phần A bước 6/9), mặc định `true`. Thiếu
-field (repo cũ) → coi `true`. `review-pr.md` Bước 3 đọc lại; Bước 7 dùng để quyết định có nêu cảnh
-báo CI check fail (đã fetch ở Ngữ cảnh) trong overview hay bỏ qua hoàn toàn.
+`review_ci_status` (boolean): chỉ HỎI lúc bootstrap (Phần A bước 6/9) khi PR đang review có ít nhất
+1 CI check (mảng "CI checks" ở Ngữ cảnh không rỗng) — default `true` nếu user không chọn; PR không
+có CI nào → KHÔNG hỏi, ghi thẳng `false` (hỏi cũng vô nghĩa). Thiếu field (repo cũ, backfill ở
+`review-pr.md` Bước 3) → coi theo tín hiệu CI checks của LẦN REVIEW HIỆN TẠI (không mặc định cứng
+`true`). `review-pr.md` Bước 3 đọc lại; Bước 7 dùng để quyết định có nêu cảnh báo CI check fail (đã
+fetch ở Ngữ cảnh) trong overview hay bỏ qua hoàn toàn.
 
 `many_files_threshold` (number): hỏi + ghi lúc bootstrap (Phần A bước 6/9), mặc định `30`. Thiếu
 field hoặc không phải số hợp lệ (repo cũ) → coi `30`. `review-pr.md` Bước 3 đọc lại; Bước 7 dùng ở
