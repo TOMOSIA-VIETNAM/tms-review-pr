@@ -166,6 +166,19 @@ Comments từ Ngữ cảnh:
   - Chọn **(c)**: KHÔNG chạy Bước 7 (phần dưới) → Bước 9. Chat-only: nêu số file + ngưỡng, đề nghị
     dev tách PR, DỪNG lệnh hẳn — không post gì lên GitHub (giống early-exit ở Bước 0).
 
+**Checklist chống quên file (chỉ khi vượt ngưỡng ở trên — PR nhỏ khỏi cần, tự nhớ đủ; áp dụng cho
+CẢ (a) và (b), KHÔNG áp dụng cho (c) vì không review gì):**
+
+1. Ngay khi chọn (a)/(b): `Write` `<worktree>/.review-checklist.md` — mỗi file trong "Files" (Ngữ
+   cảnh) 1 dòng `- [ ] <path>`. File này CHỈ là sổ tay nội bộ — không bao giờ xuất hiện trong PR
+   body hay output chat.
+2. Review xong 1 file (có finding hay không cũng tính là "xong") → `Edit` đúng dòng đó thành
+   `- [x] <path>`.
+3. **BẮT BUỘC, không bỏ qua** — TRƯỚC KHI viết Bước 8: `Read` lại `.review-checklist.md`. Dòng nào
+   còn `[ ]` VÀ KHÔNG nằm trong danh sách "file bỏ qua" (mục size/dump ở trên) → đây là file bị
+   QUÊN thật (không phải chủ động skip) — quay lại review NGAY file đó trước khi tổng hợp, tuyệt
+   đối không để lộ ra ngoài dưới dạng thiếu sót âm thầm.
+
 **Overview (không tính N, không vào `comments[]`):**
 
 - Title/body mập mờ về business → nêu đầu tổng quan Bước 8; đề nghị dev bổ sung, không viết thay.
