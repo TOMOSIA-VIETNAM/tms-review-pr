@@ -1,0 +1,30 @@
+name: 💡 Đề xuất tính năng (Feature request)
+description: Đề xuất tính năng mới hoặc cải tiến hành vi hiện có của plugin
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Vấn đề đang gặp
+      description: Bạn đang bị cản ở đâu, hoặc plugin thiếu gì? Mô tả tình huống thực tế.
+      placeholder: |
+        Vd: Repo tôi dùng GitLab CI, không phải GitHub Actions, nên review_ci_status không hoạt động
+        được vì plugin chỉ đọc qua gh pr checks.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Giải pháp đề xuất
+      description: Bạn nghĩ nên xử lý thế nào? Chưa cần đúng, chỉ cần rõ ý.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Phương án khác đã nghĩ tới (nếu có)
+      description: Đã thử cách nào khác để giải quyết vấn đề này chưa? Vì sao chưa ổn.
+    validations:
+      required: false

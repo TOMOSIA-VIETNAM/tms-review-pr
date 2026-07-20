@@ -1,0 +1,66 @@
+name: 🐛 Báo lỗi (Bug report)
+description: Plugin review sai, crash, hoặc hoạt động không như mong đợi
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Mô tả lỗi
+      description: Chuyện gì xảy ra? Bạn mong đợi điều gì thay vào đó?
+      placeholder: |
+        Vd: Chạy /tms:review-pr trên PR X, plugin post review nhưng comment cấp LINE bị gắn nhầm dòng.
+        Mong đợi: comment đúng dòng bị đổi trong diff.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Bước tái hiện
+      description: Càng cụ thể càng dễ fix — lệnh đã gõ, thứ tự thao tác.
+      placeholder: |
+        1. /tms:review-pr https://github.com/<owner>/<repo>/pull/<n>
+        2. ...
+    validations:
+      required: true
+
+  - type: input
+    id: pr_url
+    attributes:
+      label: PR URL lúc gặp lỗi (nếu có)
+      description: Link PR thật đang review khi gặp lỗi — giúp tái hiện chính xác hơn.
+      placeholder: https://github.com/<owner>/<repo>/pull/<number>
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Minh chứng (log/output/screenshot)
+      description: |
+        Dán output/log thật, comment GitHub bị lỗi, ảnh chụp... Bug càng có minh chứng cụ thể càng
+        dễ xác nhận và fix nhanh. Kéo-thả ảnh trực tiếp vào ô này để đính kèm.
+      placeholder: Dán log/link comment lỗi/ảnh chụp tại đây...
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version plugin đang dùng
+      description: Xem qua `/plugin list` trong Claude Code, hoặc tag release gần nhất bạn đã update tới.
+      placeholder: vd v0.2.0, hoặc commit SHA
+    validations:
+      required: false
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Môi trường
+      description: OS, phiên bản Claude Code, stack của repo đang review (nếu liên quan tới lỗi).
+      placeholder: |
+        - OS: macOS 15
+        - Claude Code: ...
+        - Stack repo đang review: Rails/Vue/...
+    validations:
+      required: false
