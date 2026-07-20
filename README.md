@@ -1,5 +1,7 @@
 # /tms:review-pr — Agent Review Pull Request Github
 
+**Tiếng Việt** · [English](./README.en.md) · [日本語](./README.ja.md)
+
 Plugin dạy Agent review Pull Request GitHub **một cách nhất quán** — càng dùng càng hiểu đúng dự án của bạn.
 
 Lần đầu nó đọc quy ước sẵn có (README, CLAUDE.md, AGENTS.md, docs, wiki…). Các lần sau luôn áp dụng rule đặc thù
