@@ -76,9 +76,10 @@ Plugin hỏi **một lần** (6 câu):
 
 Sau đó nó đọc tài liệu quy ước sẵn có và nhớ lại cho các lần sau.
 
-**Đổi lại 1 trong 6 cài đặt trên sau khi đã thiết lập** (kể cả repo đã dùng lâu, từ trước khi 1 cài
-đặt nào đó mới xuất hiện) — không cần chờ bootstrap lại: gõ trong chat "đổi cấu hình review" (hoặc
-"xem setting hiện tại"), plugin in ra giá trị đang áp dụng và hỏi bạn muốn đổi field nào.
+**Repo đã dùng lâu, từ trước khi 1 cài đặt nào đó mới xuất hiện?** Không cần làm gì — lần review kế
+tiếp plugin tự nhận ra, tạm dùng default, báo 1 câu trong chat cho biết. Muốn đổi lại 1 trong 6 cài
+đặt (bất cứ lúc nào, không cần chờ review chạy) — gõ trong chat "đổi cấu hình review" (hoặc "xem
+setting hiện tại"), plugin in ra giá trị đang áp dụng và hỏi bạn muốn đổi field nào.
 
 Dữ liệu nhớ nằm trong repo bạn đang review, tại `notebooks/review/<tên-repo>/` (git riêng local,
 không push). Nên để thư mục này trong `.gitignore` của dự án — plugin tự thêm nếu thiếu.

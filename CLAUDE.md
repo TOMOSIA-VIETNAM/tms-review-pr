@@ -252,10 +252,12 @@ muốn (dev không thấy). Repo name suy từ pwd từng tạo 2 thư mục mem
 - `auto_resolve_fixed_findings` chi phối nhánh finding đã fix trong `re-review.md`.
 - **Repo đã bootstrap TRƯỚC KHI 1 field cấu hình ra đời** (vd repo cũ review trước khi
   `review_ci_status`/`many_files_threshold` xuất hiện) — Phần A KHÔNG tự chạy lại để hỏi bổ sung
-  (bootstrap chỉ 1 lần theo `bootstrapped: true`); field thiếu tự coi default (đã nêu ở trên), review
-  vẫn chạy đúng, KHÔNG cần user làm gì nếu chấp nhận default. Muốn đổi khác default (hoặc đổi field
-  đã hỏi từ trước) → dùng trigger "đổi cấu hình review" ở Bước 10 `review-pr.md` — không cần sửa
-  code, không cần đợi plugin ra thêm cơ chế migrate.
+  (bootstrap chỉ 1 lần theo `bootstrapped: true`). Không cần user chủ động phát hiện: Bước 3
+  `review-pr.md` TỰ so field User config đang thiếu trong `meta.json` với danh sách field hiện có,
+  `Edit` backfill NGAY giá trị default, báo đúng 1 câu chat-only gộp mọi field mới phát hiện (không
+  chặn review). Từ lần review kế của repo đó, field không còn thiếu → im lặng, không lặp lại. Muốn
+  đổi khác default (bất cứ lúc nào, không cần đợi review chạy) → dùng trigger "đổi cấu hình review"
+  ở Bước 10 `review-pr.md` — không cần sửa code, không cần plugin có thêm cơ chế migrate riêng.
 
 **Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `review-pr.md` chỉ dùng
 `Read` để nạp `src/setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +

@@ -211,6 +211,12 @@ bước 6/9). `review-pr.md` Bước 3 đọc lại; dùng ở Bước 6/9 và g
 
 `pr_template_paths` ghi lúc doctor (Phần C bước 1/6). `review-pr.md` Bước 3 đọc, Bước 7 dùng.
 
+Field nhóm "User config" (mọi field Phần A bước 6 hỏi, KHÔNG gồm `pr_template_paths` — field đó
+thuộc doctor) mà THIẾU ở 1 repo đã `bootstrapped: true` từ trước (bootstrap trước khi field đó ra
+đời) → KHÔNG coi là lỗi cần setup-flow.md xử lý; `review-pr.md` Bước 3 tự backfill default + báo
+1 lần trong chat mỗi khi phát hiện, không cần chạy lại Phần A. Xem chi tiết rule đó tại Bước 3
+`review-pr.md`, không lặp lại ở đây.
+
 `review_ci_status` (boolean): hỏi + ghi lúc bootstrap (Phần A bước 6/9), mặc định `true`. Thiếu
 field (repo cũ) → coi `true`. `review-pr.md` Bước 3 đọc lại; Bước 7 dùng để quyết định có nêu cảnh
 báo CI check fail (đã fetch ở Ngữ cảnh) trong overview hay bỏ qua hoàn toàn.

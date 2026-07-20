@@ -98,10 +98,23 @@ Rẽ nhánh:
   lại bootstrap.
 - `bootstrapped: true` và không `doctor_due` → bỏ qua, không đọc `setup-flow.md`.
 
-Giữ từ meta: `auto_submit_review` / `auto_resolve_fixed_findings` (default `false`),
-`doctor_schedule` (default `"1 months"`), `pr_template_paths` (default `[]`), `review_ci_status`
-(default `true`), `many_files_threshold` (default `30`). Sau setup ổn định: không đụng
-`notebooks/review/` ngoài Bước 4 (template mới), Bước 6 (lesson), hoặc Phần C khi due.
+Giữ từ meta — 2 nhóm khác lifecycle:
+- **User config** (Phần A hỏi 1 lần lúc bootstrap, đổi được qua Bước 10 "đổi cấu hình review"):
+  `auto_submit_review`/`auto_resolve_fixed_findings` (default `false`), `doctor_schedule` (default
+  `"1 months"`), `review_ci_status` (default `true`), `many_files_threshold` (default `30`).
+- **Doctor-detected** (Phần C tự dò lại mỗi khi due, không phải cấu hình user chọn):
+  `pr_template_paths` (default `[]`).
+
+Field **User config** nào mà `meta.json` THIẾU dù `bootstrapped: true` (repo bootstrap từ trước khi
+field đó ra đời) → `Edit` điền NGAY default tương ứng (không hỏi), gộp mọi field thiếu phát hiện
+được thành ĐÚNG 1 câu báo chat-only, không chặn, không chờ reply (vd "`review_ci_status` là cài đặt
+mới, đã tạm dùng default `true` cho repo này — gõ 'đổi cấu hình review' nếu muốn đổi."), rồi tiếp
+tục Bước 4 bình thường. Field **Doctor-detected** thiếu → KHÔNG áp dụng rule này, chỉ chờ Phần C
+chạy lại bình thường. Rule backfill này CHỈ áp dụng khi `bootstrapped: true` ĐÃ TỪ TRƯỚC — lần Phần
+A đang bootstrap đầu tiên không cần rule này, Phần A tự hỏi đủ mọi field.
+
+Sau setup ổn định: không đụng `notebooks/review/` ngoài Bước 4 (template mới), Bước 6 (lesson),
+Bước 3 (backfill field thiếu, ngay trên), hoặc Phần C khi due.
 
 ## Bước 4 — Local template theo stack
 
