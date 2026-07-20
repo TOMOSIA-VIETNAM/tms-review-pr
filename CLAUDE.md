@@ -80,8 +80,9 @@ file này và bỏ ghi chú trạng thái git này._
 LOCAL + memory + template → hard gate `re-review.md` / `pr-template-checklist.md` → review 6 mục →
 định dạng → 1 POST review PR chính (+ POST submodule nếu case). Happy path Bước 9 đủ schema inline;
 POST lỗi hoặc verify lệch → hard gate `post-review.md`. Bước 10: memory/doctor ngoài luồng review
-thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại") — nằm trong `review-pr.md`, không
-trong seed `ALWAYS_RULE` (user không customize hành vi này).
+thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại"; "đổi cấu hình review" — xem
+cấu hình đang áp dụng + sửa trực tiếp `meta.json`/ngôn ngữ, không đợi review kế) — nằm trong
+`review-pr.md`, không trong seed `ALWAYS_RULE` (user không customize hành vi này).
 
 **Phân loại nội dung runtime (I/C/D/K):** Inline = invariant + xương quy trình; Case = hard gate;
 Delete khỏi runtime = lý do bug/lịch sử (chỉ file này); Keep skeleton = khung rút gọn. Mục tiêu:
@@ -249,6 +250,12 @@ muốn (dev không thấy). Repo name suy từ pwd từng tạo 2 thư mục mem
   → hỏi chiến lược review (nông toàn bộ / sâu chọn lọc / dừng đề nghị tách PR), trừ khi
   ARGUMENTS/chat đã chỉ định sẵn.
 - `auto_resolve_fixed_findings` chi phối nhánh finding đã fix trong `re-review.md`.
+- **Repo đã bootstrap TRƯỚC KHI 1 field cấu hình ra đời** (vd repo cũ review trước khi
+  `review_ci_status`/`many_files_threshold` xuất hiện) — Phần A KHÔNG tự chạy lại để hỏi bổ sung
+  (bootstrap chỉ 1 lần theo `bootstrapped: true`); field thiếu tự coi default (đã nêu ở trên), review
+  vẫn chạy đúng, KHÔNG cần user làm gì nếu chấp nhận default. Muốn đổi khác default (hoặc đổi field
+  đã hỏi từ trước) → dùng trigger "đổi cấu hình review" ở Bước 10 `review-pr.md` — không cần sửa
+  code, không cần đợi plugin ra thêm cơ chế migrate.
 
 **Setup tách khỏi review, nạp có điều kiện qua `Read`, không qua bash-gate.** `review-pr.md` chỉ dùng
 `Read` để nạp `src/setup-flow.md` khi `meta.json` của repo cho thấy CHƯA thiết lập xong (bootstrap +

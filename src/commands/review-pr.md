@@ -303,6 +303,16 @@ trong cùng phiên không đang post review:
 - User yêu cầu "doctor lại" / "quét lại convention" → set `doctored: false` trong `meta.json`, làm
   lại Phần C setup-flow (không cần đợi lần review kế).
 - Doctor định kỳ: Bước 3 (`doctor_schedule` + `doctored_at`) — không cần user nhắc mỗi lần.
+- User yêu cầu "đổi cấu hình review" / "cấu hình lại" / "xem setting hiện tại" (hay cách diễn đạt
+  tương đương) → `Read` `meta.json` CỦA REPO ĐANG ĐỨNG (không phải seed plugin), in ra MỖI field
+  cấu hình đang có trong đó 1 dòng (tên + giá trị hiện tại; field nào bootstrap có hỏi nhưng file
+  đang thiếu → in kèm giá trị default sẽ dùng), CỘNG THÊM dòng ngôn ngữ hiện tại (đọc trực tiếp
+  trong LOCAL `ALWAYS_RULE.md`, không phải `meta.json`). KHÔNG hardcode danh sách tên field cứng ở
+  đây — liệt kê ĐỦ những gì thực tế có/từng hỏi lúc bootstrap (Phần A `setup-flow.md`), để tự đúng
+  với field mới thêm sau này mà không cần sửa lại đoạn này. Hỏi user muốn đổi field nào + giá trị
+  mới, CHỜ xác nhận. Sau khi có giá trị mới: field trong `meta.json` → `Edit` trực tiếp đúng field
+  đó (giữ nguyên field khác); ngôn ngữ → `Edit` LOCAL `ALWAYS_RULE.md` thay giá trị hiện tại. Làm
+  NGAY trong chat, không cần đợi lần review kế tiếp — giống "doctor lại".
 
 ---
 
