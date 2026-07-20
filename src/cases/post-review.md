@@ -21,7 +21,9 @@ Không dùng `gh pr review --comment` hay POST lẻ `/pulls/{n}/comments` — ch
 
 ## Khi verify lệch
 
-Sau `gh api .../reviews --jq '.[-1] | {id, state}'`:
+Sau `gh api .../reviews/<review_id> --jq '{id, state}'` (`<review_id>` lấy từ response POST ở Bước 9
+— hoặc từ lần retry gọi lại ở mục trên nếu POST đầu lỗi. CẤM đổi qua `.../reviews --jq '.[-1] | ...'`
+để "lấy review mới nhất" — nếu có review khác submit đúng lúc này, `.[-1]` trỏ NHẦM review của họ):
 
 - `auto_submit_review: true` mà vẫn `PENDING` dù đã gửi `event` → submit:
   `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events -f event="COMMENT"`.
