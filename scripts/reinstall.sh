@@ -59,7 +59,17 @@ CACHE_DIR="$HOME/.claude/plugins/cache/$MARKETPLACE_NAME/$PLUGIN_NAME"
 INSTALLED_JSON="$HOME/.claude/plugins/installed_plugins.json"
 ACTIVE_PATH=""
 if [ -f "$INSTALLED_JSON" ]; then
-  ACTIVE_PATH="$(grep -A3 "\"$PLUGIN_ID\"" "$INSTALLED_JSON" | grep -m1 '"installPath"' | sed -E 's/.*"installPath":[[:space:]]*"([^"]+)".*/\1/')"
+  if command -v jq >/dev/null 2>&1; then
+    # Chính xác: đúng key .plugins["$PLUGIN_ID"], đúng entry khớp scope đang cài (không giả định
+    # index [0] — 1 plugin có thể có nhiều entry theo scope khác nhau: user/project/local).
+    ACTIVE_PATH="$(jq -r --arg id "$PLUGIN_ID" --arg scope "$SCOPE" \
+      '(.plugins[$id] // [])[] | select(.scope == $scope) | .installPath' \
+      "$INSTALLED_JSON" 2>/dev/null | head -1)"
+  else
+    # Fallback không cần jq — giả định file pretty-print nhiều dòng (đúng hiện tại), có thể sai nếu
+    # file bị minify thành 1 dòng hoặc PLUGIN_ID xuất hiện nhiều nơi trong file.
+    ACTIVE_PATH="$(grep -A3 "\"$PLUGIN_ID\"" "$INSTALLED_JSON" | grep -m1 '"installPath"' | sed -E 's/.*"installPath":[[:space:]]*"([^"]+)".*/\1/')"
+  fi
 fi
 if [ -d "$CACHE_DIR" ] && [ -n "$ACTIVE_PATH" ]; then
   for d in "$CACHE_DIR"/*/; do
