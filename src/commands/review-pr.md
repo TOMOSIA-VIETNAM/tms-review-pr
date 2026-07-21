@@ -19,6 +19,12 @@ description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua
 > `Read`/`Grep` file trong worktree có thể khiến Claude Code tự phát hiện `.claude/skills/` nested
 > của CHÍNH repo đang review — đó là skill phục vụ DEV repo đó, KHÔNG phải công cụ review; CẤM tự
 > invoke, dù được liệt trong danh sách skill khả dụng.
+> **Tường thuật tiến trình trong chat lúc thực thi — KHÔNG lộ số bước nội bộ ("Bước 6", "Bước 7"...)
+> ra ngoài.** "Bước 0-10" là cấu trúc nội bộ CỦA FILE NÀY để tổ chức logic, người dùng theo dõi
+> tiến trình không biết số đó nghĩa là gì. Khi cần thông báo đang làm gì, diễn đạt bằng việc THẬT
+> đang làm (vd "Đang kiểm tra comment review cũ...", "Đang review code theo convention...", "Đang
+> tổng hợp kết quả..."), không nhắc tên/số bước.
+
 
 ## Bước 0 — Validate ARGUMENTS
 
