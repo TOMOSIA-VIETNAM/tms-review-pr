@@ -82,8 +82,10 @@ LOCAL + memory + template → hard gate `re-review.md` / `pr-template-checklist.
 định dạng → 1 POST review PR chính (+ POST submodule nếu case). Happy path Bước 9 đủ schema inline;
 POST lỗi hoặc verify lệch → hard gate `post-review.md`. **Re-review mà vòng này không có gì mới
 (không finding FILE/LINE mới, không nội dung overview-only mới) → bỏ hẳn Bước 8/9, chỉ có reply
-từ Bước 6, không post review overview thừa** (xem gate đầu Bước 8) — tránh lặp lại nội dung đã reply
-riêng từng thread. Bước 10: memory/doctor ngoài luồng review
+từ Bước 6, không post review overview thừa** — logic gate này sống trong `re-review.md` (đã `Read`
+ở Bước 6, đúng nguyên tắc case gắn trigger riêng, tránh nhồi thêm điều kiện re-review-specific vào
+Bước 8 luôn-nạp mà PR review lần đầu không cần tới), `review-pr.md` Bước 8 chỉ giữ 2 dòng con trỏ
+tới đó. Bước 10: memory/doctor ngoài luồng review
 thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại"; "đổi cấu hình review" — xem
 cấu hình đang áp dụng + sửa trực tiếp `meta.json`/ngôn ngữ, không đợi review kế) — nằm trong
 `review-pr.md`, không trong seed `ALWAYS_RULE` (user không customize hành vi này).
@@ -206,7 +208,7 @@ với 1 trigger riêng CỦA PR ĐANG REVIEW — `review-pr.md` chỉ `Read` fil
 không bao giờ tốn context cho case không áp dụng. Hiện có:
 
 - `re-review.md` — trigger: PR đã có comment review cũ (fetch 1 lần ở block "Ngữ cảnh", dùng ở
-  Bước 6). Gồm 2 việc dùng chung dữ liệu đã fetch: đề xuất 1 lesson convention mới nếu phát hiện
+  Bước 6). Gồm 3 việc: đề xuất 1 lesson convention mới nếu phát hiện
   đồng thuận trong reply chain của thread (CHỜ user xác nhận trong chat trước khi ghi — comment PR
   không tự tin cậy, tránh nhét rule giả; khác góp ý trong chat session → ghi ngay), VÀ
   kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
@@ -217,7 +219,9 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
   (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
   không nhắc lại — nhưng ghi nhớ `<path>` + mô tả để Bước 7 loại trừ, không tạo lại finding trùng
-  cho đúng vấn đề đang có thread mở.
+  cho đúng vấn đề đang có thread mở. VÀ (việc thứ 3) gate dừng sớm ở Bước 8: sau khi Bước 7 review
+  xong, vòng này không có gì mới (không finding FILE/LINE mới, không nội dung overview-only mới) →
+  bỏ hẳn Bước 8/9, không post review overview thừa lên nội dung đã reply riêng từng thread ở trên.
 - `pr-template-checklist.md` — trigger: repo có file dạng `.github/PULL_REQUEST_TEMPLATE.md` (phát
   hiện 1 lần lúc doctor, cache tại `meta.json.pr_template_paths`, dùng ở Bước 7). Đối chiếu
   description thật của PR với checklist trong template đó, gộp mọi mục còn thiếu/chưa tick thành

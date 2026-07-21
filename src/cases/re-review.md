@@ -59,8 +59,18 @@ Mục tiêu riêng, khác việc học convention ở trên:
      **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — Bước 7 `review-pr.md`
      dùng danh sách này để loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
 
-Reply ở đây KHÔNG tự động kéo theo phải post thêm 1 review overview — nếu vòng review này không có
-gì mới, `review-pr.md` Bước 8 sẽ bỏ hẳn Bước 9, không post gì thêm (xem gate đầu Bước 8).
+## Gate dừng sớm ở Bước 8 — không phải lúc nào re-review cũng cần overview
+
+Reply ở mục trên KHÔNG tự động kéo theo phải post thêm 1 review overview. Sau khi Bước 7
+`review-pr.md` chạy xong (review diff của lần cập nhật này), kiểm tra: có finding FILE/LINE nào MỚI
+không, có mục nào trong "Overview" ở Bước 7 MỚI phát sinh không (title/body mập mờ mới, CI check
+fail mới, PR template checklist mới thiếu), danh sách file bị skip có entry MỚI không.
+
+- **KHÔNG có gì mới** (toàn bộ việc cần làm đã xử lý xong bằng reply/resolve ở mục trên rồi) → **bỏ
+  hẳn Bước 8/9, DỪNG lệnh ở đây, KHÔNG post gì thêm lên PR chính.** Reply đã có là đủ giá trị; thêm 1
+  review overview lặp lại nội dung đã reply riêng từng thread là dư thừa, gây nhiễu cho người nhận.
+- **Có ít nhất 1 thứ MỚI** → tiếp tục Bước 8/9 bình thường, NHƯNG phần đánh giá chung CHỈ nói về
+  phần MỚI/thay đổi lần này, không lặp lại toàn bộ đánh giá tổng thể đã nói ở review trước.
 
 ## Reaction lên reply của dev (bổ sung, không bắt buộc)
 

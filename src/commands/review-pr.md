@@ -289,15 +289,9 @@ LINE) → xuống dòng, mỗi ý 1 bullet `-`, không dồn thành 1 câu dài 
 
 Ngôn ngữ theo Bước 5 (session override nếu có).
 
-**Gate RE-REVIEW — không phải lúc nào re-review cũng cần overview.** Bước 6 đã chạy (PR có comment
-cũ) VÀ Bước 7 kết luận KHÔNG có gì MỚI để nói ở cấp overview — không finding FILE/LINE nào mới,
-không mục nào trong "Overview" ở Bước 7 mới phát sinh (title/body mập mờ mới, CI check fail mới, PR
-template checklist mới thiếu), danh sách file bị skip không có entry mới — nghĩa là toàn bộ việc
-cần làm đã xử lý xong bằng reply/resolve ở Bước 6 rồi → **bỏ hẳn Bước 8/9, DỪNG lệnh ở đây, KHÔNG
-post gì thêm lên PR chính.** Reply ở Bước 6 là đủ giá trị, thêm 1 review overview lặp lại nội dung
-đã reply riêng từng thread là dư thừa, gây nhiễu cho người nhận. Có ít nhất 1 thứ MỚI kể trên → tiếp
-tục Bước 8/9 bình thường, NHƯNG phần đánh giá chung dưới đây CHỈ nói về phần MỚI/thay đổi lần này,
-không lặp lại toàn bộ đánh giá tổng thể đã nói ở review trước.
+**Bước 6 đã chạy (re-review)** → áp dụng gate dừng sớm mô tả trong `re-review.md` (đã `Read` ở Bước
+6) TRƯỚC KHI tiếp tục phần dưới — có thể bỏ hẳn Bước 8/9 nếu vòng này không có gì mới. Bước 6 KHÔNG
+chạy (PR mới, chưa có comment cũ) → bỏ qua, luôn tiếp tục bình thường.
 
 **Overview KHÔNG kể lại quá trình LÀM VIỆC của agent** (đã fetch/checkout gì, đối chiếu ở commit
 nào, có gọi lại API nào, có bị gián đoạn giữa chừng không...) — người review và người nhận review
