@@ -150,7 +150,8 @@ xuất hiện sau bootstrap).
 
 Comments từ Ngữ cảnh:
 
-- Không rỗng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/re-review.md`.
+- Không rỗng → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/re-review.md`. Đây là RE-REVIEW — ảnh hưởng
+  đến việc có post Bước 9 hay không, xem gate đầu Bước 8.
 - Rỗng → bỏ qua, sang Bước 7.
 
 ## Bước 7 — Review
@@ -288,18 +289,35 @@ LINE) → xuống dòng, mỗi ý 1 bullet `-`, không dồn thành 1 câu dài 
 
 Ngôn ngữ theo Bước 5 (session override nếu có).
 
+**Gate RE-REVIEW — không phải lúc nào re-review cũng cần overview.** Bước 6 đã chạy (PR có comment
+cũ) VÀ Bước 7 kết luận KHÔNG có gì MỚI để nói ở cấp overview — không finding FILE/LINE nào mới,
+không mục nào trong "Overview" ở Bước 7 mới phát sinh (title/body mập mờ mới, CI check fail mới, PR
+template checklist mới thiếu), danh sách file bị skip không có entry mới — nghĩa là toàn bộ việc
+cần làm đã xử lý xong bằng reply/resolve ở Bước 6 rồi → **bỏ hẳn Bước 8/9, DỪNG lệnh ở đây, KHÔNG
+post gì thêm lên PR chính.** Reply ở Bước 6 là đủ giá trị, thêm 1 review overview lặp lại nội dung
+đã reply riêng từng thread là dư thừa, gây nhiễu cho người nhận. Có ít nhất 1 thứ MỚI kể trên → tiếp
+tục Bước 8/9 bình thường, NHƯNG phần đánh giá chung dưới đây CHỈ nói về phần MỚI/thay đổi lần này,
+không lặp lại toàn bộ đánh giá tổng thể đã nói ở review trước.
+
+**Overview KHÔNG kể lại quá trình LÀM VIỆC của agent** (đã fetch/checkout gì, đối chiếu ở commit
+nào, có gọi lại API nào, có bị gián đoạn giữa chừng không...) — người review và người nhận review
+CHỈ quan tâm kết luận liên quan tới PR/commit (đã fix gì thật, còn gì mở, có gì mới), không quan
+tâm cách agent kiểm tra ra sao; quá trình làm việc là việc nội bộ của agent, không phải thông tin
+của PR, kể cả khi bị gián đoạn giữa chừng. Câu chốt tổng kết (vd "Không phát hiện vấn đề mới nào
+trong phần thay đổi lần này.") → in **đậm**, cùng cấp nhấn mạnh như **LGTM 🌟**.
+
 **CẤM trùng nội dung LINE:** body tổng quan KHÔNG lặp lại nội dung + `**Gợi ý**` của finding đã vào
 `comments[]` — LINE đã hiển thị trực quan tại đúng dòng diff trong GitHub, không liệt kê lại, không
 đếm số trong overview dưới bất kỳ hình thức nào. Chi tiết chỉ nằm inline.
 
 KHÔNG có vấn đề gì (FILE lẫn LINE) → TOÀN BỘ body CHỈ 1 DÒNG: **LGTM 🌟** — KHÔNG có heading
-"### Nhận xét tổng quan" phía trên, không câu nào khác (không cảm ơn, không đánh giá) — TRỪ mục
-"File đã bỏ qua review chi tiết" ngay dưới nếu danh sách đó không rỗng.
+"###【AI REVIEW】Nhận xét tổng quan" phía trên, không câu nào khác (không cảm ơn, không đánh giá) —
+TRỪ mục "File đã bỏ qua review chi tiết" ngay dưới nếu danh sách đó không rỗng.
 
 CÓ vấn đề → theo cấu trúc:
 
 ```
-### Nhận xét tổng quan
+###【AI REVIEW】Nhận xét tổng quan
 Mở đầu ĐÚNG cụm "Cảm ơn bạn! 🙇🏻‍♂️" (ngắn gọn — KHÔNG thêm mô tả kiểu "đã gửi PR này"/"đã bỏ công
 làm việc"), rồi 1 câu hướng dẫn reply, xưng "bạn" (KHÔNG "anh"/"chị"). Sau đó 2-3 câu đánh giá
 chung + overview title/prefix nếu có.

@@ -59,6 +59,9 @@ Mục tiêu riêng, khác việc học convention ở trên:
      **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — Bước 7 `review-pr.md`
      dùng danh sách này để loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
 
+Reply ở đây KHÔNG tự động kéo theo phải post thêm 1 review overview — nếu vòng review này không có
+gì mới, `review-pr.md` Bước 8 sẽ bỏ hẳn Bước 9, không post gì thêm (xem gate đầu Bước 8).
+
 ## Reaction lên reply của dev (bổ sung, không bắt buộc)
 
 Trong danh sách comment đã fetch, nếu thread của finding (mục trên) có reply từ DEV (`user.login`

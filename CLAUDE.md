@@ -80,7 +80,10 @@ file này và bỏ ghi chú trạng thái git này._
 `submodule-review.md`) → detect stack → setup có điều kiện → local template → nạp ALWAYS_RULE
 LOCAL + memory + template → hard gate `re-review.md` / `pr-template-checklist.md` → review 6 mục →
 định dạng → 1 POST review PR chính (+ POST submodule nếu case). Happy path Bước 9 đủ schema inline;
-POST lỗi hoặc verify lệch → hard gate `post-review.md`. Bước 10: memory/doctor ngoài luồng review
+POST lỗi hoặc verify lệch → hard gate `post-review.md`. **Re-review mà vòng này không có gì mới
+(không finding FILE/LINE mới, không nội dung overview-only mới) → bỏ hẳn Bước 8/9, chỉ có reply
+từ Bước 6, không post review overview thừa** (xem gate đầu Bước 8) — tránh lặp lại nội dung đã reply
+riêng từng thread. Bước 10: memory/doctor ngoài luồng review
 thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại"; "đổi cấu hình review" — xem
 cấu hình đang áp dụng + sửa trực tiếp `meta.json`/ngôn ngữ, không đợi review kế) — nằm trong
 `review-pr.md`, không trong seed `ALWAYS_RULE` (user không customize hành vi này).
