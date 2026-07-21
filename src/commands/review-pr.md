@@ -156,56 +156,12 @@ Comments từ Ngữ cảnh:
 
 ## Bước 7 — Review
 
-**Guard số lượng file (làm TRƯỚC mọi việc khác trong bước này):**
-
-Đếm số file trong "Files" (Ngữ cảnh, `--name-only`, mỗi dòng 1 file). So với
-`many_files_threshold` (Bước 3, default `30`).
-
-- ≤ ngưỡng → bỏ qua, review bình thường theo phần dưới.
-- \> ngưỡng:
-  - `ARGUMENTS`/chat lúc gọi lệnh ĐÃ chỉ định chiến lược (vd "review nông", "review sâu chọn lọc",
-    "dừng") → dùng luôn, KHÔNG hỏi lại.
-  - CHƯA chỉ định → DỪNG, hỏi user ngay trong chat, đưa đúng 3 lựa chọn, CHỜ reply, KHÔNG tự chọn
-    mặc định:
-    ```
-    PR này đổi <N> file (> <ngưỡng>) — review sâu hết dễ tốn effort lớn/dễ sót. Chọn 1 chiến lược:
-    (a) Review nông toàn bộ — lướt hết mọi file, giảm độ sâu, chỉ bắt lỗi rõ ràng ngay trên diff.
-    (b) Review sâu có chọn lọc — sâu ở file logic thật, lướt nhẹ file config/generated/test.
-    (c) Dừng — nêu lý do, đề nghị dev tách PR nhỏ hơn, không review.
-    ```
-  - Chọn **(a)**: toàn bộ Bước 7 dưới đây vẫn áp dụng cho MỌI file, nhưng bỏ mục "Đọc thêm tại
-    `<worktree>/<path>` khi cần" — chỉ dựa vào diff Ngữ cảnh, không tự ý đọc thêm context ngoài diff.
-    **Ngoại lệ — file trùng CẢ (a) VÀ guard size/dump** (mục "Size diff theo file" ở Ngữ cảnh >
-    `big_file_threshold_kb` KB (Bước 3, default `20`) hoặc `UNKNOWN`, xem "Phạm vi" dưới): liệt kê
-    ĐÚNG các file này ngay sau khi user chọn (a) —
-    gộp thành 1 câu hỏi DUY NHẤT (không hỏi riêng từng file), hỏi user muốn peek để phân loại
-    data/dump-vs-logic-thật hay bỏ qua luôn:
-    - User đồng ý (tất cả hoặc chỉ định file cụ thể) → peek CÓ GIỚI HẠN đúng quy tắc size/dump ở
-      "Phạm vi" dưới, CHỈ cho các file đó; phần còn lại của PR vẫn theo (a) bình thường.
-    - User từ chối/không trả lời rõ → không đọc, ghi vào `.review-skipped.md` (xem checklist dưới)
-      lý do "chiến lược (a) + size lớn, user chọn không review — tự xem".
-    - File QUÁ lớn để peek an toàn dù user đồng ý (vd size vượt xa ngưỡng, hoặc `UNKNOWN` mà thực
-      tế cực lớn) → agent có thể TỪ CHỐI peek, khuyên user nên bỏ qua để tránh vỡ context, ghi vào
-      `.review-skipped.md` tương tự.
-  - Chọn **(b)**: dùng kết quả Bước 2 (stack detect) phân loại — file LOGIC thật (code nghiệp vụ
-    theo stack) review ĐẦY ĐỦ theo mọi rule Bước 7 bình thường; file config/lock/generated/test
-    (phán đoán ngữ cảnh — ví dụ minh họa, không checklist đóng) → gộp finding nhẹ/lướt, không mổ
-    dòng-by-dòng.
-  - Chọn **(c)**: KHÔNG chạy Bước 7 (phần dưới) → Bước 9. Chat-only: nêu số file + ngưỡng, đề nghị
-    dev tách PR, DỪNG lệnh hẳn — không post gì lên GitHub (giống early-exit ở Bước 0).
-
-**Checklist chống quên file (chỉ khi vượt ngưỡng ở trên — PR nhỏ khỏi cần, tự nhớ đủ; áp dụng cho
-CẢ (a) và (b), KHÔNG áp dụng cho (c) vì không review gì):**
-
-1. Ngay khi chọn (a)/(b): `Write` `<worktree>/.review-checklist.md` — mỗi file trong "Files" (Ngữ
-   cảnh) 1 dòng `- [ ] <path>`. File này CHỈ là sổ tay nội bộ — không bao giờ xuất hiện trong PR
-   body hay output chat.
-2. Review xong 1 file (có finding hay không cũng tính là "xong") → `Edit` đúng dòng đó thành
-   `- [x] <path>`.
-3. **BẮT BUỘC, không bỏ qua** — TRƯỚC KHI viết Bước 8: `Read` lại `.review-checklist.md` VÀ
-   `.review-skipped.md` (nếu có). Dòng nào còn `[ ]` trong checklist VÀ KHÔNG có mặt trong
-   `.review-skipped.md` → đây là file bị QUÊN thật (không phải chủ động skip) — quay lại review
-   NGAY file đó trước khi tổng hợp, tuyệt đối không để lộ ra ngoài dưới dạng thiếu sót âm thầm.
+**Guard diff to (làm TRƯỚC mọi việc khác trong bước này):** đếm số file trong "Files" (Ngữ cảnh,
+`--name-only`) so với `many_files_threshold` (Bước 3, default `30`), VÀ kiểm mục "Size diff theo
+file" (Ngữ cảnh) có entry nào > `big_file_threshold_kb` KB (Bước 3, default `20`) hoặc `UNKNOWN`
+không. Khớp ÍT NHẤT 1 trong 2 → `Read` `"${CLAUDE_PLUGIN_ROOT}"/cases/large-diff-guards.md`, làm
+theo (có thể dừng hẳn lệnh ở đó nếu user chọn "dừng"). Không khớp cả 2 → bỏ qua, review bình thường
+theo phần dưới.
 
 **Overview (không tính N, không vào `comments[]`):**
 
@@ -235,29 +191,13 @@ FILE vào `comments[]`.
 
 **Phạm vi:**
 
-- **Không tạo lại finding trùng vấn đề đã có thread cũ còn mở (Bước 6).** Nếu Bước 6 vừa xác định
-  1 finding cũ CHƯA fix (đã ghi nhớ `<path>` + mô tả ở `re-review.md`), và vấn đề đang thấy ở đây
-  là ĐÚNG vấn đề đó (cùng path, cùng bản chất lỗi) → KHÔNG tạo finding mới cho nó, để nguyên thread
-  cũ (đã đang mở, không cần lặp lại). Vấn đề THẬT SỰ khác (khác path, hoặc cùng path nhưng lỗi khác
-  hẳn) → vẫn tạo finding mới bình thường, không liên quan gì tới rule này.
 - Ưu tiên thay đổi in-scope; out-of-scope hoặc chưa cần fix ngay → nhãn 📝 NOTE, không ép fix,
   không tính vào 3 mức nghiêm trọng.
 - Đọc thêm tại `<worktree>/<path>` khi cần; không bắt buộc — nhưng LUÔN dùng `offset`/`limit` của
   `Read` khoanh theo vùng đổi (lấy dòng bắt đầu từ hunk header diff `@@ -a,b +c,d @@` ± ~20-30 dòng
   buffer), CẤM `Read` trần không offset/limit trên file có thay đổi cục bộ (không phải file mới/bị
-  viết lại toàn bộ) — file to mà PR chỉ sửa 1 đoạn nhỏ thì không cần nuốt cả file.
-- File có size diff (mục "Size diff theo file" ở Ngữ cảnh) **> `big_file_threshold_kb` KB (Bước 3,
-  default `20`), hoặc `UNKNOWN`** → peek CÓ GIỚI HẠN (`Read` offset/limit ~30-50 dòng đầu hunk,
-  không đọc hết) để phán đoán data/seed/dump/generated (lặp cấu trúc, toàn literal, không control
-  flow) hay logic thật tình cờ đổi nhiều:
-  - Data/dump/generated → KHÔNG review chi tiết dòng-by-dòng, KHÔNG paste lại nội dung dump vào
-    finding; đúng 1 finding cấp FILE (thường 📝 NOTE hoặc 🔵 SUGGESTION) nêu "diff lớn — có vẻ
-    seed/dump data, xác nhận đúng ý chưa". Ghi lại `<path>` + lý do vào
-    `<worktree>/.review-skipped.md` (1 dòng `- <path> — <lý do>` mỗi entry, `Write` nếu file chưa
-    có/`Edit` append nếu đã có) — **LUÔN ghi vào file này, không chỉ trong context** (đây là anchor
-    thật, không phải nhớ tạm) — dùng để liệt kê ở Bước 8 và đối chiếu ở checklist chống quên.
-  - Logic thật (chỉ tình cờ to) → review bình thường, đọc tiếp theo từng đoạn (offset/limit như
-    trên), không Read trọn patch 1 lần.
+  viết lại toàn bộ) — file to mà PR chỉ sửa 1 đoạn nhỏ thì không cần nuốt cả file (file vượt
+  `big_file_threshold_kb` → guard riêng, xem đầu Bước 7).
 - Diff Ngữ cảnh = nguồn duy nhất cho nội dung đổi — không refetch cùng diff.
 - Không đọc source thư viện trừ khi thật không chắc.
 - Không bới finding vụn. PR tốt → **LGTM 🌟**; không sàn tối thiểu N.

@@ -56,8 +56,16 @@ Mục tiêu riêng, khác việc học convention ở trên:
      - **`false`** → CHỈ reply như trên, KHÔNG gọi GraphQL resolve — thread giữ nguyên trạng thái
        chưa resolve, để user tự resolve trên GitHub nếu muốn.
    - **Chưa fix** → KHÔNG làm gì cả, giữ nguyên comment, không nhắc lại, không tạo thêm nội dung gì.
-     **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — Bước 7 `review-pr.md`
-     dùng danh sách này để loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
+     **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — dùng ngay ở mục dưới để
+     Bước 7 `review-pr.md` loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
+
+## Không tạo lại finding trùng ở Bước 7
+
+Trong lúc Bước 7 `review-pr.md` review diff của lần cập nhật này: với MỖI finding cũ CHƯA fix đã
+ghi nhớ ở mục trên, nếu vấn đề đang thấy ở Bước 7 là ĐÚNG vấn đề đó (cùng path, cùng bản chất lỗi) →
+KHÔNG tạo finding mới cho nó, để nguyên thread cũ (đã đang mở, không cần lặp lại). Vấn đề THẬT SỰ
+khác (khác path, hoặc cùng path nhưng lỗi khác hẳn) → vẫn tạo finding mới bình thường, không liên
+quan gì tới rule này.
 
 ## Gate dừng sớm ở Bước 8 — không phải lúc nào re-review cũng cần overview
 
