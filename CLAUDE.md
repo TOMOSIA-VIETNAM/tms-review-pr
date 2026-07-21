@@ -80,7 +80,12 @@ file này và bỏ ghi chú trạng thái git này._
 `submodule-review.md`) → detect stack → setup có điều kiện → local template → nạp ALWAYS_RULE
 LOCAL + memory + template → hard gate `re-review.md` / `pr-template-checklist.md` → review 6 mục →
 định dạng → 1 POST review PR chính (+ POST submodule nếu case). Happy path Bước 9 đủ schema inline;
-POST lỗi hoặc verify lệch → hard gate `post-review.md`. Bước 10: memory/doctor ngoài luồng review
+POST lỗi hoặc verify lệch → hard gate `post-review.md`. **Re-review mà vòng này không có gì mới
+(không finding FILE/LINE mới, không nội dung overview-only mới) → bỏ hẳn Bước 8/9, chỉ có reply
+từ Bước 6, không post review overview thừa** — logic gate này sống trong `re-review.md` (đã `Read`
+ở Bước 6, đúng nguyên tắc case gắn trigger riêng, tránh nhồi thêm điều kiện re-review-specific vào
+Bước 8 luôn-nạp mà PR review lần đầu không cần tới), `review-pr.md` Bước 8 chỉ giữ 2 dòng con trỏ
+tới đó. Bước 10: memory/doctor ngoài luồng review
 thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại"; "đổi cấu hình review" — xem
 cấu hình đang áp dụng + sửa trực tiếp `meta.json`/ngôn ngữ, không đợi review kế) — nằm trong
 `review-pr.md`, không trong seed `ALWAYS_RULE` (user không customize hành vi này).
@@ -171,7 +176,11 @@ Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt 
 của chính mình, KHÔNG phụ thuộc hình dạng prose (đổi format Bước 7 sau này không làm gãy detection).
 
 **Guard file to/dump (byte size, `big_file_threshold_kb`) VÀ guard nhiều file (số lượng,
-`many_files_threshold`) là 2 cơ chế riêng, có thể chồng nhau.** File vượt `many_files_threshold` VÀ
+`many_files_threshold`) là 2 cơ chế riêng, có thể chồng nhau — cả 2 sống trong
+`src/cases/large-diff-guards.md`, không inline trong `review-pr.md` nữa** (đúng nguyên tắc case
+gắn 1 trigger riêng — 2 guard này chỉ áp dụng cho thiểu số PR vượt ngưỡng, đa số PR nhỏ không cần
+tốn context đọc hết chi tiết chiến lược a/b/c + checklist chống quên mỗi lần review; `review-pr.md`
+Bước 7 chỉ còn 2 dòng hard-gate boolean trỏ tới file case). File vượt `many_files_threshold` VÀ
 chọn chiến lược (a) "review nông" VÀ CŨNG vượt ngưỡng size/dump (`big_file_threshold_kb`, default
 `20` KB ~ 5.000 token) → 2 rule đá nhau (a) cấm đọc thêm, guard size/dump lại cần peek để phân loại —
 xử lý bằng cách HỎI user 1 câu gộp (không hỏi riêng từng file) muốn peek hay bỏ qua, agent có quyền
@@ -203,7 +212,7 @@ với 1 trigger riêng CỦA PR ĐANG REVIEW — `review-pr.md` chỉ `Read` fil
 không bao giờ tốn context cho case không áp dụng. Hiện có:
 
 - `re-review.md` — trigger: PR đã có comment review cũ (fetch 1 lần ở block "Ngữ cảnh", dùng ở
-  Bước 6). Gồm 2 việc dùng chung dữ liệu đã fetch: đề xuất 1 lesson convention mới nếu phát hiện
+  Bước 6). Gồm 3 việc: đề xuất 1 lesson convention mới nếu phát hiện
   đồng thuận trong reply chain của thread (CHỜ user xác nhận trong chat trước khi ghi — comment PR
   không tự tin cậy, tránh nhét rule giả; khác góp ý trong chat session → ghi ngay), VÀ
   kiểm tra finding cũ do chính lệnh này để lại (lọc comment top-level của tài khoản đang chạy lệnh,
@@ -214,7 +223,9 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
   `auto_resolve_fixed_findings` (xem cấu hình bên dưới) để quyết định có resolve thread qua GraphQL
   (`resolveReviewThread`, REST không hỗ trợ resolve) hay chỉ reply; chưa fix thì không làm gì,
   không nhắc lại — nhưng ghi nhớ `<path>` + mô tả để Bước 7 loại trừ, không tạo lại finding trùng
-  cho đúng vấn đề đang có thread mở.
+  cho đúng vấn đề đang có thread mở. VÀ (việc thứ 3) gate dừng sớm ở Bước 8: sau khi Bước 7 review
+  xong, vòng này không có gì mới (không finding FILE/LINE mới, không nội dung overview-only mới) →
+  bỏ hẳn Bước 8/9, không post review overview thừa lên nội dung đã reply riêng từng thread ở trên.
 - `pr-template-checklist.md` — trigger: repo có file dạng `.github/PULL_REQUEST_TEMPLATE.md` (phát
   hiện 1 lần lúc doctor, cache tại `meta.json.pr_template_paths`, dùng ở Bước 7). Đối chiếu
   description thật của PR với checklist trong template đó, gộp mọi mục còn thiếu/chưa tick thành
@@ -240,6 +251,12 @@ không bao giờ tốn context cho case không áp dụng. Hiện có:
 - `post-review.md` — trigger: POST review lỗi **hoặc** verify `state` lệch kỳ vọng
   `auto_submit_review`. Retry 1 lần theo schema; cấm comment/review test trên PR thật; nhánh
   submit-events khi `true` mà vẫn PENDING. Happy path không đọc file này.
+- `large-diff-guards.md` — trigger: PR đổi > `many_files_threshold` file HOẶC có file "Size diff
+  theo file" (Ngữ cảnh) > `big_file_threshold_kb` KB/`UNKNOWN` (2 điều kiện độc lập, dùng ở Bước 7).
+  Guard số lượng file: hỏi chiến lược review (a nông toàn bộ / b sâu chọn lọc / c dừng đề nghị tách
+  PR) + checklist chống quên file. Guard file to/dump: peek có giới hạn phân loại data/dump-vs-logic
+  thật, ghi `.review-skipped.md`. 2 guard tương tác khi PR khớp CẢ 2 VÀ user chọn (a) — gộp 1 câu hỏi
+  duy nhất có peek size/dump hay bỏ qua luôn.
 
 Thư mục này CHỦ Ý để MỞ RỘNG: case mới = hard gate boolean + 1 file, không nhét vào `review-pr.md`.
 
@@ -290,12 +307,12 @@ token — ước lượng ~4 ký tự/token).
   chưa có CI). Được hỏi thì mặc định `true` nếu user không chọn. Chi phối Bước 7: `true` → CI check
   fail (lọc `bucket=="fail"` từ mảng đã fetch) hiện thành 1 câu cảnh báo trong overview, không tính
   severity; `false` → bỏ qua hoàn toàn, không tham chiếu data đó dù đã có trong Ngữ cảnh.
-- `many_files_threshold` chi phối guard đầu Bước 7: PR đổi nhiều file hơn ngưỡng này (default `30`)
-  → hỏi chiến lược review (nông toàn bộ / sâu chọn lọc / dừng đề nghị tách PR), trừ khi
-  ARGUMENTS/chat đã chỉ định sẵn.
-- `big_file_threshold_kb` chi phối guard size/dump ở Bước 7: file có diff vượt ngưỡng này tính bằng
-  KB (default `20`), hoặc `UNKNOWN` (GitHub bỏ patch vì quá lớn) → peek có giới hạn để phân loại
-  data/dump thay vì review chi tiết dòng-by-dòng.
+- `many_files_threshold` chi phối trigger đầu Bước 7 vào `large-diff-guards.md`: PR đổi nhiều file
+  hơn ngưỡng này (default `30`) → hỏi chiến lược review (nông toàn bộ / sâu chọn lọc / dừng đề nghị
+  tách PR), trừ khi ARGUMENTS/chat đã chỉ định sẵn.
+- `big_file_threshold_kb` chi phối trigger đầu Bước 7 vào `large-diff-guards.md`: file có diff vượt
+  ngưỡng này tính bằng KB (default `20`), hoặc `UNKNOWN` (GitHub bỏ patch vì quá lớn) → peek có
+  giới hạn để phân loại data/dump thay vì review chi tiết dòng-by-dòng.
 - `auto_resolve_fixed_findings` chi phối nhánh finding đã fix trong `re-review.md`.
 - **Repo đã bootstrap TRƯỚC KHI 1 field cấu hình ra đời** (vd repo cũ review trước khi
   `review_ci_status`/`many_files_threshold`/`big_file_threshold_kb` xuất hiện) — Phần A KHÔNG tự

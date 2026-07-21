@@ -56,8 +56,29 @@ Mục tiêu riêng, khác việc học convention ở trên:
      - **`false`** → CHỈ reply như trên, KHÔNG gọi GraphQL resolve — thread giữ nguyên trạng thái
        chưa resolve, để user tự resolve trên GitHub nếu muốn.
    - **Chưa fix** → KHÔNG làm gì cả, giữ nguyên comment, không nhắc lại, không tạo thêm nội dung gì.
-     **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — Bước 7 `review-pr.md`
-     dùng danh sách này để loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
+     **Ghi nhớ `<path>` + mô tả ngắn của finding này (còn mở, chưa fix)** — dùng ngay ở mục dưới để
+     Bước 7 `review-pr.md` loại trừ, tránh tạo lại finding trùng cho đúng vấn đề đang có thread mở.
+
+## Không tạo lại finding trùng ở Bước 7
+
+Trong lúc Bước 7 `review-pr.md` review diff của lần cập nhật này: với MỖI finding cũ CHƯA fix đã
+ghi nhớ ở mục trên, nếu vấn đề đang thấy ở Bước 7 là ĐÚNG vấn đề đó (cùng path, cùng bản chất lỗi) →
+KHÔNG tạo finding mới cho nó, để nguyên thread cũ (đã đang mở, không cần lặp lại). Vấn đề THẬT SỰ
+khác (khác path, hoặc cùng path nhưng lỗi khác hẳn) → vẫn tạo finding mới bình thường, không liên
+quan gì tới rule này.
+
+## Gate dừng sớm ở Bước 8 — không phải lúc nào re-review cũng cần overview
+
+Reply ở mục trên KHÔNG tự động kéo theo phải post thêm 1 review overview. Sau khi Bước 7
+`review-pr.md` chạy xong (review diff của lần cập nhật này), kiểm tra: có finding FILE/LINE nào MỚI
+không, có mục nào trong "Overview" ở Bước 7 MỚI phát sinh không (title/body mập mờ mới, CI check
+fail mới, PR template checklist mới thiếu), danh sách file bị skip có entry MỚI không.
+
+- **KHÔNG có gì mới** (toàn bộ việc cần làm đã xử lý xong bằng reply/resolve ở mục trên rồi) → **bỏ
+  hẳn Bước 8/9, DỪNG lệnh ở đây, KHÔNG post gì thêm lên PR chính.** Reply đã có là đủ giá trị; thêm 1
+  review overview lặp lại nội dung đã reply riêng từng thread là dư thừa, gây nhiễu cho người nhận.
+- **Có ít nhất 1 thứ MỚI** → tiếp tục Bước 8/9 bình thường, NHƯNG phần đánh giá chung CHỈ nói về
+  phần MỚI/thay đổi lần này, không lặp lại toàn bộ đánh giá tổng thể đã nói ở review trước.
 
 ## Reaction lên reply của dev (bổ sung, không bắt buộc)
 
