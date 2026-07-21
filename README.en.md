@@ -39,6 +39,10 @@ Inside a Claude Code session:
 
 Then `/reload-plugins` (or open a new Claude Code session) to reload.
 
+Already set up a repo before? Want to check/update its config for the new version (new fields get
+backfilled right away, no need to wait for the next review) — say in chat in that repo: "refresh
+the config" (or "reconfigure the review settings").
+
 ## How to use
 
 The slash command **only runs when you type it** — Claude never calls `/tms:review-pr` on its own.

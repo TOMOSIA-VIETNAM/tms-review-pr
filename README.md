@@ -43,6 +43,10 @@ Trong phiên Claude Code:
 
 Rồi `/reload-plugins` (hoặc mở phiên Claude Code mới) để nạp lại.
 
+Repo đã setup từ trước, muốn kiểm tra/cập nhật cấu hình theo bản mới (field mới nếu có sẽ backfill
+ngay, không cần đợi lần review kế) — gõ trong chat ở repo đó: "làm mới cấu hình" (hoặc "đổi cấu
+hình review").
+
 ## Dùng thế nào
 
 Slash command **chỉ chạy khi bạn gõ đúng lệnh** — Claude không tự gọi `/tms:review-pr`
