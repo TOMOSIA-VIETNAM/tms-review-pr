@@ -17,9 +17,11 @@ plugin vào Claude Code rồi gọi `/tms:review-pr <PR_URL>` thật trên 1 rep
 `ALWAYS_RULE`), nhưng command Cursor ở `src/cursor/commands/review-pr.md` + manifest
 `.cursor-plugin/`. Claude `commands/review-pr.md` (`!`bash inject, `allowed-tools`,
 `${CLAUDE_PLUGIN_ROOT}`) là **source of truth** quy trình Bước 0–10 — khi đổi flow, cập nhật
-wrapper Cursor theo. Shared files vẫn giữ wording `${CLAUDE_PLUGIN_ROOT}`; Cursor adapter map sang
-`PLUGIN_ROOT` lúc runtime. Dev Cursor local: `scripts/install-cursor-local.sh` (**copy** `src/` →
-`~/.cursor/plugins/local/tms` — Cursor reject symlink target ngoài `plugins/local`).
+wrapper Cursor theo. Shared files vẫn giữ wording `${CLAUDE_PLUGIN_ROOT}` + tên tool Claude
+(`Bash`/`Edit`/`Agent`); Cursor adapter map sang `PLUGIN_ROOT` + `Shell`/`StrReplace`/`Task` lúc
+runtime (prose allowlist — Cursor không có `allowed-tools`). Dev Cursor local:
+`scripts/install-cursor-local.sh` (**copy** `src/` → `~/.cursor/plugins/local/tms` — Cursor reject
+symlink target ngoài `plugins/local`).
 
 ## Cấu trúc
 
@@ -60,7 +62,8 @@ src/commands/review-pr.md            Slash command Claude /tms:review-pr — **t
                                `gh pr close/merge`, không `git push/branch -D/reset --hard`, không
                                `git branch`/`git checkout` trần
 src/cursor/commands/review-pr.md Adapter Cursor `/review-pr` — Shell-first (không `!`inject),
-                               resolve PLUGIN_ROOT; Claude không nạp path này (plugin.json Claude
+                               resolve PLUGIN_ROOT (fingerprint), map tool Claude→Cursor,
+                               prose allowlist; Claude không nạp path này (plugin.json Claude
                                chỉ `./commands/`)
 src/stack-detection.md        KHÔNG phải slash command. Bảng mapping đuôi file/path → stack +
                                overlay rule; `review-pr.md` Bước 2 đọc bằng Read

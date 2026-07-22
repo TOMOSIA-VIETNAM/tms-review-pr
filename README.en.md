@@ -3,6 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/TOMOSIA-VIETNAM/tms-review-pr?label=release)](https://github.com/TOMOSIA-VIETNAM/tms-review-pr/releases)
 [![License: MIT](https://img.shields.io/github/license/TOMOSIA-VIETNAM/tms-review-pr)](./LICENSE)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-5A32A3)](https://claude.ai/code)
+[![Cursor Plugin](https://img.shields.io/badge/Cursor-Plugin-000000)](https://cursor.com)
 
 [Tiếng Việt](./README.md) · **English** · [日本語](./README.ja.md)
 
@@ -12,7 +13,7 @@ The first time, it reads your existing conventions (README, CLAUDE.md, AGENTS.md
 
 What if a suggestion only lives on a PR comment? It asks you before remembering (to avoid injecting fake rules through a PR).
 
-Project conventions don't stand still — on each `/tms:review-pr`, if it's due, the plugin re-reads the convention docs so memory doesn't go stale. Schedule details: [Convention refresh cycle](#convention-refresh-cycle).
+Project conventions don't stand still — on each review command (`/tms:review-pr` in Claude Code or `/review-pr` in Cursor), if it's due, the plugin re-reads the convention docs so memory doesn't go stale. Schedule details: [Convention refresh cycle](#convention-refresh-cycle).
 
 ## Prerequisites
 
@@ -47,15 +48,9 @@ the config" (or "reconfigure the review settings").
 
 Same `src/` as Claude; Cursor command lives at `src/cursor/commands/`.
 
-**Local (dev):** from a clone of this repo:
+**Team Marketplace:** import this GitHub repo (Dashboard → Plugins → Team Marketplaces). Cursor manifest: `.cursor-plugin/marketplace.json` (`source: "./src"`). Command after install: `/review-pr`.
 
-```bash
-./scripts/install-cursor-local.sh
-```
-
-Copies `src/` → `~/.cursor/plugins/local/tms` (real directory — Cursor rejects external symlinks), then restart Cursor. Command: `/review-pr`. Re-run the script after editing `src/`.
-
-**Team Marketplace:** import this GitHub repo (Dashboard → Plugins); Cursor manifest is `.cursor-plugin/marketplace.json` (`source: "./src"`).
+Working on the plugin from a local clone → see [For development](#for-development).
 
 ## How to use
 
@@ -81,7 +76,11 @@ Add instructions right after the URL for **that run only** (does not change save
 /tms:review-pr https://github.com/org/repo/pull/123 focus on security
 ```
 
-**Works in parallel, no fear of clobbering branches.** On each review, the PR code is checked out into its own [git worktree](https://git-scm.com/docs/git-worktree) — it does not change the branch/working tree of the repo you're coding in. You can open multiple `/tms:review-pr` sessions (several PRs at once) while still committing/editing normally on your current branch.
+```
+/review-pr https://github.com/org/repo/pull/123 focus on security
+```
+
+**Works in parallel, no fear of clobbering branches.** On each review, the PR code is checked out into its own [git worktree](https://git-scm.com/docs/git-worktree) — it does not change the branch/working tree of the repo you're coding in. You can open multiple review sessions (several PRs at once) while still committing/editing normally on your current branch.
 
 ## First time for a repo that's never been set up
 
@@ -147,3 +146,35 @@ In a repo reviewed at least once:
 | Default language | `notebooks/review/<repo>/ALWAYS_RULE.md` — the `Output language` block |
 | Post now / draft, auto-resolve threads, convention re-read cycle | `notebooks/review/<repo>/meta.json` |
 | Team-specific rules | `ALWAYS_RULE.md` under the extra-rules section, or say it in chat to record a lesson |
+
+## For development
+
+For people editing this plugin in a clone of the repo (not end users who only install to review). The real runtime lives under `src/` — root README / `scripts/` / `CLAUDE.md` are not copied to the user's machine on install.
+
+### Claude Code (local reinstall)
+
+```bash
+./scripts/reinstall.sh
+```
+
+Uninstall / re-add the local marketplace and install `tms@review-pr`, forcing a fresh load of current `src/` (avoids a stale cache). Requires the `claude` CLI on PATH. Then `/reload-plugins` or open a new session and try:
+
+```
+/tms:review-pr https://github.com/<owner>/<repo>/pull/<number>
+```
+
+### Cursor (local install)
+
+```bash
+./scripts/install-cursor-local.sh
+```
+
+Copies `src/` → `~/.cursor/plugins/local/tms` (**real directory** — Cursor rejects symlinks whose target is outside `plugins/local`). Restart Cursor or **Developer: Reload Window**. Command: `/review-pr`.
+
+After every `src/` edit → re-run the script + reload. The script warns if `gh` is missing or not logged in.
+
+### When changing the review flow
+
+- **Source of truth** = `src/commands/review-pr.md` (Claude). If you change steps 0–10, update the Cursor adapter `src/cursor/commands/review-pr.md` to match (tool map / Shell / prose allowlist).
+- Shared files (`setup-flow.md`, `cases/*`, `templates/*`, `ALWAYS_RULE.md`) keep `${CLAUDE_PLUGIN_ROOT}` and Claude tool names; the Cursor adapter maps them at runtime.
+- New stack: `src/templates/<stack>.md` + `src/stack-detection.md` (see `CLAUDE.md`).

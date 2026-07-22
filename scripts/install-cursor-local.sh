@@ -46,6 +46,12 @@ if [ ! -f "$TARGET/.cursor-plugin/plugin.json" ] || [ ! -f "$TARGET/cursor/comma
   exit 1
 fi
 
+if ! command -v gh >/dev/null 2>&1; then
+  echo "⚠️  'gh' not found in PATH — /review-pr needs GitHub CLI (gh auth login)." >&2
+elif ! gh auth status >/dev/null 2>&1; then
+  echo "⚠️  'gh' is installed but not logged in — run: gh auth login" >&2
+fi
+
 echo "Plugin src:  $PLUGIN_SRC"
 echo "Installed:   $TARGET  (real directory copy)"
 echo

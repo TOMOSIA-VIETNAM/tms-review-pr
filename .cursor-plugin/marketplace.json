@@ -1,6 +1,6 @@
 {
   "name": "review-pr",
-  "description": "Local marketplace for the tms plugin (multi-stack GitHub PR reviewer).",
+  "description": "Marketplace for the tms plugin (multi-stack GitHub PR reviewer for Claude Code and Cursor).",
   "owner": { "name": "Minh Tang Q." },
   "plugins": [
     {
