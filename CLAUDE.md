@@ -13,6 +13,14 @@ Không có build/lint/test — toàn bộ plugin là markdown (command + templat
 cấu hình. Không có runtime code riêng của repo này để chạy/test độc lập; cách "chạy thử" là cài
 plugin vào Claude Code rồi gọi `/tms:review-pr <PR_URL>` thật trên 1 repo khác.
 
+**Cursor (song song, không đụng semantics Claude):** cùng `src/` (templates/cases/setup/
+`ALWAYS_RULE`), nhưng command Cursor ở `src/cursor/commands/review-pr.md` + manifest
+`.cursor-plugin/`. Claude `commands/review-pr.md` (`!`bash inject, `allowed-tools`,
+`${CLAUDE_PLUGIN_ROOT}`) là **source of truth** quy trình Bước 0–10 — khi đổi flow, cập nhật
+wrapper Cursor theo. Shared files vẫn giữ wording `${CLAUDE_PLUGIN_ROOT}`; Cursor adapter map sang
+`PLUGIN_ROOT` lúc runtime. Dev Cursor local: `scripts/install-cursor-local.sh` (**copy** `src/` →
+`~/.cursor/plugins/local/tms` — Cursor reject symlink target ngoài `plugins/local`).
+
 ## Cấu trúc
 
 Sản phẩm (những gì `${CLAUDE_PLUGIN_ROOT}` trỏ tới lúc runtime) nằm trong `src/` — `src/` CHÍNH LÀ
@@ -21,18 +29,20 @@ plugin root thật (có `.claude-plugin/plugin.json` riêng), không phải repo
 backlogs/, scripts/ ở repo root (phục vụ phát triển repo này) không lọt vào máy user cài plugin.
 
 ```
-.claude-plugin/marketplace.json  Marketplace tự host (source: "./src") — chỉ copy `src/` vào
+.claude-plugin/marketplace.json  Marketplace Claude (source: "./src") — chỉ copy `src/` vào
                                plugin cache lúc install, không phải cả repo root
-src/.claude-plugin/plugin.json   Metadata plugin (name: "tms", trỏ commands: "./commands/" — path
-                               tính từ root MỚI là src/, không phải repo root)
-scripts/reinstall.sh          Script dev: uninstall/re-add marketplace/install lại (đọc tên qua
-                               2 manifest trên, không đụng nội dung src/)
+.cursor-plugin/marketplace.json  Marketplace Cursor (source: "./src") — song song Claude; không
+                               ảnh hưởng Claude install
+src/.claude-plugin/plugin.json   Metadata Claude (name: "tms", commands: "./commands/")
+src/.cursor-plugin/plugin.json   Metadata Cursor (name: "tms", commands: "./cursor/commands/")
+scripts/reinstall.sh          Script dev Claude: uninstall/re-add marketplace/install lại
+scripts/install-cursor-local.sh  Script dev Cursor: copy src → ~/.cursor/plugins/local/tms
 CLAUDE.md                     File này
 backlogs/*.md                 Task breakdown lịch sử khi build plugin lần đầu (tạm, sẽ xoá sau
                                khi xong dự án — không phải doc vận hành runtime)
 .gitignore                    Dev repo, không liên quan runtime plugin
 
-src/commands/review-pr.md            Slash command DUY NHẤT /tms:review-pr — **thin orchestrator**: mindset +
+src/commands/review-pr.md            Slash command Claude /tms:review-pr — **thin orchestrator**: mindset +
                                xương quy trình + invariant cứng (giọng imperative ngắn). Không nhồi
                                chú thích "vì sao / đã bug thật" (chúng nằm ở file này, mục D dưới).
                                Chi tiết detect-stack → `src/stack-detection.md`; setup →
@@ -49,6 +59,9 @@ src/commands/review-pr.md            Slash command DUY NHẤT /tms:review-pr —
                                `mkdir`, `Agent`, `Read`, `Grep`, `Write`, `Edit` — không
                                `gh pr close/merge`, không `git push/branch -D/reset --hard`, không
                                `git branch`/`git checkout` trần
+src/cursor/commands/review-pr.md Adapter Cursor `/review-pr` — Shell-first (không `!`inject),
+                               resolve PLUGIN_ROOT; Claude không nạp path này (plugin.json Claude
+                               chỉ `./commands/`)
 src/stack-detection.md        KHÔNG phải slash command. Bảng mapping đuôi file/path → stack +
                                overlay rule; `review-pr.md` Bước 2 đọc bằng Read
 src/setup-flow.md             KHÔNG phải slash command (có ý — xem bên dưới). `review-pr.md` chỉ đọc
@@ -58,7 +71,7 @@ src/setup-flow.md             KHÔNG phải slash command (có ý — xem bên d
 src/cases/*.md                KHÔNG phải slash command. Logic review-time CÓ ĐIỀU KIỆN — hard gate
                                boolean trong `review-pr.md`, chỉ `Read` khi trigger đúng. Hiện có:
                                `re-review.md`, `pr-template-checklist.md`, `submodule-review.md`,
-                               `post-review.md` (POST lỗi / verify lệch)
+                               `large-diff-guards.md`, `post-review.md` (POST lỗi / verify lệch)
 src/templates/*.md            Template GỐC (thư viện dùng chung) theo từng ngôn ngữ/framework —
                                nội dung thuần, không logic điều phối. Mỗi repo được review có bản
                                LOCAL copy riêng, xem "Local template" bên dưới

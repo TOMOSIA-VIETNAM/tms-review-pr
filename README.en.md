@@ -16,10 +16,10 @@ Project conventions don't stand still — on each `/tms:review-pr`, if it's due,
 
 ## Prerequisites
 
-- [Claude Code](https://claude.ai/code) installed
+- Either [Claude Code](https://claude.ai/code) **or** [Cursor](https://cursor.com)
 - [`gh`](https://cli.github.com/) logged in (`gh auth login`) — the plugin posts reviews through this account
 
-## Install
+## Install (Claude Code)
 
 Inside a Claude Code session:
 
@@ -28,7 +28,7 @@ Inside a Claude Code session:
 /plugin install tms@review-pr
 ```
 
-## Update to the latest
+### Update to the latest (Claude)
 
 `plugin.json` declares no `version` (the project is under active development) — every new commit on `main` becomes a build of its own. Once installed, pull the latest:
 
@@ -43,12 +43,34 @@ Already set up a repo before? Want to check/update its config for the new versio
 backfilled right away, no need to wait for the next review) — say in chat in that repo: "refresh
 the config" (or "reconfigure the review settings").
 
+## Install (Cursor)
+
+Same `src/` as Claude; Cursor command lives at `src/cursor/commands/`.
+
+**Local (dev):** from a clone of this repo:
+
+```bash
+./scripts/install-cursor-local.sh
+```
+
+Copies `src/` → `~/.cursor/plugins/local/tms` (real directory — Cursor rejects external symlinks), then restart Cursor. Command: `/review-pr`. Re-run the script after editing `src/`.
+
+**Team Marketplace:** import this GitHub repo (Dashboard → Plugins); Cursor manifest is `.cursor-plugin/marketplace.json` (`source: "./src"`).
+
 ## How to use
 
-The slash command **only runs when you type it** — Claude never calls `/tms:review-pr` on its own.
+The slash command **only runs when you type it** — the agent never calls it on its own.
+
+**Claude Code:**
 
 ```
 /tms:review-pr https://github.com/<owner>/<repo>/pull/<number>
+```
+
+**Cursor:**
+
+```
+/review-pr https://github.com/<owner>/<repo>/pull/<number>
 ```
 
 URLs ending in `/files`, `/changes`, with query strings… all work — they just need to contain a valid PR link.

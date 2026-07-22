@@ -16,10 +16,10 @@ GitHub の Pull Request を**一貫した基準で**レビューする方法を 
 
 ## 事前準備
 
-- [Claude Code](https://claude.ai/code) をインストール済み
+- [Claude Code](https://claude.ai/code) **または** [Cursor](https://cursor.com)
 - [`gh`](https://cli.github.com/) にログイン済み（`gh auth login`）— プラグインはこのアカウントでレビューを投稿します
 
-## インストール
+## インストール（Claude Code）
 
 Claude Code のセッション内で：
 
@@ -28,7 +28,7 @@ Claude Code のセッション内で：
 /plugin install tms@review-pr
 ```
 
-## 最新版へ更新
+### 最新版へ更新（Claude）
 
 `plugin.json` は `version` を宣言していません（プロジェクトは活発に開発中）— `main` への新しいコミットごとに 1 つのビルドになります。インストール済みなら最新版を取得：
 
@@ -43,12 +43,34 @@ Claude Code のセッション内で：
 次のレビューを待たずすぐに反映されます）— そのリポジトリのチャットで「設定を更新して」（または「レビュー
 設定を変更」）と伝えてください。
 
+## インストール（Cursor）
+
+Claude と同じ `src/` を使います。Cursor 用コマンドは `src/cursor/commands/` にあります。
+
+**ローカル（開発）:** このリポジトリのクローンから：
+
+```bash
+./scripts/install-cursor-local.sh
+```
+
+`src/` を `~/.cursor/plugins/local/tms` へコピー（実ディレクトリ — Cursor は外部への symlink を拒否します）。Cursor を再起動後、コマンドは `/review-pr`。`src/` を編集したらスクリプトを再実行してください。
+
+**Team Marketplace:** この GitHub リポジトリを import（Dashboard → Plugins）。Cursor 用 manifest は `.cursor-plugin/marketplace.json`（`source: "./src"`）。
+
 ## 使い方
 
-スラッシュコマンドは**入力したときだけ実行されます** — Claude が勝手に `/tms:review-pr` を呼ぶことはありません。
+スラッシュコマンドは**入力したときだけ実行されます** — Agent が勝手に呼ぶことはありません。
+
+**Claude Code:**
 
 ```
 /tms:review-pr https://github.com/<owner>/<repo>/pull/<number>
+```
+
+**Cursor:**
+
+```
+/review-pr https://github.com/<owner>/<repo>/pull/<number>
 ```
 
 `/files`、`/changes`、クエリ文字列付きの URL… すべて動作します — 有効な PR リンクを含んでさえいれば OK です。
