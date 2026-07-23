@@ -147,3 +147,24 @@ Trong repo đã review ít nhất một lần:
 | Ngôn ngữ mặc định | `notebooks/review/<repo>/ALWAYS_RULE.md` — khối `Ngôn ngữ output` |
 | Đăng ngay / nháp, tự resolve thread, chu kỳ đọc lại quy ước | `notebooks/review/<repo>/meta.json` |
 | Quy tắc riêng team | `ALWAYS_RULE.md` mục Rule bổ sung, hoặc nói trong chat để ghi lesson |
+
+## Sau khi review xong: `/tms:fix-comment`
+
+`/tms:review-pr` chỉ review + comment, không sửa code giúp bạn. Cầm PR đã được review xong rồi, gọi
+tiếp:
+
+```
+/tms:fix-comment https://github.com/<owner>/<repo>/pull/<number>
+```
+
+Khác `/tms:review-pr` ở chỗ **dev-facing, sửa code thật** ngay tại working directory hiện tại của
+bạn (không qua worktree riêng) — nó đọc đúng finding bot đã để lại, tự quyết fix/decline theo mức độ
+nghiêm trọng (🔵 SUGGESTION/📝 NOTE luôn hỏi bạn trước), sửa code đúng convention dự án đã học, gom
+thành 1 commit, rồi reply lại từng finding trên PR. Chạy được ở đâu, làm gì tự động, hỏi gì trước —
+xem chi tiết ngay trong lệnh khi gọi lần đầu trên 1 repo (hỏi 2 câu cấu hình, chỉ 1 lần).
+
+Thêm chỉ dẫn để thu hẹp phạm vi cho lượt đó, ví dụ:
+
+```
+/tms:fix-comment https://github.com/org/repo/pull/123 chỉ fix phần security
+```
