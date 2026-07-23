@@ -281,18 +281,7 @@ finding (data từ diff PR, attacker-controlled) TRƯỚC khi tới `gh api` —
 review khác submit đúng lúc đó thì trỏ nhầm, có thể submit hộ draft PENDING của người khác. `has_submodules`
 cache qua doctor từng khiến PR ĐẦU TIÊN của 1 repo mới (trước khi doctor từng chạy) luôn bị coi
 không có submodule dù PR đó thật sự bump submodule — chuyển qua `Read` thử `.gitmodules` trực tiếp
-mỗi lần, bỏ field cache. Block "Ngữ cảnh" từng splice `$ARGUMENTS` thô vào `echo "$ARGUMENTS" | grep
-...` lặp lại 8 lần (Claude Code thay `$ARGUMENTS` bằng đúng text người dùng gõ, KHÔNG escape gì —
-xác nhận qua doc chính thức) — user gõ thêm chỉ dẫn tự do sau URL (Bước 0 cho phép) chứa 1 backtick
-(vd `` `handler` `` trong câu "nên có comment top function `handler`") khiến backtick đó bị hiểu
-thành command-substitution lồng bên trong dấu `"`, lệch cân bằng quote → shell báo lỗi "unmatched
-\"", toàn bộ Ngữ cảnh không fetch được gì. Đã verify root cause + fix bằng sandbox test riêng (Bash,
-không qua Claude Code thật) trước khi sửa. Sửa bằng heredoc delimiter quote (`<<'TMS_ARGS_EOF'`,
-cùng kỹ thuật đã dùng ở Bước 9) — nội dung heredoc là literal tuyệt đối, immune với
-backtick/`"`/`$(...)`. Cú pháp `!`...`` inline CHỈ hỗ trợ 1 dòng (xác nhận qua doc Claude Code
-chính thức: "Slash commands" mục "Inject dynamic context") nên phải đổi qua fenced ` ```! ` block
-(hỗ trợ multi-line) — tiện thể gộp luôn 8 lần extract lặp lại thành ĐÚNG 1 lần (`$URL`/`$OWNER_REPO`/
-`$PULL_NUMBER` là biến bash thật sau đó, không còn splice `$ARGUMENTS` lại lần nào nữa).
+mỗi lần, bỏ field cache.
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
 `setup-flow.md` hỏi user **6 hoặc 7 câu** trong 1 lượt (câu `review_ci_status` chỉ hỏi khi PR đang
