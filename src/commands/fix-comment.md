@@ -183,6 +183,40 @@ Tồn tại → với mỗi file có finding cần xử lý (Bước 3): map sta
    chưa từng xuất hiện lúc review) thì bỏ qua, KHÔNG tự tạo mới ở đây (đó là việc của
    `review-pr.md`/`setup-flow.md` Phần B).
 
+## Bước 5 — Xét mỗi finding
+
+Với MỖI finding còn lại (Bước 3):
+
+- **LINE-level**: đọc finding gốc + MỌI reply đã có trên ĐÚNG thread đó (từ "Comments", Ngữ cảnh,
+  lọc theo `in_reply_to_id` trỏ đúng comment finding). **Thread đã có human reply RÕ RÀNG** (đồng ý
+  giữ nguyên / không cần fix / giải thích behavior có chủ đích) → bỏ qua HOÀN TOÀN finding đó, không
+  hỏi lại, không tự fix đè lên quyết định đã có.
+- **FILE-level**: không có khái niệm reply/thread qua API (xem Bước 3 mục 2) → bỏ qua nhánh "đã có
+  human reply" ở trên, áp domain còn lại của bước này như bình thường.
+- **🔴 MUST FIX / 🟠 SHOULD FIX** (cả 2 loại) → default FIX.
+  - Agent tự thấy finding SAI/không hợp lý (đọc code hiện tại không khớp mô tả, hoặc có lý do kỹ
+    thuật rõ ràng) → rẽ theo `decline_needs_confirmation` (Bước 2): `true` → gom vào câu hỏi Bước 6
+    chờ dev xác nhận decline; `false` → tự quyết decline luôn, không hỏi.
+- **🔵 SUGGESTION / 📝 NOTE** (cả 2 loại) → KHÔNG bao giờ tự quyết, bất kể setting. LUÔN gom vào câu
+  hỏi Bước 6: nêu recommend nên/không nên fix + lý do + phạm vi ảnh hưởng, để dev chọn.
+
+## Bước 6 — Gộp câu hỏi
+
+Có ≥1 finding cần hỏi ở Bước 5 (SUGGESTION/NOTE, hoặc MUST/SHOULD tự thấy sai khi
+`decline_needs_confirmation: true`) → gộp TẤT CẢ thành ĐÚNG 1 câu hỏi duy nhất (không hỏi rời từng
+finding), CHỜ dev trả lời ĐẦY ĐỦ trước khi qua Bước 7 — TUYỆT ĐỐI không fix phần đã chắc (MUST/SHOULD
+không cần hỏi) trước rồi hỏi phần còn lại sau; toàn bộ quyết định của lượt này phải chốt xong trước
+khi `Edit` file nào.
+
+Không finding nào cần hỏi → qua Bước 7 luôn.
+
+## Bước 7 — Fix
+
+Sửa code cho TOÀN BỘ finding đã quyết FIX (MUST/SHOULD chưa bị decline + SUGGESTION/NOTE dev chọn fix
+ở Bước 6), đúng convention đã đọc ở Bước 4 (naming, structure theo template stack + `ALWAYS_RULE.md`
+— không đọc được convention nào thì theo phán đoán thường, ưu tiên khớp style code hiện có xung
+quanh). `Edit` trực tiếp tại pwd (không có worktree ở lệnh này).
+
 ---
 
 ARGUMENTS: $ARGUMENTS
