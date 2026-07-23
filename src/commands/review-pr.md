@@ -49,22 +49,57 @@ Phần `ARGUMENTS` ngoài URL = chỉ dẫn bổ sung lần này. Chỉ dẫn ng
 
 Canonical URL từ `$ARGUMENTS` (cắt đuôi). Mọi `gh pr view`/`gh pr diff` kèm `-R "owner/repo"` tường minh.
 
-- PR info: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json number,title,body,author,baseRefName,headRefName 2>/dev/null`
-- Head sha: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json headRefOid --jq .headRefOid 2>/dev/null`
-- Files: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --name-only 2>/dev/null`
-- Diff: !`gh pr diff "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" 2>/dev/null`
-- Commits: !`gh pr view "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json commits --jq '.commits[].messageHeadline' 2>/dev/null`
-- Comments cũ: !`gh api repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/comments 2>/dev/null`
-- Size diff theo file (byte, dùng cho Bước 7 guard file to/dump; `--paginate` — PR >30 file thì
-  GitHub trả nhiều trang, thiếu cờ này sẽ mất size của file ở trang sau): !`gh api --paginate repos/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/([0-9]+)#\1/\2#')/pulls/$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*/pull/([0-9]+)#\1#')/files --jq '.[] | if .patch == null then "UNKNOWN(không có patch — quá lớn/binary/rename) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null`
-- CI checks (TOÀN BỘ, không filter — Bước 7 tự lọc `bucket=="fail"` để cảnh báo khi
+**`$ARGUMENTS` là text thô người dùng gõ, Claude Code splice trực tiếp vào lệnh dưới, KHÔNG escape**
+(Bước 0 CHO PHÉP gõ thêm chỉ dẫn tự do sau URL — chỉ dẫn đó có thể chứa `` ` ``/`"`/`$(...)`/xuống
+dòng bất kỳ). Vì vậy khối lệnh dưới đọc `$ARGUMENTS` ĐÚNG 1 LẦN qua heredoc delimiter quote
+(`<<'TMS_ARGS_EOF'`) — nội dung giữa 2 dòng delimiter là literal tuyệt đối, shell KHÔNG parse gì bên
+trong (không backtick, không `$`, không `"`) — rồi chỉ dùng lại `$URL` (chuỗi đã khớp regex, chắc
+chắn sạch vì ký tự hợp lệ trong URL GitHub không có backtick/quote) cho mọi lệnh `gh` bên dưới.
+TUYỆT ĐỐI không đưa `$ARGUMENTS` thô vào bất kỳ lệnh nào khác ngoài khối heredoc này.
+
+```!
+URL="$(grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' <<'TMS_ARGS_EOF' | head -1
+$ARGUMENTS
+TMS_ARGS_EOF
+)"
+OWNER_REPO="$(echo "$URL" | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')"
+PULL_NUMBER="$(echo "$URL" | sed -E 's#.*/pull/([0-9]+)#\1#')"
+
+echo "=== PR info ==="
+gh pr view "$URL" -R "$OWNER_REPO" --json number,title,body,author,baseRefName,headRefName 2>/dev/null
+
+echo "=== Head sha ==="
+gh pr view "$URL" -R "$OWNER_REPO" --json headRefOid --jq .headRefOid 2>/dev/null
+
+echo "=== Files ==="
+gh pr diff "$URL" -R "$OWNER_REPO" --name-only 2>/dev/null
+
+echo "=== Diff ==="
+gh pr diff "$URL" -R "$OWNER_REPO" 2>/dev/null
+
+echo "=== Commits ==="
+gh pr view "$URL" -R "$OWNER_REPO" --json commits --jq '.commits[].messageHeadline' 2>/dev/null
+
+echo "=== Comments cũ ==="
+gh api "repos/$OWNER_REPO/pulls/$PULL_NUMBER/comments" 2>/dev/null
+
+echo "=== Size diff theo file ==="
+gh api --paginate "repos/$OWNER_REPO/pulls/$PULL_NUMBER/files" --jq '.[] | if .patch == null then "UNKNOWN(không có patch — quá lớn/binary/rename) \(.filename)" else "\(.patch|length) \(.filename)" end' 2>/dev/null
+
+echo "=== CI checks ==="
+gh pr checks "$URL" -R "$OWNER_REPO" --json bucket,name,link --jq '.[] | "\(.bucket) \(.name) — \(.link)"' 2>/dev/null || true
+```
+
+- **Size diff theo file** (byte, dùng cho Bước 7 guard file to/dump; `--paginate` — PR >30 file thì
+  GitHub trả nhiều trang, thiếu cờ này sẽ mất size của file ở trang sau).
+- **CI checks** (TOÀN BỘ, không filter — Bước 7 tự lọc `bucket=="fail"` để cảnh báo khi
   `review_ci_status` != `false`; setup-flow Phần A dùng chính mảng này để quyết định CÓ hỏi câu
   `review_ci_status` lúc bootstrap hay không — rỗng nghĩa là repo/PR này không có CI check nào, hỏi
   sẽ vô nghĩa. Fetch luôn vô hại nếu repo không có CI — `|| true` để không exit lỗi khi `gh pr
-  checks` báo check fail/pending): !`gh pr checks "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1)" -R "$(echo "$ARGUMENTS" | grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1 | sed -E 's#.*github\.com/([^/]+)/([^/]+)/pull/[0-9]+#\1/\2#')" --json bucket,name,link --jq '.[] | "\(.bucket) \(.name) — \(.link)"' 2>/dev/null || true`
+  checks` báo check fail/pending).
 
-**Repo name** (thư mục memory) = segment `<repo>` từ PR URL — không suy từ pwd/remote. Hai owner
-trùng tên repo dùng chung 1 thư mục (giới hạn đã biết).
+**Repo name** (thư mục memory) = segment `<repo>` từ PR URL (`$OWNER_REPO` ở trên) — không suy từ
+pwd/remote. Hai owner trùng tên repo dùng chung 1 thư mục (giới hạn đã biết).
 
 **Filesystem:** thao tác tại đúng pwd phiên. Cấm `cd` / tự dò git root (ngoại lệ: subshell worktree
 Bước 1). Trước khi ghi `notebooks/review/...`, nêu pwd + repo name trong chat.
