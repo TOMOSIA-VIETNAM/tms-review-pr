@@ -1,0 +1,12 @@
+{
+  "name": "review-pr",
+  "description": "Marketplace for the tms plugin (multi-stack GitHub PR reviewer for Claude Code and Cursor).",
+  "owner": { "name": "Minh Tang Q." },
+  "plugins": [
+    {
+      "name": "tms",
+      "source": "./src",
+      "description": "Review GitHub Pull Requests across Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, and Makefile, learning per-repo convention over time."
+    }
+  ]
+}
