@@ -234,6 +234,42 @@ Theo `auto_push` (Bước 2):
   không string cứng) → `git push` (THƯỜNG, KHÔNG `--force`/`--force-with-lease`), rồi qua Bước 10.
 - **`true`** → `git push` (THƯỜNG, KHÔNG `--force`) NGAY sau Bước 8, rồi qua Bước 10 luôn trong lượt.
 
+## Bước 10 — Reply lên PR
+
+CHỈ chạy SAU KHI code đã thật sự lên remote (sau khi Bước 9 push thành công) — KHÔNG reply khi code
+còn ở local.
+
+Với MỖI finding đã quyết (fix hoặc decline) ở Bước 5/6:
+
+- **LINE-level** (có `path`+`line` ở comment gốc) → `gh api -X POST
+  repos/{owner}/{repo}/pulls/comments/{comment_id}/replies -f body="<nội dung>"` (`comment_id` = id
+  của chính comment finding gốc). Nội dung NGẮN GỌN, KHÔNG kể lể quá trình (không viết "đã đọc file
+  X rồi kiểm tra Y") — đã fix thì xác nhận ngắn (vd "Đã fix, cảm ơn bạn!"); decline thì nêu lý do
+  ngắn. Kết `<!-- bot-reply -->`.
+- **FILE-level / OVERVIEW-level** (không `path`/`line` riêng, nằm trong body 1 review) → GitHub
+  không hỗ trợ reply trực tiếp vào review tổng quan → `gh api -X POST
+  repos/{owner}/{repo}/issues/{pull_number}/comments -f body="<nội dung>"`. Nội dung dẫn link
+  `https://github.com/<owner>/<repo>/pull/<pull_number>#pullrequestreview-<review_id>` (`review_id` =
+  `id` của review chứa finding đó, "Reviews" ở Ngữ cảnh) — KHÔNG blockquote nguyên văn review. Kết
+  `<!-- bot-reply -->`.
+
+KHÔNG bao giờ tự `resolve` thread (không có nhánh nào trong lệnh này gọi `resolveReviewThread` —
+khác `re-review.md`, lệnh này không có setting bật auto-resolve).
+
+## Bước 11 — Lesson-saving
+
+Bất cứ lúc nào trong flow phát hiện 1 finding phản ánh convention CHUNG của dự án (không riêng PR
+này) → đề xuất trong chat (nội dung + tag stack + Recommend nên/không nên + lý do), CHỜ dev xác nhận,
+CHỈ ghi sau khi đồng ý — theo Phần E `"${CLAUDE_PLUGIN_ROOT}"/setup-flow.md` (`Read` nếu chưa nạp),
+dùng CHUNG `memory.md`/`ALWAYS_RULE.md` của repo (không tạo file lesson riêng cho `/tms:fix-comment`).
+
+## Đổi cấu hình fix-comment
+
+Dev gõ ý định tương đương "đổi cấu hình fix-comment" (khớp theo Ý ĐỊNH, không string cứng) — bất cứ
+lúc nào, không cần đợi lượt fix kế tiếp: `Read` `notebooks/review/<repo>/fix-comment-meta.json`, in
+từng field + giá trị hiện tại (field nào file đang thiếu → in kèm giá trị default sẽ dùng), hỏi dev
+muốn đổi field nào + giá trị mới, CHỜ xác nhận rồi `Edit` ghi ngay.
+
 ---
 
 ARGUMENTS: $ARGUMENTS
