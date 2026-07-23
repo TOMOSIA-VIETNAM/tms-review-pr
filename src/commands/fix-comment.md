@@ -217,6 +217,23 @@ Sửa code cho TOÀN BỘ finding đã quyết FIX (MUST/SHOULD chưa bị decli
 — không đọc được convention nào thì theo phán đoán thường, ưu tiên khớp style code hiện có xung
 quanh). `Edit` trực tiếp tại pwd (không có worktree ở lệnh này).
 
+## Bước 8 — Commit
+
+`git add` CHỈ đúng các file đã `Edit` ở Bước 7 (liệt kê rõ từng path, TUYỆT ĐỐI KHÔNG `git add -A`/
+`git add .`). 1 commit DUY NHẤT cho toàn bộ finding đã fix trong lượt này — message theo convention
+commit đã học được ở Bước 4 nếu có tín hiệu rõ (vd `git log` gần đây của repo), fallback
+`fix: address review comments (PR #<pull_number>)` kèm bullet tóm tắt mỗi finding đã fix. TUYỆT ĐỐI
+KHÔNG `git commit --amend`.
+
+## Bước 9 — Push
+
+Theo `auto_push` (Bước 2):
+
+- **`false`** (default) → DỪNG ở local ngay sau Bước 8, báo dev 1 câu ngắn ("Đã fix + commit local.
+  Gõ 'push' khi bạn muốn mình đẩy lên + reply luôn."). Dev gõ Ý ĐỊNH muốn push (khớp theo ý định,
+  không string cứng) → `git push` (THƯỜNG, KHÔNG `--force`/`--force-with-lease`), rồi qua Bước 10.
+- **`true`** → `git push` (THƯỜNG, KHÔNG `--force`) NGAY sau Bước 8, rồi qua Bước 10 luôn trong lượt.
+
 ---
 
 ARGUMENTS: $ARGUMENTS
