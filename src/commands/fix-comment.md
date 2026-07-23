@@ -67,6 +67,18 @@ gh pr view "$URL" -R "$OWNER_REPO" --json number,headRefName,baseRefName 2>/dev/
 echo "=== Chỉ dẫn tự do (ngoài URL) ==="
 echo "$FREE_TEXT"
 
+echo "=== Comments (finding LINE-level + reply) ==="
+gh api "repos/$OWNER_REPO/pulls/$PULL_NUMBER/comments" 2>/dev/null
+
+echo "=== Reviews (overview + review_id, finding FILE-level nằm trong body) ==="
+gh api "repos/$OWNER_REPO/pulls/$PULL_NUMBER/reviews" 2>/dev/null
+
+echo "=== Account đang chạy lệnh ==="
+gh api user --jq .login 2>/dev/null
+
+echo "=== Review threads (isResolved, dùng cho finding LINE-level) ==="
+gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved comments(first:100){nodes{databaseId}}}}}}}' -f o="$OWNER" -f r="$REPO" -F n="$PULL_NUMBER" 2>/dev/null
+
 echo "=== Git remote + branch hiện tại ==="
 git remote -v 2>/dev/null
 git branch --show-current 2>/dev/null
@@ -129,6 +141,47 @@ Repo CHƯA từng `/tms:review-pr` (không có `notebooks/review/<repo>/`) → v
 `notebooks/review/<repo>/fix-comment-meta.json` (chỉ file này — KHÔNG tạo `memory.md`/
 `ALWAYS_RULE.md`/`templates/`, đó là việc riêng của `review-pr.md`); Bước 4 tự bỏ qua phần đọc
 convention khi thư mục đó chưa tồn tại.
+
+## Bước 3 — Nhận diện finding cần xử lý
+
+Có 2 LOẠI finding, khác nguồn dữ liệu và khác cách xác định "còn mở":
+
+1. **LINE-level** (nguồn: "Comments", Ngữ cảnh): lấy account đang chạy lệnh ("Account đang chạy
+   lệnh", Ngữ cảnh). Lọc comment TOP-LEVEL (không `in_reply_to_id`) khớp account đó + khớp marker
+   `<!-- bot-finding -->` (hoặc fallback pre-marker) — áp dụng ĐÚNG logic khớp marker/fallback đã mô
+   tả trong `"${CLAUDE_PLUGIN_ROOT}"/cases/re-review.md` mục "Kiểm tra finding cũ..." (`Read` file đó
+   nếu cần đối chiếu lại, không copy-paste logic). Đối chiếu `id` (databaseId) của mỗi comment đó
+   với "Review threads" (Ngữ cảnh, GraphQL) — loại bỏ finding thuộc thread đã `isResolved: true`.
+2. **FILE-level / OVERVIEW-level** (nguồn: "Reviews", Ngữ cảnh — bullet nằm TRONG `body` của 1
+   review, không phải comment riêng): với mỗi review do CHÍNH account đang chạy lệnh tạo (`user.login`
+   khớp), có `body` chứa marker `<!-- bot-finding -->` → tách từng khối finding (từ dòng mở đầu emoji
+   mức nghiêm trọng tới marker) làm 1 finding FILE-level, giữ path nêu trong khối (định dạng
+   `` `<path>` ``) + severity + mô tả. Chỉ xét review MỚI NHẤT của account đó (review cũ hơn coi như
+   đã superseded). **GitHub không có khái niệm "resolve" cho bullet trong body review** — khác
+   LINE-level, loại này KHÔNG lọc được "đã xử lý ở lượt trước" qua API (không có quyền GET
+   `/issues/{n}/comments` để đối chiếu reply cũ) → MỌI finding FILE-level trong review mới nhất luôn
+   coi là còn mở, xử lý lại mỗi lần gọi lệnh. Giới hạn đã biết, chấp nhận (gọi lại lệnh nhiều lần trên
+   cùng PR sau khi đã fix xong phần FILE-level có thể tạo 1 reply lặp trên issue comments — không có
+   cách tránh với API hiện có).
+3. Có "Chỉ dẫn tự do" (Ngữ cảnh, phần `ARGUMENTS` ngoài URL) → áp dụng lọc thêm cả 2 danh sách trên
+   theo Ý NGHĨA (vd "chỉ fix phần security" → chỉ giữ finding liên quan bảo mật), không cần cú pháp
+   cứng.
+4. Cả 2 danh sách rỗng sau khi lọc → báo dev 1 câu ngắn ("không có finding nào cần xử lý") rồi DỪNG
+   GỌN, không tiếp tục các bước sau.
+
+## Bước 4 — Đọc convention dự án
+
+`notebooks/review/<repo>/` KHÔNG tồn tại (repo chưa từng chạy `/tms:review-pr`) → bỏ qua bước này
+hoàn toàn, fix theo phán đoán thường ở Bước 7, KHÔNG chặn/báo lỗi.
+
+Tồn tại → với mỗi file có finding cần xử lý (Bước 3): map stack qua
+`"${CLAUDE_PLUGIN_ROOT}"/stack-detection.md` (`Read`), rồi đọc:
+
+1. LOCAL `notebooks/review/<repo>/ALWAYS_RULE.md`.
+2. `memory.md` + `memories/<lesson>.md` có tag trùng stack.
+3. Template LOCAL `notebooks/review/<repo>/templates/<stack>.md` — có thì đọc, CHƯA có (stack này
+   chưa từng xuất hiện lúc review) thì bỏ qua, KHÔNG tự tạo mới ở đây (đó là việc của
+   `review-pr.md`/`setup-flow.md` Phần B).
 
 ---
 
