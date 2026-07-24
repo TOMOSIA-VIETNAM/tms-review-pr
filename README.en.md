@@ -61,6 +61,14 @@ Add instructions right after the URL for **that run only** (does not change save
 
 **Works in parallel, no fear of clobbering branches.** On each review, the PR code is checked out into its own [git worktree](https://git-scm.com/docs/git-worktree) — it does not change the branch/working tree of the repo you're coding in. You can open multiple `/tms:review-pr` sessions (several PRs at once) while still committing/editing normally on your current branch.
 
+**Reviewing several related PRs in one call** (e.g. one feature spanning 2 repos) — pass multiple URLs in the same invocation; the plugin processes them one at a time, sequentially (not in parallel, so it can still notice cross-PR concerns like a shared API contract):
+
+```
+/tms:review-pr https://github.com/org/repo-a/pull/12 https://github.com/org/repo-b/pull/34
+```
+
+**Writing your own prompt to delegate review work to a subagent?** Don't paraphrase the rules by hand — tell that subagent to `Read` the actual command file (in the plugin cache) and follow it. A subagent has no way to "type" a slash command the way you do, so a hand-summarized prompt is an easy way to drift from the real rules once it posts to a real PR.
+
 ## First time for a repo that's never been set up
 
 The plugin asks **once** (6 or 7 questions, depending on whether the repo has CI — see question 5):
