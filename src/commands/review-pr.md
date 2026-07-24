@@ -92,9 +92,6 @@ PULL_NUMBER="$(echo "$URL" | sed -E 's#.*/pull/([0-9]+)#\1#')"
 echo "=== PR info ==="
 gh pr view "$URL" -R "$OWNER_REPO" --json number,title,body,author,baseRefName,headRefName 2>/dev/null
 
-echo "=== Head sha ==="
-gh pr view "$URL" -R "$OWNER_REPO" --json headRefOid --jq .headRefOid 2>/dev/null
-
 echo "=== Files ==="
 gh pr diff "$URL" -R "$OWNER_REPO" --name-only 2>/dev/null
 
