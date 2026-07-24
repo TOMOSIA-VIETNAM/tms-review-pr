@@ -224,12 +224,15 @@ LGTM (rỗng hoàn toàn) và cấu trúc đầy đủ (có ít nhất 1 nội d
 hoặc 1 trong các mục Overview ở Bước 7). Tránh viết câu lấp khoảng trống kiểu "PR tốt"/"đã review
 kỹ" khi thực ra không có gì để nói thêm ngoài LINE.
 
-**Mọi tier overview (kể cả LGTM) đều nêu commit đã review, dạng link `[<7-ký-tự-đầu>](.../commit/<sha>)`.**
-Lý do: dev có thể force-push đổi hẳn lịch sử PR — review cũ có thể không còn khớp code mới nhất,
-nêu rõ SHA tránh mập mờ. Bước 8 fetch `headRefOid` ĐÚNG 1 LẦN ngay đầu bước (không dùng bản cũ ở
-Ngữ cảnh, không fetch lại lần 2 ở Bước 9) — cùng giá trị dùng cho overview LẪN `commit_id` trong
-payload Bước 9, tránh 2 lần fetch 2 thời điểm ra 2 SHA khác nhau (overview nói SHA này, payload
-POST lại SHA khác).
+**Mọi tier overview (kể cả LGTM) đều nêu ĐÃ REVIEW TOÀN BỘ THAY ĐỔI TÍNH ĐẾN commit nào, dạng link
+`[<7-ký-tự-đầu>](.../commit/<sha>)`.** Lý do: dev có thể force-push đổi hẳn lịch sử PR — review cũ
+có thể không còn khớp code mới nhất, nêu rõ SHA tránh mập mờ. Chữ "tính đến" là chủ đích, không phải
+văn phong tuỳ ý — user test thật đã đọc nhầm câu "đã review commit X" thành "chỉ review đúng 1
+commit đó" (trong khi ý thật là review toàn bộ diff PR tại thời điểm commit đó), nên PHẢI giữ đúng
+cụm "tính đến" mọi nơi câu này xuất hiện. Bước 8 fetch `headRefOid` ĐÚNG 1 LẦN ngay đầu bước (không
+dùng bản cũ ở Ngữ cảnh, không fetch lại lần 2 ở Bước 9) — cùng giá trị dùng cho overview LẪN
+`commit_id` trong payload Bước 9, tránh 2 lần fetch 2 thời điểm ra 2 SHA khác nhau (overview nói SHA
+này, payload POST lại SHA khác).
 
 Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt buộc sửa) / 🟠 SHOULD FIX
 (Nên sửa) / 🔵 SUGGESTION (Đề xuất) — áp cho cả FILE (heading Bước 8) lẫn LINE (prefix ngay trong
