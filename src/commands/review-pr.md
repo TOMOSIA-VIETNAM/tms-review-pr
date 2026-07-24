@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr checkout:*), Bash(gh pr checks:*), Bash(gh api repos/*/pulls/*/comments:*), Bash(gh api -X POST repos/*/pulls/*/comments/*/replies:*), Bash(gh api --paginate repos/*/pulls/*/files:*), Bash(gh api repos/*/pulls/*/reviews:*), Bash(gh api -X POST repos/*/pulls/*/reviews:*), Bash(gh api -X POST repos/*/pulls/*/reviews/*/events:*), Bash(gh api -X POST repos/*/pulls/comments/*/reactions:*), Bash(gh api user:*), Bash(gh api graphql:*), Bash(git init:*), Bash(git -C notebooks/review add:*), Bash(git -C notebooks/review commit:*), Bash(git -C notebooks/review -c user.name=* -c user.email=* commit:*), Bash(git fetch:*), Bash(git worktree add notebooks/review/*/worktrees/*:*), Bash(cd notebooks/review/*/worktrees/* && gh pr checkout:*), Bash(git -C notebooks/review/*/worktrees/* submodule update:*), Bash(cp:*), Bash(mkdir:*), Agent, Read, Grep, Write, Edit
-argument-hint: <GitHub PR URL>
-description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua memory, post kết quả qua gh api.
+argument-hint: <GitHub PR URL> [PR URL khác...] [chỉ dẫn tự do]
+description: Review 1 hoặc nhiều PR GitHub đa stack (tuần tự), học convention riêng theo repo qua memory, post kết quả qua gh api.
 ---
 
 > **CRITICAL:** CHỈ review + post comment lên PR (Bước 9). Được thêm đúng 1 review lên PR submodule
@@ -24,6 +24,9 @@ description: Review 1 PR GitHub đa stack, học convention riêng theo repo qua
 > tiến trình không biết số đó nghĩa là gì. Khi cần thông báo đang làm gì, diễn đạt bằng việc THẬT
 > đang làm (vd "Đang kiểm tra comment review cũ...", "Đang review code theo convention...", "Đang
 > tổng hợp kết quả..."), không nhắc tên/số bước.
+> **Giao việc review cho 1 subagent (Agent tool) — bất kỳ lúc nào, không riêng multi-PR (xem Bước
+> 0)** — subagent PHẢI được yêu cầu `Read` NGUYÊN VĂN file lệnh này rồi làm theo, KHÔNG paraphrase
+> rule qua prompt tay.
 
 
 ## Bước 0 — Validate ARGUMENTS
@@ -45,6 +48,24 @@ Phần `ARGUMENTS` ngoài URL = chỉ dẫn bổ sung lần này. Chỉ dẫn ng
 **thắng** `ALWAYS_RULE` local (chỉ lần chạy này). Mọi lệnh `gh` dùng canonical URL đã tách
 (`grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' | head -1`), không truyền `$ARGUMENTS` thô.
 
+**Multi-PR — ARGUMENTS chứa NHIỀU URL PR hợp lệ (mục "Tất cả PR URL trong ARGUMENTS" ở Ngữ cảnh,
+đếm được N ≥ 2):** đây là 1 lượt review nhiều PR liên quan (vd feature touch nhiều repo). Với MỖI
+URL, theo ĐÚNG thứ tự xuất hiện, thực hiện TRỌN VẸN Bước 1 → Bước 9 cho đúng URL đó (worktree/
+memory/review/post riêng biệt, độc lập theo repo của URL đó) TRƯỚC KHI chuyển sang URL kế tiếp —
+**TUẦN TỰ, KHÔNG chạy song song, KHÔNG spawn subagent** (tuần tự trong CÙNG phiên chat giữ được khả
+năng agent tự nhận ra liên quan giữa các PR — vd cùng 1 API contract giữa 2 repo — điều sẽ MẤT nếu
+tách mỗi PR cho 1 subagent độc lập). Ngữ cảnh (block dưới) chỉ pre-fetch cho URL ĐẦU (`$URL`); từ
+URL thứ 2 trở đi, TỰ fetch context tương đương (PR info/diff/comments/CI checks...) bằng chính các
+lệnh `gh` đã dùng trong Ngữ cảnh, gọi như tool call bình thường — không có pre-fetch tự động cho
+các URL sau URL đầu. `[chỉ dẫn tự do]` sau các URL (nếu có) áp dụng CHUNG cho mọi PR trong lượt này.
+Sau khi xử lý xong TẤT CẢ URL: tổng kết ngắn TRONG CHAT (không post gì thêm lên GitHub) — danh sách
+PR đã xử lý + trạng thái mỗi PR (đăng thành công/lỗi/dừng sớm).
+
+**Giao PHẦN VIỆC review cho 1 subagent (Agent tool) — dù trong lượt multi-PR này hay bất kỳ tình
+huống nào khác:** subagent đó PHẢI được yêu cầu `Read` NGUYÊN VĂN đúng file `commands/review-pr.md`
+này (qua `${CLAUDE_PLUGIN_ROOT}`) và làm theo, KHÔNG diễn giải/tóm tắt lại rule qua prompt tay —
+paraphrase dễ lệch format/rule khi review post lên PR thật, không phải câu hỏi.
+
 ## Ngữ cảnh
 
 Canonical URL từ `$ARGUMENTS` (cắt đuôi). Mọi `gh pr view`/`gh pr diff` kèm `-R "owner/repo"` tường minh.
@@ -58,6 +79,11 @@ chắn sạch vì ký tự hợp lệ trong URL GitHub không có backtick/quote
 TUYỆT ĐỐI không đưa `$ARGUMENTS` thô vào bất kỳ lệnh nào khác ngoài khối heredoc này.
 
 ```!
+echo "=== Tất cả PR URL trong ARGUMENTS (mỗi dòng 1 URL, theo đúng thứ tự xuất hiện) ==="
+grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' <<'TMS_ARGS_ALL_EOF'
+$ARGUMENTS
+TMS_ARGS_ALL_EOF
+
 URL="$(grep -oE 'https://github\.com/[^/]+/[^/]+/pull/[0-9]+' <<'TMS_ARGS_EOF' | head -1
 $ARGUMENTS
 TMS_ARGS_EOF

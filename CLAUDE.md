@@ -90,6 +90,22 @@ thuần (chat ghi lesson ngay; comment PR phải hỏi; "doctor lại"; "đổi 
 cấu hình đang áp dụng + sửa trực tiếp `meta.json`/ngôn ngữ, không đợi review kế) — nằm trong
 `review-pr.md`, không trong seed `ALWAYS_RULE` (user không customize hành vi này).
 
+**Multi-PR (ARGUMENTS chứa nhiều URL PR hợp lệ) chạy TUẦN TỰ trong CÙNG phiên chat, KHÔNG spawn
+subagent, KHÔNG song song.** Cân nhắc song song trước (nhanh hơn) nhưng bỏ — mỗi PR 1 subagent độc
+lập sẽ KHÔNG thấy finding của PR khác, mất khả năng agent tự nhận ra liên quan chéo (đã xảy ra thật
+lúc dogfood: agent tự đề nghị xác nhận API contract giữa 2 PR liên quan mà không ai yêu cầu — chỉ
+có được nhờ chạy trong cùng ngữ cảnh). Ngữ cảnh (block `!`...``, chạy trước khi model thấy prompt)
+chỉ pre-fetch cho URL ĐẦU; từ URL thứ 2 agent tự fetch context tương đương bằng tool call thường —
+đây là giới hạn có chủ đích của cơ chế `!`...`` (chạy 1 lần, không lặp theo loop runtime), không
+phải thiếu sót.
+
+**Giao phần việc review cho 1 subagent — bất kỳ lúc nào, không riêng multi-PR — subagent PHẢI được
+yêu cầu `Read` NGUYÊN VĂN `review-pr.md` rồi làm theo, KHÔNG paraphrase rule qua prompt tay.** Lý
+do: subagent không có cách nào tự "gõ" slash command như user (slash-command expansion chỉ xảy ra
+khi USER thật nhập vào input, không áp dụng cho prompt agent tự sinh) — cách khả thi duy nhất để
+subagent theo đúng rule thật là được yêu cầu đọc thẳng file, không dựa vào bản tóm tắt của agent
+giao việc (dễ lệch format/rule khi post lên PR thật).
+
 **Phân loại nội dung runtime (I/C/D/K):** Inline = invariant + xương quy trình; Case = hard gate;
 Delete khỏi runtime = lý do bug/lịch sử (chỉ file này); Keep skeleton = khung rút gọn. Mục tiêu:
 cắt chú thích thừa trên hot path, giữ chất lượng post/API.
