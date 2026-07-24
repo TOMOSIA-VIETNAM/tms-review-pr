@@ -118,7 +118,8 @@ Review phần thay đổi, theo:
 ```
 
 Hỗ trợ nhiều stack: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell,
-Makefile (và tự mở rộng khi gặp stack mới).
+Makefile, và cả file markdown điều khiển AI agent (skill/command/CLAUDE.md/AGENTS.md/cursor rules...)
+(và tự mở rộng khi gặp stack mới).
 
 **Chỉ review + comment.** Không close/merge PR, không đổi branch, không sửa code giúp bạn.
 
