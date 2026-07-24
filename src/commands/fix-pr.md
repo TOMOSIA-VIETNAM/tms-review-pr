@@ -159,6 +159,9 @@ Repo CHƯA từng `/tms:review-pr` (không có `notebooks/review/<repo>/`) → v
 `ALWAYS_RULE.md`/`templates/`, đó là việc riêng của `review-pr.md`); Bước 4 tự bỏ qua phần đọc
 convention khi thư mục đó chưa tồn tại.
 
+Kiểm `.gitignore` tại pwd (`Read` `./.gitignore`) có dòng `notebooks/review/` chưa — chưa có thì
+`Edit`/`Write` thêm đúng 1 dòng đó, tránh file rác lọt vào git status của repo đang review.
+
 ## Bước 3 — Nhận diện finding cần xử lý
 
 Có 2 LOẠI finding, khác nguồn dữ liệu và khác cách xác định "còn mở":
