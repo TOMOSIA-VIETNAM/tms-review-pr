@@ -129,6 +129,13 @@ tương đương. Rule đặt ở CRITICAL block `review-pr.md` (áp dụng luô
 vào cùng phiên) + `fix-comment.md` (case file riêng của lệnh đó) — không lặp lại ở từng case file
 lẻ, vì agent đã thấy rule này trong CRITICAL block trước khi đọc tới bất kỳ case nào.
 
+**2 bổ sung sau khi user test thật:** (1) tính năng hỏi-đáp này thường giới hạn số CÂU HỎI ĐỘC LẬP
+mỗi lượt gọi (`AskUserQuestion` ở Claude Code tối đa 4) — bootstrap có 6-7 câu nên PHẢI chia 2 lượt
+gọi liên tiếp (câu 1-4 rồi câu 5-7), không nhồi hết 1 lượt rồi bị cắt/lỗi. (2) Mỗi câu hỏi nên đánh
+dấu 1 lựa chọn làm recommend khi có cơ sở hợp lý (khớp giá trị default đã định nghĩa, hoặc phán đoán
+thường gặp nhất) — nhưng KHÔNG ép ra recommend gượng gạo khi các lựa chọn thật sự ngang nhau tuỳ
+hoàn cảnh (vd 2 chiến lược review đều hợp lý tuỳ PR, không có cái nào mặc định tốt hơn).
+
 **Phân loại nội dung runtime (I/C/D/K):** Inline = invariant + xương quy trình; Case = hard gate;
 Delete khỏi runtime = lý do bug/lịch sử (chỉ file này); Keep skeleton = khung rút gọn. Mục tiêu:
 cắt chú thích thừa trên hot path, giữ chất lượng post/API.
