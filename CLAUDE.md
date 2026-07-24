@@ -185,6 +185,22 @@ mức nghiêm trọng. KHÔNG đọc source thư viện/framework như thói que
 chỉ tra source khi thật sự không chắc). Diff đã fetch 1 lần ở Ngữ cảnh là nguồn duy nhất — không
 refetch qua `git diff`/`gh api .../files` per file. KHÔNG bới finding vụn vặt lấy số lượng — PR
 hoàn toàn sạch thì **LGTM 🌟** (đậm, kèm emoji), không viết "không có vấn đề" cho từng mức rỗng.
+
+**Overview chỉ nói thứ KHÔNG CÓ ở LINE — dev thường chỉ tập trung đọc LINE, không đọc lại tổng
+quan lặp ý.** PR CÓ finding nhưng TOÀN BỘ chỉ là LINE (không FILE finding, không title/body mập mờ,
+không ticket-prefix thiếu, không CI fail, không file bị skip) → Bước 8 bỏ hẳn đoạn "2-3 câu đánh
+giá chung", overview chỉ còn dòng mở đầu (cảm ơn + hướng dẫn reply) — coi như 1 mức trung gian giữa
+LGTM (rỗng hoàn toàn) và cấu trúc đầy đủ (có ít nhất 1 nội dung "overview-exclusive": FILE finding
+hoặc 1 trong các mục Overview ở Bước 7). Tránh viết câu lấp khoảng trống kiểu "PR tốt"/"đã review
+kỹ" khi thực ra không có gì để nói thêm ngoài LINE.
+
+**Mọi tier overview (kể cả LGTM) đều nêu commit đã review, dạng link `[<7-ký-tự-đầu>](.../commit/<sha>)`.**
+Lý do: dev có thể force-push đổi hẳn lịch sử PR — review cũ có thể không còn khớp code mới nhất,
+nêu rõ SHA tránh mập mờ. Bước 8 fetch `headRefOid` ĐÚNG 1 LẦN ngay đầu bước (không dùng bản cũ ở
+Ngữ cảnh, không fetch lại lần 2 ở Bước 9) — cùng giá trị dùng cho overview LẪN `commit_id` trong
+payload Bước 9, tránh 2 lần fetch 2 thời điểm ra 2 SHA khác nhau (overview nói SHA này, payload
+POST lại SHA khác).
+
 Nhãn 3 mức nghiêm trọng dùng emoji ASCII thay text: 🔴 MUST FIX (Bắt buộc sửa) / 🟠 SHOULD FIX
 (Nên sửa) / 🔵 SUGGESTION (Đề xuất) — áp cho cả FILE (heading Bước 8) lẫn LINE (prefix ngay trong
 `comments[]`, không chỉ nhóm theo heading). Mỗi finding kết thúc bằng marker `<!-- bot-finding -->`
