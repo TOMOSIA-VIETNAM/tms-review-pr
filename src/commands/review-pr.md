@@ -139,8 +139,12 @@ Bước 7.
 
 1. `git worktree add "notebooks/review/<repo>/worktrees/review-pr<pull_number>-$RANDOM" --detach`
    — tên ngẫu nhiên, không tái dùng. Read/Grep code PR tại `<worktree>/<path>`.
-2. `(cd "notebooks/review/<repo>/worktrees/<tên>" && gh pr checkout <pull_number> -R "<owner>/<repo>")`
-   — ngoại lệ duy nhất cho cấm `cd` (subshell, neo cứng worktree).
+2. `(cd "notebooks/review/<repo>/worktrees/<tên>" && gh pr checkout <pull_number> -R "<owner>/<repo>"
+   && git checkout --detach)` — ngoại lệ duy nhất cho cấm `cd` (subshell, neo cứng worktree).
+   `git checkout --detach` NGAY SAU checkout: `gh pr checkout` để lại 1 branch thật (tracking branch
+   PR) đang checked-out trong worktree — git khoá branch đó, user không xoá được ở repo gốc của họ
+   (`cannot delete branch ... checked out at <path>`) cho tới khi worktree bị xoá. Detach ngay giải
+   phóng khoá này mà không cần user tự dọn worktree.
 3. `git fetch origin "<baseRefName>"` (refs dùng chung mọi worktree).
 4. `git -C "notebooks/review/<repo>/worktrees/<tên>" submodule update --init --recursive` (luôn chạy).
 5. `Read` thử `<worktree>/.gitmodules` (kiểm TRỰC TIẾP mỗi lần, không cache qua `meta.json` — repo
