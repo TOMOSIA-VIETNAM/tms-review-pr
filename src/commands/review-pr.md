@@ -31,7 +31,12 @@ description: Review 1 hoặc nhiều PR GitHub đa stack (tuần tự), học co
 > chọn có sẵn của agent (vd `AskUserQuestion` ở Claude Code) nếu có, để user chọn + Enter thay vì
 > phải gõ tự do.** Không có tính năng đó thì hỏi tự nhiên qua chat như bình thường. Áp dụng cho MỌI
 > câu hỏi lựa chọn trong file này và mọi case file liên quan (bootstrap, chiến lược review nhiều
-> file/file to, xác nhận lesson, xác nhận submodule PR lệch...).
+> file/file to, xác nhận lesson, xác nhận submodule PR lệch...). Tính năng đó thường giới hạn số
+> câu HỎI ĐỘC LẬP trong 1 lượt gọi (vd `AskUserQuestion` ở Claude Code tối đa 4) — cần hỏi nhiều
+> câu hơn giới hạn đó → chia thành nhiều lượt gọi LIÊN TIẾP (hết lượt này mới gọi lượt sau), KHÔNG
+> nhồi hết vào 1 lượt. Có 1 lựa chọn nào hợp lý làm mặc định (default trong file này, hoặc phán
+> đoán thường gặp nhất) → đánh dấu recommend đúng lựa chọn đó; KHÔNG có lựa chọn nào thật sự hợp lý
+> hơn hẳn (2 phương án ngang nhau tuỳ hoàn cảnh) → để trống, KHÔNG ép ra 1 recommend gượng gạo.
 
 
 ## Bước 0 — Validate ARGUMENTS
