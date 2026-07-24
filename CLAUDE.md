@@ -366,7 +366,12 @@ cùng kỹ thuật đã dùng ở Bước 9) — nội dung heredoc là literal 
 backtick/`"`/`$(...)`. Cú pháp `!`...`` inline CHỈ hỗ trợ 1 dòng (xác nhận qua doc Claude Code
 chính thức: "Slash commands" mục "Inject dynamic context") nên phải đổi qua fenced ` ```! ` block
 (hỗ trợ multi-line) — tiện thể gộp luôn 8 lần extract lặp lại thành ĐÚNG 1 lần (`$URL`/`$OWNER_REPO`/
-`$PULL_NUMBER` là biến bash thật sau đó, không còn splice `$ARGUMENTS` lại lần nào nữa).
+`$PULL_NUMBER` là biến bash thật sau đó, không còn splice `$ARGUMENTS` lại lần nào nữa). User dogfood
+thật phát hiện `auto_resolve_fixed_findings: true` từng resolve thread mà KHÔNG reply trước — dev
+không biết vì lý do gì thread biến mất, thiếu lịch sự. Spec `re-review.md` ĐÃ ghi đúng thứ tự
+reply-trước-resolve-sau nhưng chỉ bằng chữ "Sau đó" — không đủ mạnh để chặn agent bỏ qua bước reply
+trong thực tế; sửa bằng câu TUYỆT ĐỐI tường minh ("KHÔNG resolve mà KHÔNG có reply trước, dù setting
+là gì") ngay trước nhánh rẽ theo setting, không chỉ nối tiếp bằng "sau đó".
 
 **Cấu hình per-repo hỏi 1 lần lúc bootstrap, dùng lại mọi lần review sau của repo đó.** Phần A của
 `setup-flow.md` hỏi user **6 hoặc 7 câu** trong 1 lượt (câu `review_ci_status` chỉ hỏi khi PR đang
