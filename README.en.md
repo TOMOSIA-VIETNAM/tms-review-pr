@@ -106,7 +106,7 @@ Post 1 review: overview + line-by-line comments (when needed)
   • clean PR → **LGTM 🌟**, no nitpicking
 ```
 
-Supports many stacks: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile (and extends itself when it meets a new stack).
+Supports many stacks: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile, and markdown files that instruct an AI agent (skills/commands/CLAUDE.md/AGENTS.md/cursor rules...) (and extends itself when it meets a new stack).
 
 **Review + comment only.** No closing/merging PRs, no branch switching, no editing code for you.
 
