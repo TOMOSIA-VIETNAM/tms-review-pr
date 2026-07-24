@@ -34,9 +34,11 @@ description: Review 1 hoặc nhiều PR GitHub đa stack (tuần tự), học co
 > file/file to, xác nhận lesson, xác nhận submodule PR lệch...). Tính năng đó thường giới hạn số
 > câu HỎI ĐỘC LẬP trong 1 lượt gọi (vd `AskUserQuestion` ở Claude Code tối đa 4) — cần hỏi nhiều
 > câu hơn giới hạn đó → chia thành nhiều lượt gọi LIÊN TIẾP (hết lượt này mới gọi lượt sau), KHÔNG
-> nhồi hết vào 1 lượt. Có 1 lựa chọn nào hợp lý làm mặc định (default trong file này, hoặc phán
-> đoán thường gặp nhất) → đánh dấu recommend đúng lựa chọn đó; KHÔNG có lựa chọn nào thật sự hợp lý
-> hơn hẳn (2 phương án ngang nhau tuỳ hoàn cảnh) → để trống, KHÔNG ép ra 1 recommend gượng gạo.
+> nhồi hết vào 1 lượt. **Áp dụng cho MỌI câu hỏi, kể cả câu phát sinh ngoài dự kiến không có default
+> ghi sẵn ở bất kỳ file nào** (vd tình huống lệch/mập mờ mới gặp lúc review) — có 1 lựa chọn nào hợp
+> lý làm mặc định (default đã định nghĩa sẵn, hoặc tự phán đoán lựa chọn thường gặp/an toàn hơn
+> theo đúng ngữ cảnh đang gặp) → đánh dấu recommend đúng lựa chọn đó; KHÔNG có lựa chọn nào thật sự
+> hợp lý hơn hẳn (2 phương án ngang nhau tuỳ hoàn cảnh) → để trống, KHÔNG ép ra 1 recommend gượng gạo.
 
 
 ## Bước 0 — Validate ARGUMENTS
