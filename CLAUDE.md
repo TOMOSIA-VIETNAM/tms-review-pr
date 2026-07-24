@@ -120,6 +120,15 @@ khi USER thật nhập vào input, không áp dụng cho prompt agent tự sinh)
 subagent theo đúng rule thật là được yêu cầu đọc thẳng file, không dựa vào bản tóm tắt của agent
 giao việc (dễ lệch format/rule khi post lên PR thật).
 
+**Mọi câu hỏi có lựa chọn rõ cho user (bootstrap, chiến lược review nhiều file, xác nhận lesson,
+xác nhận submodule PR lệch...) ưu tiên dùng tính năng hỏi-đáp dạng lựa chọn có sẵn của agent (vd
+`AskUserQuestion` ở Claude Code) khi có, thay vì hỏi mở bằng văn tự do.** Phát hiện từ dogfood: user
+test bootstrap phải tự gõ câu trả lời bằng tay dù các lựa chọn đã rõ (vi/en/ja, true/false...) —
+UX kém hơn hẳn so với chọn + Enter mà tính năng đó cho phép, và Cursor/agent khác cũng có tính năng
+tương đương. Rule đặt ở CRITICAL block `review-pr.md` (áp dụng luôn cho mọi case file được `Read`
+vào cùng phiên) + `fix-comment.md` (case file riêng của lệnh đó) — không lặp lại ở từng case file
+lẻ, vì agent đã thấy rule này trong CRITICAL block trước khi đọc tới bất kỳ case nào.
+
 **Phân loại nội dung runtime (I/C/D/K):** Inline = invariant + xương quy trình; Case = hard gate;
 Delete khỏi runtime = lý do bug/lịch sử (chỉ file này); Keep skeleton = khung rút gọn. Mục tiêu:
 cắt chú thích thừa trên hot path, giữ chất lượng post/API.

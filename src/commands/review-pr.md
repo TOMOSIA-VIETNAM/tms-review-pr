@@ -27,6 +27,11 @@ description: Review 1 hoặc nhiều PR GitHub đa stack (tuần tự), học co
 > **Giao việc review cho 1 subagent (Agent tool) — bất kỳ lúc nào, không riêng multi-PR (xem Bước
 > 0)** — subagent PHẢI được yêu cầu `Read` NGUYÊN VĂN file lệnh này rồi làm theo, KHÔNG paraphrase
 > rule qua prompt tay.
+> **Mọi câu hỏi có lựa chọn rõ cho user (không phải hỏi mở tự do) — DÙNG tính năng hỏi-đáp dạng lựa
+> chọn có sẵn của agent (vd `AskUserQuestion` ở Claude Code) nếu có, để user chọn + Enter thay vì
+> phải gõ tự do.** Không có tính năng đó thì hỏi tự nhiên qua chat như bình thường. Áp dụng cho MỌI
+> câu hỏi lựa chọn trong file này và mọi case file liên quan (bootstrap, chiến lược review nhiều
+> file/file to, xác nhận lesson, xác nhận submodule PR lệch...).
 
 
 ## Bước 0 — Validate ARGUMENTS
