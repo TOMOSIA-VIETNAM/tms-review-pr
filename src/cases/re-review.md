@@ -44,10 +44,16 @@ Mục tiêu riêng, khác việc học convention ở trên:
    - **Đã fix** → reply ngắn gọn xác nhận vào ĐÚNG thread đó, ĐÚNG giọng REVIEWER xác nhận (không
      viết như thể chính reviewer là người vừa sửa code):
      `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies -f
-     body="<xác nhận ngắn, 1 câu, theo ngôn ngữ output đã chọn, vd 'Xác nhận đã fix, cảm ơn bạn!'/'Confirmed fixed, thanks!'>"`.
-     Sau đó rẽ theo `auto_resolve_fixed_findings` (đọc từ `meta.json` ở Bước 3 của `review-pr.md`):
-     - **`true`** → resolve luôn thread: query `reviewThreads` qua GraphQL để tìm `threadId` ứng với
-       `comment_id` đó
+     body="<xác nhận ngắn, 1 câu, theo ngôn ngữ output đã chọn, vd 'Xác nhận đã fix, cảm ơn bạn!'/'Confirmed fixed, thanks!'>
+     <!-- bot-reply -->"`. Marker `<!-- bot-reply -->` LUÔN kết thúc reply này, không hiện trên
+     GitHub (HTML comment) — cùng nguyên tắc với `<!-- bot-finding -->` (Bước 7 `review-pr.md`), cho
+     phép nhận diện ổn định mọi reply do chính lệnh này để lại, không phụ thuộc hình dạng prose.
+     **BẮT BUỘC reply xong THÀNH CÔNG rồi mới xét resolve — TUYỆT ĐỐI KHÔNG resolve 1 thread mà
+     KHÔNG có reply trước, dù `auto_resolve_fixed_findings` là gì.** Resolve mà không reply = dev
+     không biết vì lý do gì thread biến mất, thiếu lịch sự. Rẽ theo `auto_resolve_fixed_findings`
+     (đọc từ `meta.json` ở Bước 3 của `review-pr.md`):
+     - **`true`** → resolve luôn thread (CHỈ SAU KHI reply ở trên đã POST xong): query
+       `reviewThreads` qua GraphQL để tìm `threadId` ứng với `comment_id` đó
        (`gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id comments(first:1){nodes{databaseId}}}}}}}' -f o={owner} -f r={repo} -F n={pull_number}`),
        lấy `id` của thread có `databaseId` khớp `comment_id`, rồi gọi mutation
        `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{id isResolved}}}' -f t=<threadId>`.

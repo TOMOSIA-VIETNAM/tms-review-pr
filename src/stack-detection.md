@@ -16,6 +16,12 @@ khác nhau.
 | `.sh`, `.bash` | `shell` |
 | `Makefile`, `makefile`, `*.mk` | `makefile` |
 | `.php` (không rơi vào overlay Laravel/WordPress bên dưới) | `php` |
+| `.md` là chỉ dẫn cho AI agent, không phải docs cho người đọc (xem chú thích dưới bảng) | `agent-instructions` |
+
+_Nhận diện `agent-instructions`: phán đoán qua NỘI DUNG, không phải chỉ đuôi file — giọng imperative
+hướng dẫn hành động, không phải tường thuật cho người đọc. Ví dụ path/tên file minh hoạ, không giới
+hạn ở đây: `.claude/commands/`, `.claude/skills/`, `.cursor/rules/`, `CLAUDE.md`, `AGENTS.md`,
+`*.cursorrules`, `copilot-instructions.md`._
 
 ## Overlay (cộng thêm lên stack nền, không thay thế)
 

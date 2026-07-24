@@ -41,8 +41,11 @@ qua context — tốn token); `mkdir -p` để tạo thư mục.
    `cp "${CLAUDE_PLUGIN_ROOT}/ALWAYS_RULE.md" "notebooks/review/<repo>/ALWAYS_RULE.md"`. Từ
    đây về sau `review-pr.md` (Bước 5) đọc BẢN LOCAL này — team có thể mở/chỉnh sửa ngay trong repo của họ
    theo dự án, không cần vào tận plugin. Bản trong plugin chỉ là "seed" mặc định lúc bootstrap.
-6. Hỏi user **6 hoặc 7 câu trong 1 lượt** (tuỳ có CI hay không — xem câu 5), ngay trong chat (câu
-   hỏi tự nhiên là đủ, không bắt buộc tool cụ thể): (1) ngôn ngữ output — vi/en/ja; (2)
+6. Hỏi user **6 hoặc 7 câu trong 1 lượt bootstrap** (tuỳ có CI hay không — xem câu 5) — dùng tính
+   năng hỏi-đáp dạng lựa chọn có sẵn của agent nếu có (xem CRITICAL `review-pr.md`), mỗi câu kèm
+   sẵn lựa chọn recommend đúng giá trị default ghi dưới đây; tính năng đó giới hạn số câu/lượt gọi
+   (vd tối đa 4) → chia 2 lượt gọi liên tiếp (câu 1-4 rồi câu 5-7, hết lượt trước mới gọi lượt sau).
+   Không có tính năng đó thì hỏi tự nhiên qua chat: (1) ngôn ngữ output — vi/en/ja; (2)
    `auto_submit_review` true/false (mặc định **false**); (3) `auto_resolve_fixed_findings`
    true/false (mặc định **false**); (4) `doctor_schedule` — chu kỳ doctor lại convention (`{N} days`
    | `{N} weeks` | `{N} months` | `never`; mặc định **`1 months`** nếu user không chọn); (5)

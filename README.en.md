@@ -61,6 +61,14 @@ Add instructions right after the URL for **that run only** (does not change save
 
 **Works in parallel, no fear of clobbering branches.** On each review, the PR code is checked out into its own [git worktree](https://git-scm.com/docs/git-worktree) — it does not change the branch/working tree of the repo you're coding in. You can open multiple `/tms:review-pr` sessions (several PRs at once) while still committing/editing normally on your current branch.
 
+**Reviewing several related PRs in one call** (e.g. one feature spanning 2 repos) — pass multiple URLs in the same invocation; the plugin processes them one at a time, sequentially (not in parallel, so it can still notice cross-PR concerns like a shared API contract):
+
+```
+/tms:review-pr https://github.com/org/repo-a/pull/12 https://github.com/org/repo-b/pull/34
+```
+
+**Writing your own prompt to delegate review work to a subagent?** Don't paraphrase the rules by hand — tell that subagent to `Read` the actual command file (in the plugin cache) and follow it. A subagent has no way to "type" a slash command the way you do, so a hand-summarized prompt is an easy way to drift from the real rules once it posts to a real PR.
+
 ## First time for a repo that's never been set up
 
 The plugin asks **once** (6 or 7 questions, depending on whether the repo has CI — see question 5):
@@ -98,7 +106,7 @@ Post 1 review: overview + line-by-line comments (when needed)
   • clean PR → **LGTM 🌟**, no nitpicking
 ```
 
-Supports many stacks: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile (and extends itself when it meets a new stack).
+Supports many stacks: Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile, and markdown files that instruct an AI agent (skills/commands/CLAUDE.md/AGENTS.md/cursor rules...) (and extends itself when it meets a new stack).
 
 **Review + comment only.** No closing/merging PRs, no branch switching, no editing code for you.
 
@@ -125,3 +133,25 @@ In a repo reviewed at least once:
 | Default language | `notebooks/review/<repo>/ALWAYS_RULE.md` — the `Output language` block |
 | Post now / draft, auto-resolve threads, convention re-read cycle | `notebooks/review/<repo>/meta.json` |
 | Team-specific rules | `ALWAYS_RULE.md` under the extra-rules section, or say it in chat to record a lesson |
+
+## After the review: `/tms:fix-pr`
+
+`/tms:review-pr` only reviews and comments — it never edits code for you. Once a PR has been
+reviewed, call:
+
+```
+/tms:fix-pr https://github.com/<owner>/<repo>/pull/<number>
+```
+
+Unlike `/tms:review-pr`, this one is **dev-facing and edits real code** right in your current
+working directory (no separate worktree) — it reads the findings the bot left, decides fix vs
+decline per severity (🔵 SUGGESTION/📝 NOTE always ask you first), fixes the code following the
+project's learned conventions, batches everything into one commit, then replies to each finding on
+the PR. What runs where, what's automatic, what it asks first — see the details right in the
+command the first time you call it on a repo (asks 2 config questions, once).
+
+Add instructions to narrow the scope for that run, e.g.:
+
+```
+/tms:fix-pr https://github.com/org/repo/pull/123 only fix the security parts
+```
