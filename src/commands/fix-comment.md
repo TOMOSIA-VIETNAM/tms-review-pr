@@ -259,10 +259,10 @@ còn ở local.
 Với MỖI finding đã quyết (fix hoặc decline) ở Bước 5/6:
 
 - **LINE-level** (có `path`+`line` ở comment gốc) → `gh api -X POST
-  repos/{owner}/{repo}/pulls/comments/{comment_id}/replies -f body="<nội dung>"` (`comment_id` = id
-  của chính comment finding gốc). Nội dung NGẮN GỌN, KHÔNG kể lể quá trình (không viết "đã đọc file
-  X rồi kiểm tra Y") — đã fix thì xác nhận ngắn (vd "Đã fix, cảm ơn bạn!"); decline thì nêu lý do
-  ngắn. Kết `<!-- bot-reply -->`.
+  repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies -f body="<nội dung>"`
+  (`comment_id` = id của chính comment finding gốc — thiếu `{pull_number}` trong path sẽ 404). Nội
+  dung NGẮN GỌN, KHÔNG kể lể quá trình (không viết "đã đọc file X rồi kiểm tra Y") — đã fix thì xác
+  nhận ngắn (vd "Đã fix, cảm ơn bạn!"); decline thì nêu lý do ngắn. Kết `<!-- bot-reply -->`.
 - **FILE-level / OVERVIEW-level** (không `path`/`line` riêng, nằm trong body 1 review) → GitHub
   không hỗ trợ reply trực tiếp vào review tổng quan → `gh api -X POST
   repos/{owner}/{repo}/issues/{pull_number}/comments -f body="<nội dung>"`. Nội dung dẫn link
