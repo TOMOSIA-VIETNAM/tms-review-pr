@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repo là gì
 
-Claude Code **plugin** tên `tms` — 1 slash command duy nhất `/tms:review-pr <PR_URL>` để review PR
-GitHub đa stack (Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell,
-Makefile), tự học convention riêng theo từng repo được review, post kết quả (summary + inline
-line-by-line) trực tiếp lên PR qua `gh api`.
+Claude Code **plugin** tên `tms` — 2 slash command: `/tms:review-pr <PR_URL>` review PR GitHub đa
+stack (Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile), tự học
+convention riêng theo từng repo được review, post kết quả (summary + inline line-by-line) trực tiếp
+lên PR qua `gh api`; và `/tms:fix-comment <PR_URL>` dev-facing, đọc đúng finding `/tms:review-pr` đã
+để lại, tự fix code đúng convention dự án, commit/push có kiểm soát, reply lại PR.
 
 Không có build/lint/test — toàn bộ plugin là markdown (command + template nội dung) và 1 file JSON
 cấu hình. Không có runtime code riêng của repo này để chạy/test độc lập; cách "chạy thử" là cài
@@ -49,6 +50,19 @@ src/commands/review-pr.md            Slash command DUY NHẤT /tms:review-pr —
                                `mkdir`, `Agent`, `Read`, `Grep`, `Write`, `Edit` — không
                                `gh pr close/merge`, không `git push/branch -D/reset --hard`, không
                                `git branch`/`git checkout` trần
+src/commands/fix-comment.md   Slash command THỨ HAI /tms:fix-comment <PR_URL> — dev-facing, SỬA
+                               CODE THẬT tại pwd hiện tại (KHÔNG qua worktree, khác review-pr.md).
+                               Đọc finding review-pr.md để lại trên 1 PR, tự quyết fix/decline theo
+                               severity, commit/push có kiểm soát, reply lại đúng thread/issue. Verify
+                               remote+branch+branch-bảo-vệ ở đầu lệnh, DỪNG NGAY nếu sai. Bootstrap
+                               setting riêng `fix-comment-meta.json` (sibling `meta.json`, không
+                               chung field). allowed-tools: `gh pr view`, `gh api` scope path cụ thể
+                               (comments/reviews/graphql/user GET, POST đúng reply LINE-level +
+                               comment OVERVIEW-level, KHÔNG POST reviews), `git remote`,
+                               `git branch --show-current`, `git add/commit/push` (không `-A`, không
+                               `--amend`, không `--force`), `Read`, `Grep`, `Write`, `Edit`, `Agent`
+                               — không `gh pr checkout`, không `git worktree`, không
+                               `gh pr close/merge/reopen`, không `git branch -D/reset --hard`
 src/stack-detection.md        KHÔNG phải slash command. Bảng mapping đuôi file/path → stack +
                                overlay rule; `review-pr.md` Bước 2 đọc bằng Read
 src/setup-flow.md             KHÔNG phải slash command (có ý — xem bên dưới). `review-pr.md` chỉ đọc
@@ -236,6 +250,15 @@ inline, đã trực quan theo đúng dòng diff) — overview không liệt kê 
 finding dưới bất kỳ hình thức nào; tránh duplicate tốn token. Verify sau post (Bước 9) bó hẹp đúng
 1 lần check state;
 lỗi POST → `post-review.md`, retry 1 lần, KHÔNG tạo/xoá comment test trên PR thật.
+
+**Marker `<!-- bot-reply -->` — cùng nguyên tắc với `<!-- bot-finding -->`, nhưng đánh dấu REPLY
+(không phải finding gốc), dùng chung giữa `review-pr.md` (qua `re-review.md`, reply xác nhận đã fix)
+và `fix-comment.md` (mọi reply/comment lệnh đó tạo ra — fix, decline, cả LINE-level lẫn
+FILE-level).** HTML comment, không hiện trên GitHub, ổn định qua thời gian như `<!-- bot-finding -->`
+— hiện chưa có case nào cần PARSE lại marker này (không giống `<!-- bot-finding -->` được
+`re-review.md` đọc lại để nhận diện finding cũ), chỉ đang đóng vai trò nhận diện "reply do bot tạo"
+cho người đọc/tool ngoài sau này; thêm case nào cần đối chiếu reply cũ thì tận dụng marker có sẵn
+này, không cần bịa marker mới.
 
 **`src/cases/` — logic review-time có điều kiện theo TỪNG PR, không phải theo trạng thái repo.**
 Khác `setup-flow.md` (gate theo trạng thái CỦA REPO — đã bootstrap/doctor chưa, chạy 1 lần) và
@@ -425,6 +448,43 @@ THAM CHIẾU path vào `memory.md`; mâu thuẫn → lesson Phần E không hỏ
 
 **Phân loại file-level vs line-level finding là phán đoán ngữ cảnh của agent lúc review**, cố tình
 không có danh sách cứng/enum trong `review-pr.md` — đừng thêm danh sách cứng vào đó khi sửa.
+
+## `/tms:fix-comment` — dev-facing, sửa code thật
+
+**`src/commands/fix-comment.md` chạy trực tiếp tại pwd thật của dev, KHÔNG qua worktree** — khác
+hoàn toàn `review-pr.md` (chỉ đọc/review trong worktree ephemeral). Vì có quyền `Edit`/`git commit`/
+`git push` thật, Bước 1 (verify remote khớp owner/repo của PR, branch hiện tại khớp `headRefName`,
+branch hiện tại KHÔNG phải nhánh bảo vệ) PHẢI chạy trước mọi thao tác khác và dừng cứng nếu sai — đây
+là lớp chặn CHÍNH, không phải gợi ý.
+
+**2 loại finding khác nguồn dữ liệu, khác cách biết "còn mở".** LINE-level (comment riêng qua
+`/pulls/{n}/comments`) tra `isResolved` qua GraphQL `reviewThreads` — cùng cơ chế `re-review.md` đã
+dùng. FILE-level/OVERVIEW-level (bullet nằm trong `body` của 1 review, không phải comment riêng) thì
+GitHub không có khái niệm resolve cho nội dung trong body review, và `allowed-tools` không cấp GET
+`/issues/{n}/comments` để tự đối chiếu reply cũ — nên loại này LUÔN coi là còn mở ở review mới nhất
+của account đang chạy lệnh, xử lý lại mỗi lần gọi lệnh. Giới hạn đã biết, chấp nhận: gọi lệnh nhiều
+lần trên cùng PR sau khi phần FILE-level đã fix xong có thể tạo 1 reply lặp trên issue comments;
+không có cách tránh với đúng bộ quyền hiện tại mà không phải mở thêm 1 quyền GET mới.
+
+**Severity chi phối mức tự quyết, tách theo 2 trục khác nhau — không gộp chung 1 setting.** 🔴/🟠
+default FIX; agent tự thấy sai thì rẽ theo `decline_needs_confirmation` (hỏi hay tự quyết decline).
+🔵/📝 KHÔNG BAO GIỜ tự quyết bất kể setting nào — luôn hỏi dev, đây là hard rule không có field cấu
+hình nào bật/tắt được. Mọi câu cần hỏi trong 1 lượt (severity thấp + severity cao bị decline khi cần
+xác nhận) gộp thành ĐÚNG 1 câu, chờ trả lời đầy đủ trước khi `Edit` file nào — không fix phần chắc
+trước rồi hỏi phần còn lại sau.
+
+**`fix-comment-meta.json` là file SETTING RIÊNG, sibling `meta.json`, không chung field** — cùng
+thư mục `notebooks/review/<repo>/`, dùng lại git nested + `.gitignore` `review-pr.md` đã tạo (không
+`git init`/`.gitignore` mới). Schema 2 field: `decline_needs_confirmation` (default `true`),
+`auto_push` (default `false`). Repo CHƯA từng chạy `/tms:review-pr` (không có
+`notebooks/review/<repo>/`) vẫn bootstrap được — chỉ tạo đúng file setting này, KHÔNG tạo
+`memory.md`/`ALWAYS_RULE.md`/`templates/`; bước đọc convention tự bỏ qua khi thư mục đó chưa tồn tại
+(fix theo phán đoán thường, không chặn/báo lỗi).
+
+**1 commit/lượt, push tách rời commit, reply tách rời push.** `git add` chỉ đúng file đã `Edit`
+(không `-A`/`.`), không `--amend`. `auto_push: false` (default) dừng ở local chờ dev tự ra lệnh push
+— reply lên PR CHỈ chạy sau khi code đã thật sự lên remote (không reply cho code còn ở local, tránh
+review/dev thấy reply "đã fix" nhưng code chưa ai push).
 
 ## Khi thêm 1 stack mới
 

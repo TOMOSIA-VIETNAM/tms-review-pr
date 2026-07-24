@@ -133,3 +133,25 @@ In a repo reviewed at least once:
 | Default language | `notebooks/review/<repo>/ALWAYS_RULE.md` — the `Output language` block |
 | Post now / draft, auto-resolve threads, convention re-read cycle | `notebooks/review/<repo>/meta.json` |
 | Team-specific rules | `ALWAYS_RULE.md` under the extra-rules section, or say it in chat to record a lesson |
+
+## After the review: `/tms:fix-comment`
+
+`/tms:review-pr` only reviews and comments — it never edits code for you. Once a PR has been
+reviewed, call:
+
+```
+/tms:fix-comment https://github.com/<owner>/<repo>/pull/<number>
+```
+
+Unlike `/tms:review-pr`, this one is **dev-facing and edits real code** right in your current
+working directory (no separate worktree) — it reads the findings the bot left, decides fix vs
+decline per severity (🔵 SUGGESTION/📝 NOTE always ask you first), fixes the code following the
+project's learned conventions, batches everything into one commit, then replies to each finding on
+the PR. What runs where, what's automatic, what it asks first — see the details right in the
+command the first time you call it on a repo (asks 2 config questions, once).
+
+Add instructions to narrow the scope for that run, e.g.:
+
+```
+/tms:fix-comment https://github.com/org/repo/pull/123 only fix the security parts
+```

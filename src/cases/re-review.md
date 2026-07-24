@@ -44,7 +44,10 @@ Mục tiêu riêng, khác việc học convention ở trên:
    - **Đã fix** → reply ngắn gọn xác nhận vào ĐÚNG thread đó, ĐÚNG giọng REVIEWER xác nhận (không
      viết như thể chính reviewer là người vừa sửa code):
      `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies -f
-     body="<xác nhận ngắn, 1 câu, theo ngôn ngữ output đã chọn, vd 'Xác nhận đã fix, cảm ơn bạn!'/'Confirmed fixed, thanks!'>"`.
+     body="<xác nhận ngắn, 1 câu, theo ngôn ngữ output đã chọn, vd 'Xác nhận đã fix, cảm ơn bạn!'/'Confirmed fixed, thanks!'>
+     <!-- bot-reply -->"`. Marker `<!-- bot-reply -->` LUÔN kết thúc reply này, không hiện trên
+     GitHub (HTML comment) — cùng nguyên tắc với `<!-- bot-finding -->` (Bước 7 `review-pr.md`), cho
+     phép nhận diện ổn định mọi reply do chính lệnh này để lại, không phụ thuộc hình dạng prose.
      Sau đó rẽ theo `auto_resolve_fixed_findings` (đọc từ `meta.json` ở Bước 3 của `review-pr.md`):
      - **`true`** → resolve luôn thread: query `reviewThreads` qua GraphQL để tìm `threadId` ứng với
        `comment_id` đó
