@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Claude Code **plugin** tên `tms` — 2 slash command: `/tms:review-pr <PR_URL>` review PR GitHub đa
 stack (Rails, Vue, React, Python, Node.js, Lambda, PHP, Laravel, WordPress, Shell, Makefile), tự học
 convention riêng theo từng repo được review, post kết quả (summary + inline line-by-line) trực tiếp
-lên PR qua `gh api`; và `/tms:fix-comment <PR_URL>` dev-facing, đọc đúng finding `/tms:review-pr` đã
+lên PR qua `gh api`; và `/tms:fix-pr <PR_URL>` dev-facing, đọc đúng finding `/tms:review-pr` đã
 để lại, tự fix code đúng convention dự án, commit/push có kiểm soát, reply lại PR.
 
 Không có build/lint/test — toàn bộ plugin là markdown (command + template nội dung) và 1 file JSON
@@ -50,12 +50,12 @@ src/commands/review-pr.md            Slash command DUY NHẤT /tms:review-pr —
                                `mkdir`, `Agent`, `Read`, `Grep`, `Write`, `Edit` — không
                                `gh pr close/merge`, không `git push/branch -D/reset --hard`, không
                                `git branch`/`git checkout` trần
-src/commands/fix-comment.md   Slash command THỨ HAI /tms:fix-comment <PR_URL> — dev-facing, SỬA
+src/commands/fix-pr.md   Slash command THỨ HAI /tms:fix-pr <PR_URL> — dev-facing, SỬA
                                CODE THẬT tại pwd hiện tại (KHÔNG qua worktree, khác review-pr.md).
                                Đọc finding review-pr.md để lại trên 1 PR, tự quyết fix/decline theo
                                severity, commit/push có kiểm soát, reply lại đúng thread/issue. Verify
                                remote+branch+branch-bảo-vệ ở đầu lệnh, DỪNG NGAY nếu sai. Bootstrap
-                               setting riêng `fix-comment-meta.json` (sibling `meta.json`, không
+                               setting riêng `fix-pr-meta.json` (sibling `meta.json`, không
                                chung field). allowed-tools: `gh pr view`, `gh api` scope path cụ thể
                                (comments/reviews/graphql/user GET, POST đúng reply LINE-level +
                                comment OVERVIEW-level, KHÔNG POST reviews), `git remote`,
@@ -126,7 +126,7 @@ xác nhận submodule PR lệch...) ưu tiên dùng tính năng hỏi-đáp dạ
 test bootstrap phải tự gõ câu trả lời bằng tay dù các lựa chọn đã rõ (vi/en/ja, true/false...) —
 UX kém hơn hẳn so với chọn + Enter mà tính năng đó cho phép, và Cursor/agent khác cũng có tính năng
 tương đương. Rule đặt ở CRITICAL block `review-pr.md` (áp dụng luôn cho mọi case file được `Read`
-vào cùng phiên) + `fix-comment.md` (case file riêng của lệnh đó) — không lặp lại ở từng case file
+vào cùng phiên) + `fix-pr.md` (case file riêng của lệnh đó) — không lặp lại ở từng case file
 lẻ, vì agent đã thấy rule này trong CRITICAL block trước khi đọc tới bất kỳ case nào.
 
 **2 bổ sung sau khi user test thật:** (1) tính năng hỏi-đáp này thường giới hạn số CÂU HỎI ĐỘC LẬP
@@ -269,7 +269,7 @@ lỗi POST → `post-review.md`, retry 1 lần, KHÔNG tạo/xoá comment test t
 
 **Marker `<!-- bot-reply -->` — cùng nguyên tắc với `<!-- bot-finding -->`, nhưng đánh dấu REPLY
 (không phải finding gốc), dùng chung giữa `review-pr.md` (qua `re-review.md`, reply xác nhận đã fix)
-và `fix-comment.md` (mọi reply/comment lệnh đó tạo ra — fix, decline, cả LINE-level lẫn
+và `fix-pr.md` (mọi reply/comment lệnh đó tạo ra — fix, decline, cả LINE-level lẫn
 FILE-level).** HTML comment, không hiện trên GitHub, ổn định qua thời gian như `<!-- bot-finding -->`
 — hiện chưa có case nào cần PARSE lại marker này (không giống `<!-- bot-finding -->` được
 `re-review.md` đọc lại để nhận diện finding cũ), chỉ đang đóng vai trò nhận diện "reply do bot tạo"
@@ -465,9 +465,9 @@ THAM CHIẾU path vào `memory.md`; mâu thuẫn → lesson Phần E không hỏ
 **Phân loại file-level vs line-level finding là phán đoán ngữ cảnh của agent lúc review**, cố tình
 không có danh sách cứng/enum trong `review-pr.md` — đừng thêm danh sách cứng vào đó khi sửa.
 
-## `/tms:fix-comment` — dev-facing, sửa code thật
+## `/tms:fix-pr` — dev-facing, sửa code thật
 
-**`src/commands/fix-comment.md` chạy trực tiếp tại pwd thật của dev, KHÔNG qua worktree** — khác
+**`src/commands/fix-pr.md` chạy trực tiếp tại pwd thật của dev, KHÔNG qua worktree** — khác
 hoàn toàn `review-pr.md` (chỉ đọc/review trong worktree ephemeral). Vì có quyền `Edit`/`git commit`/
 `git push` thật, Bước 1 (verify remote khớp owner/repo của PR, branch hiện tại khớp `headRefName`,
 branch hiện tại KHÔNG phải nhánh bảo vệ) PHẢI chạy trước mọi thao tác khác và dừng cứng nếu sai — đây
@@ -489,7 +489,7 @@ hình nào bật/tắt được. Mọi câu cần hỏi trong 1 lượt (severit
 xác nhận) gộp thành ĐÚNG 1 câu, chờ trả lời đầy đủ trước khi `Edit` file nào — không fix phần chắc
 trước rồi hỏi phần còn lại sau.
 
-**`fix-comment-meta.json` là file SETTING RIÊNG, sibling `meta.json`, không chung field** — cùng
+**`fix-pr-meta.json` là file SETTING RIÊNG, sibling `meta.json`, không chung field** — cùng
 thư mục `notebooks/review/<repo>/`, dùng lại git nested + `.gitignore` `review-pr.md` đã tạo (không
 `git init`/`.gitignore` mới). Schema 2 field: `decline_needs_confirmation` (default `true`),
 `auto_push` (default `false`). Repo CHƯA từng chạy `/tms:review-pr` (không có

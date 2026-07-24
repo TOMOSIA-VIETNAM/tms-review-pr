@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr checkout:*), Bash(gh pr checks:*), Bash(gh api repos/*/pulls/*/comments:*), Bash(gh api -X POST repos/*/pulls/*/comments/*/replies:*), Bash(gh api --paginate repos/*/pulls/*/files:*), Bash(gh api repos/*/pulls/*/reviews:*), Bash(gh api -X POST repos/*/pulls/*/reviews:*), Bash(gh api -X POST repos/*/pulls/*/reviews/*/events:*), Bash(gh api -X POST repos/*/pulls/comments/*/reactions:*), Bash(gh api user:*), Bash(gh api graphql:*), Bash(git init:*), Bash(git -C notebooks/review add:*), Bash(git -C notebooks/review commit:*), Bash(git -C notebooks/review -c user.name=* -c user.email=* commit:*), Bash(git fetch:*), Bash(git worktree add notebooks/review/*/worktrees/*:*), Bash(cd notebooks/review/*/worktrees/* && gh pr checkout:*), Bash(git -C notebooks/review/*/worktrees/* submodule update:*), Bash(cp:*), Bash(mkdir:*), Agent, Read, Grep, Write, Edit
-argument-hint: <GitHub PR URL> [PR URL khác...] [chỉ dẫn tự do]
+argument-hint: <GitHub PR URL> [PR URL khác...] [nội dung]
 description: Review 1 hoặc nhiều PR GitHub đa stack (tuần tự), học convention riêng theo repo qua memory, post kết quả qua gh api.
 ---
 
@@ -66,7 +66,7 @@ HỎI xác nhận trước khi xử lý, trừ khi ARGUMENTS/chat đã nói rõ 
 nhắc tới để tham khảo/so sánh, không phải PR cần review). Dev xác nhận multi-PR → với MỖI URL, đúng
 thứ tự, thực hiện TRỌN VẸN Bước 1 → Bước 9 (worktree/memory/post riêng) TUẦN TỰ — KHÔNG song song,
 KHÔNG subagent (xem CRITICAL). Ngữ cảnh chỉ pre-fetch URL ĐẦU; từ URL thứ 2, tự fetch tương đương
-qua tool call thường. `[chỉ dẫn tự do]` áp dụng chung mọi PR. Xong hết → tổng kết ngắn TRONG CHAT
+qua tool call thường. `[nội dung]` áp dụng chung mọi PR. Xong hết → tổng kết ngắn TRONG CHAT
 (không post gì thêm lên GitHub) — danh sách PR + trạng thái mỗi PR.
 
 ## Ngữ cảnh
@@ -364,7 +364,7 @@ nào agent chưa xem kỹ và tự vào xem lại. File không tồn tại/rỗn
 1 comment ĐỘC LẬP, không qua review object) — CHỈ đúng 1 endpoint dưới đây,
 `POST .../pulls/{pull_number}/reviews`. `allowed-tools` KHÔNG chặn triệt để việc này bằng permission
 (`gh` cho phép flag như `-X POST` đứng SAU path, lách qua literal-prefix pattern của endpoint GET
-comments — residual gap, xem CLAUDE.md) — rule này CHÍNH LÀ lớp chặn thật.
+comments — residual gap đã biết, chấp nhận) — rule này CHÍNH LÀ lớp chặn thật.
 
 **`commit_id` = ĐÚNG giá trị `<commit_id>` đã fetch đầu Bước 8** — KHÔNG fetch lại lần 2 ở đây,
 KHÔNG dùng `headRefOid` cũ ở Ngữ cảnh. `comments[]` chỉ LINE (`path` + `line` + `side` + `body`). Dùng

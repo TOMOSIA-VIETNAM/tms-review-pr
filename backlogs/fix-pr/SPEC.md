@@ -1,4 +1,4 @@
-# SPEC — `/tms:fix-comment`
+# SPEC — `/tms:fix-pr`
 
 Command mới trong plugin `tms` (cùng repo, cùng plugin với `/tms:review-pr` đã có). Chốt qua phiên
 grilling với user — không còn quyết định thiết kế mở, chỉ còn việc viết file + implement.
@@ -9,7 +9,7 @@ grilling với user — không còn quyết định thiết kế mở, chỉ cò
 Dev nhận review xong phải tự fix — mỗi lần giao việc fix cho subagent, dev phải nhập lại rule bằng
 tay (format reply, có nên amend không, tone...), dễ lệch/quên.
 
-`/tms:fix-comment` giải quyết đúng việc đó: 1 command dev-facing, đọc đúng finding bot đã để lại
+`/tms:fix-pr` giải quyết đúng việc đó: 1 command dev-facing, đọc đúng finding bot đã để lại
 trên 1 PR, tự quyết fix/decline theo severity, sửa code ĐÚNG convention dự án, commit/push có kiểm
 soát, reply lại PR đúng format — để dev (hoặc subagent dev giao việc) không phải tự bịa rule mỗi lần.
 
@@ -24,7 +24,7 @@ của mình (không phải review-bot).
 ### Invocation
 
 ```
-/tms:fix-comment <PR_URL> [chỉ dẫn tự do]
+/tms:fix-pr <PR_URL> [chỉ dẫn tự do]
 ```
 
 - Không có chỉ dẫn thêm → xử lý TẤT CẢ finding bot còn MỞ (chưa resolve) trên PR đó.
@@ -43,7 +43,7 @@ của mình (không phải review-bot).
    - Branch hiện tại KHÔNG khớp CHÍNH XÁC (không phân biệt hoa/thường, không substring) 1 trong:
      `main`, `master`, `production`, `prod`, `staging`, `stg`, `release`, `rls`, `dev`,
      `development`, `develop`.
-2. **Bootstrap setting** (chỉ lần đầu trên repo đó — file `fix-comment-meta.json` chưa tồn tại):
+2. **Bootstrap setting** (chỉ lần đầu trên repo đó — file `fix-pr-meta.json` chưa tồn tại):
    hỏi `decline_needs_confirmation` + `auto_push` (mặc định đề xuất, chờ trả lời), viết file, rồi
    tiếp tục bước 3. Đã có file → đọc thẳng, bỏ qua hỏi.
 3. **Nhận diện finding cần xử lý**: `gh api user` lấy account đang chạy → lọc comment top-level
@@ -87,26 +87,26 @@ của mình (không phải review-bot).
 
 ### Reconfigure trigger
 
-Dev gõ ý định tương đương "đổi cấu hình fix-comment" (khớp theo Ý ĐỊNH) → in giá trị hiện tại của
-`fix-comment-meta.json`, hỏi muốn đổi field nào, ghi ngay không cần đợi lần chạy sau.
+Dev gõ ý định tương đương "đổi cấu hình fix-pr" (khớp theo Ý ĐỊNH) → in giá trị hiện tại của
+`fix-pr-meta.json`, hỏi muốn đổi field nào, ghi ngay không cần đợi lần chạy sau.
 
 ## 3. Project structure (file mới/sửa)
 
 ```
-src/commands/fix-comment.md       MỚI — command chính, Bước 0-11 theo mục 2 trên
+src/commands/fix-pr.md       MỚI — command chính, Bước 0-11 theo mục 2 trên
 notebooks/review/<repo>/
-  fix-comment-meta.json           MỚI — settings riêng (schema mục 5), SIBLING với meta.json,
+  fix-pr-meta.json           MỚI — settings riêng (schema mục 5), SIBLING với meta.json,
                                   KHÔNG chung field, cùng git nested + .gitignore đã có
 src/cases/re-review.md            SỬA — thêm marker <!-- bot-reply --> vào cuối reply xác nhận
                                   đã có sẵn ("Xác nhận đã fix, cảm ơn bạn!"/nhánh Đã fix)
-CLAUDE.md                         SỬA — thêm fix-comment.md vào bảng cấu trúc + mục kiến trúc
-README.md / .en.md / .ja.md       SỬA — thêm mục giới thiệu /tms:fix-comment (dùng khi nào, khác
+CLAUDE.md                         SỬA — thêm fix-pr.md vào bảng cấu trúc + mục kiến trúc
+README.md / .en.md / .ja.md       SỬA — thêm mục giới thiệu /tms:fix-pr (dùng khi nào, khác
                                   gì review-pr)
 ```
 
 Không tạo repo/plugin mới (đã chốt: dùng chung repo `tms-review-pr`, chung plugin `tms`).
 
-## 4. Code style / convention khi viết `fix-comment.md`
+## 4. Code style / convention khi viết `fix-pr.md`
 
 Theo đúng convention CHỮ VIẾT đã thiết lập trong `review-pr.md`/`src/cases/*.md`:
 - Giọng imperative ngắn, không nhồi chú thích "vì sao" (lý do → CLAUDE.md, không → runtime file).
@@ -115,7 +115,7 @@ Theo đúng convention CHỮ VIẾT đã thiết lập trong `review-pr.md`/`src
 - Mọi bullet tiêu chí = gợi ý minh họa, không phải checklist đóng (khớp nguyên tắc chung của repo).
 - `allowed-tools` scope theo path/endpoint cụ thể — KHÔNG `gh api:*`/`git:*` chung (xem mục 5).
 
-## 5. `allowed-tools` (frontmatter `fix-comment.md`)
+## 5. `allowed-tools` (frontmatter `fix-pr.md`)
 
 ```
 Bash(gh pr view:*)
@@ -135,12 +135,12 @@ Read, Grep, Write, Edit, Agent
 
 **KHÔNG cấp** (khác biệt có chủ đích với `review-pr.md`): `gh pr checkout`, `git worktree`,
 `gh pr close/merge/reopen`, `git push --force*`, `git branch -D`, `git reset --hard`,
-`gh api -X POST .../reviews*` (fix-comment không tạo REVIEW, chỉ reply/comment).
+`gh api -X POST .../reviews*` (fix-pr không tạo REVIEW, chỉ reply/comment).
 
 Không giới hạn path cho `Read`/`Edit`/`Write` (khác `review-pr.md` giới hạn qua Bash pattern
 `notebooks/review/*/worktrees/*`) — vì chạy trực tiếp tại pwd thật, không có worktree để giới hạn.
 
-## 6. `fix-comment-meta.json` schema
+## 6. `fix-pr-meta.json` schema
 
 ```json
 {
@@ -152,7 +152,7 @@ Không giới hạn path cho `Read`/`Edit`/`Write` (khác `review-pr.md` giới 
 - `decline_needs_confirmation` (boolean, default `true`): chỉ chi phối nhánh MUST/SHOULD mà agent
   tự thấy sai. KHÔNG áp dụng cho SUGGESTION/NOTE (nhánh đó luôn hỏi, hard rule, không do setting).
 - `auto_push` (boolean, default `false`): xem bước 9 mục 2.
-- File nằm tại `notebooks/review/<repo>/fix-comment-meta.json` — sibling `meta.json`, không chung
+- File nằm tại `notebooks/review/<repo>/fix-pr-meta.json` — sibling `meta.json`, không chung
   field, dùng lại git nested + `.gitignore` review-pr đã tạo (không cần `git init`/`.gitignore`
   mới).
 
@@ -160,7 +160,7 @@ Không giới hạn path cho `Read`/`Edit`/`Write` (khác `review-pr.md` giới 
 
 Plugin này không có test suite tự động (toàn bộ là markdown instruction, không phải code chạy
 được độc lập — đúng bản chất repo, xem `CLAUDE.md` mục "Repo là gì"). "Test" = cài plugin
-(`./scripts/reinstall.sh`) rồi gọi `/tms:fix-comment <PR_URL thật>` trên 1 PR đã được
+(`./scripts/reinstall.sh`) rồi gọi `/tms:fix-pr <PR_URL thật>` trên 1 PR đã được
 `/tms:review-pr` review trước, quan sát:
 
 - Verify context an toàn chặn đúng khi cố tình đứng ở branch khác/repo khác.

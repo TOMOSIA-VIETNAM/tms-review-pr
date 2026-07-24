@@ -134,13 +134,13 @@ In a repo reviewed at least once:
 | Post now / draft, auto-resolve threads, convention re-read cycle | `notebooks/review/<repo>/meta.json` |
 | Team-specific rules | `ALWAYS_RULE.md` under the extra-rules section, or say it in chat to record a lesson |
 
-## After the review: `/tms:fix-comment`
+## After the review: `/tms:fix-pr`
 
 `/tms:review-pr` only reviews and comments — it never edits code for you. Once a PR has been
 reviewed, call:
 
 ```
-/tms:fix-comment https://github.com/<owner>/<repo>/pull/<number>
+/tms:fix-pr https://github.com/<owner>/<repo>/pull/<number>
 ```
 
 Unlike `/tms:review-pr`, this one is **dev-facing and edits real code** right in your current
@@ -153,5 +153,5 @@ command the first time you call it on a repo (asks 2 config questions, once).
 Add instructions to narrow the scope for that run, e.g.:
 
 ```
-/tms:fix-comment https://github.com/org/repo/pull/123 only fix the security parts
+/tms:fix-pr https://github.com/org/repo/pull/123 only fix the security parts
 ```
